@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">SmartRouteTruckApp</string>
+    <string name="navigation_drawer_modal">SmartRouteTruck</string>
+    <string name="menu_salir">Salir</string>
+    <string name="menu_download_map">Descargar Mapa</string>
+    <string name="menu_control_points">Puntos de Control</string>
+    <string name="menu_early_points">Puntos cercanos</string>
+    <string name="menu_prohibited_areas">Zonas Prohibidas</string>
+    <string name="menu_route">Crear Ruta</string>
+    <string name="menu_config">Configuracion</string>
+    <string name="menu_black_and_white">Blanco/Negro</string>
+    <string name="menu_location">Localizacion</string>
+
+    <string name="dialog_chooser">Elegir</string>
+    <string name="dialog_confirm">Confirmar</string>
+    <string name="dialog_confirm_title">¿Confirmar acción?</string>
+    <string name="dialog_info">Informativo</string>
+    <string name="dialog_ok">OK</string>
+    <string name="dialog_save">Save</string>
+    <string name="dialog_cancel">Cancelar</string>
+</resources>

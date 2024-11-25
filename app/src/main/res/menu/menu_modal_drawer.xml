@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/action_route"
+            android:title="@string/menu_route"
+            android:icon="@drawable/routing"/>
+        <item
+            android:id="@+id/action_early_points"
+            android:title="@string/menu_early_points"
+            android:icon="@drawable/shield_search"/>
+        <item
+            android:id="@+id/action_prohibited_areas"
+            android:title="@string/menu_prohibited_areas"
+            android:icon="@drawable/location_slash"/>
+        <item
+            android:id="@+id/action_control_points"
+            android:title="@string/menu_control_points"
+            android:icon="@drawable/gps"/>
+        <item
+            android:id="@+id/action_download_map"
+            android:title="@string/menu_download_map"
+            android:icon="@drawable/ic_download"/>
+        <item
+            android:id="@+id/action_black_and_white"
+            android:title="@string/menu_black_and_white"
+            android:icon="@drawable/ic_contrast"/>
+        <item
+            android:id="@+id/action_location"
+            android:title="@string/menu_location"
+            android:icon="@drawable/location"/>
+        <item
+            android:id="@+id/action_config"
+            android:title="@string/menu_config"
+            android:icon="@drawable/truck"/>
+    </group>
+    <item
+        android:id="@+id/action_salir"
+        android:title="@string/menu_salir"
+        android:icon="@drawable/logout"/>
+</menu>
+<!-- Separador -->
+<!--<item-->
+<!--android:id="@+id/nav_divider1"-->
+<!--android:title="Configuraciones"-->
+<!--android:enabled="false"-->
+<!--android:icon="@drawable/ic_settings"/>-->
