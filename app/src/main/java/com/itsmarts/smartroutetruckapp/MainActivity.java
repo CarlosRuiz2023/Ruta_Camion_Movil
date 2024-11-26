@@ -9,6 +9,8 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.Animation;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -23,20 +25,37 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.navigation.NavigationView;
 import com.here.sdk.core.Anchor2D;
+import com.here.sdk.core.GeoCoordinates;
+import com.here.sdk.core.GeoPolyline;
 import com.here.sdk.core.Point2D;
 import com.here.sdk.mapview.MapView;
+import com.itsmarts.smartroutetruckapp.clases.AvoidZonesExample;
+import com.itsmarts.smartroutetruckapp.clases.ControlPointsExample;
+import com.itsmarts.smartroutetruckapp.clases.NavigationExample;
 import com.itsmarts.smartroutetruckapp.clases.mapHelper;
 import com.itsmarts.smartroutetruckapp.helpers.Messages;
+import com.itsmarts.smartroutetruckapp.modelos.RoutesWithId;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
     ConstraintLayout hideable_content, home_content;
-    MapView mapView;
-    mapHelper mMapHelper;
+    public MapView mapView;
+    public mapHelper mMapHelper;
     NavigationView nmd;
     MaterialToolbar toolbar;
     DrawerLayout drawerLayout;
     public Messages messages;
+    public NavigationExample navigationExample;
+    public TextView messageView;
+    public GeoCoordinates currentGeoCoordinates, coordenadasDestino;
+    public AvoidZonesExample avoidZonesExample;
+    public ControlPointsExample controlPointsExample;
+    public List<RoutesWithId> rutas;
+    public Animation rotateAnimation, cargaAnimacion, animSalida, animacionClick;
+    public boolean animacionEjecutada = false, isFirstClick = true, isNightMode = false, isMenuOpen = false, rutaGenerada = false, isTrackingCamera = true, isExactRouteEnabled = false, isSimularRutaVisible = false, isRutaVisible = false, isDialogShowing = false, routeSuccessfullyProcessed = false;
+    public RoutesWithId ruta,rutaPre;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,9 +68,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         hideable_content = findViewById(R.id.hideable_content);
         home_content = findViewById(R.id.home_content);
         mapView = findViewById(R.id.map_view);
+        messageView = findViewById(R.id.messageView);
         mapView.onCreate(savedInstanceState);
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            //navigationExample.startLocationProvider();
+            navigationExample = new NavigationExample(this, mapView, messageView);
+            //avoidZonesExample = new AvoidZonesExample(this,mapView,getLayoutInflater(),fbResetZona,fbSave,llReset,llSave,dbHelper);
+            //controlPointsExample = new ControlPointsExample(this,mapView,getLayoutInflater(),fbSave,llSave,dbHelper);
+            navigationExample.startLocationProvider();
         }else{
             //mMapHelper.permisoLocalizacion(this, this);
             mMapHelper.handleAndroidPermissions();
@@ -118,6 +141,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }else{
                     item.setChecked(true);
                 }
+                break;
             case "Mapa offline":
                 // Code to handle refresh selection
                 Toast.makeText(this, name+" selected", Toast.LENGTH_SHORT).show();
@@ -126,13 +150,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }else{
                     item.setChecked(true);
                 }
+                break;
             default:
                 Log.e("Prueba","default");
                 // Code to handle other menu items
                 Toast.makeText(this, name+" selected", Toast.LENGTH_SHORT).show();
+                break;
         }
 
         // If the ID doesn't match any handled items, return false to allow system handling
         return super.onOptionsItemSelected(item);
+    }
+    public static double distanceToPolyline(GeoCoordinates point, GeoPolyline polyline) {
+        double minDistance = Double.MAX_VALUE;
+        GeoCoordinates closestPoint = null;
+        List<GeoCoordinates> vertices = polyline.vertices;
+
+        // Encuentra el vértice más cercano al punto dado
+        for (GeoCoordinates vertex : vertices) {
+            double distance = point.distanceTo(vertex);
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestPoint = vertex;
+            }
+        }
+
+        // Devuelve la distancia al punto más cercano
+        return minDistance;
     }
 }

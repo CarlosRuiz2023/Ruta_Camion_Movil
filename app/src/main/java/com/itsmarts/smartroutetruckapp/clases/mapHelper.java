@@ -200,7 +200,7 @@ public class mapHelper {
             public void permissionsDenied() {
                 if (ContextCompat.checkSelfPermission(mainActivity, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                     Log.e("Prueba", "Permisos concedidos hasta el momento.");
-                    //navigationExample.startLocationProvider();
+                    mainActivity.navigationExample.startLocationProvider();
                 }else{
                     if(count==0){
                         count++;

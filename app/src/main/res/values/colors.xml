@@ -6,4 +6,7 @@
     <color name="teal_700">#3B5D83</color>
     <color name="rojo">#FF0000</color>
     <color name="deepOrange_800">#3F72AF</color>
+    <color name="colorSecond">#7EB8D5</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#D81B60</color>
 </resources>

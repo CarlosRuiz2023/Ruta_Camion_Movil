@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="common_padding_default">16dp</dimen>
+    <dimen name="img_bar_size">40dp</dimen>
+    <dimen name="sheet_bottom_standar_peek_height">80dp</dimen>
+    <dimen name="common_padding_middle">24dp</dimen>
+</resources>

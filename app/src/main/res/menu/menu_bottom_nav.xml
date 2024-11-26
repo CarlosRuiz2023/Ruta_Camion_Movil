@@ -2,17 +2,14 @@
 <menu
     xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/action_profile"
-        android:title="Perfil"
-        android:icon="@drawable/ic_menu"/>
-    <item
         android:id="@+id/action_gps_preciso"
         android:title="GPS preciso"
-        android:checkable="true"
-        android:icon="@drawable/logo"/>
+        android:checkable="true"/>
     <item
         android:id="@+id/action_mapa_offline"
         android:title="Mapa offline"
-        android:checkable="true"
-        android:icon="@drawable/logo"/>
+        android:checkable="true"/>
+    <item
+        android:id="@+id/action_profile"
+        android:title="Perfil"/>
 </menu>

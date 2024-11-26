@@ -18,4 +18,68 @@
     <string name="dialog_ok">OK</string>
     <string name="dialog_save">Save</string>
     <string name="dialog_cancel">Cancelar</string>
+
+<!--    Aui comienzan las cadenas de la App Remasterizada-->
+    <string name="hint_avoid_zone">Zonas Prohibidas</string>
+    <string name="sheets_bottom_zona_prohibida">Zonas Prohibidas</string>
+    <string name="sheets_bottom_zona_prohibida_type">Listado de poligonos</string>
+    <string name="sheets_bottom_save">Save</string>
+    <string name="hint_control_point">Puntos de Control</string>
+    <string-array name="poi_types_array">
+        <item>Restaurante</item>
+        <item>Gasolinera</item>
+        <item>Banco</item>
+        <item>Hotel</item>
+        <item>Farmacia</item>
+    </string-array>
+
+    <!-- ESTAS SON STRINGS PARA DESCARGA, CONSULTA E INSTALACION DE MAPA DE MEXICO OFFLINE/ONLINE -->
+
+    <string name="descargar">Descargar</string>
+    <string name="consultar">Consultar</string>
+    <string name="toca_el_boton_de_consultar">Toca el botón de Consultar para obtener la información del mapa de México.</string>
+    <string name="titulo_descarga_del_mapa_de_mexico">Descarga del Mapa de México</string>
+    <string name="cancelar_descarga">Cancelar\ndescarga</string>
+    <string name="MapDownloader_instance_no_esta_listo">MapDownloader instance no esta listo trata de nuevo.</string>
+    <string name="Ocurrio_un_error_al_tratar_de_encontrar_el_mapa">Ocurrio un error al tratar de encontrar el mapa de México: </string>
+    <string name="mexico">México</string>
+    <string name="la_instancia_de_madownloader_no_esta_lista">La instancia de MapDownloader no está lista. Inténtalo de nuevo.</string>
+    <string name="error_no_se_encontro_la_region_mexico">Error: No se encontro la región México.</string>
+    <string name="el_mapa_de_mexico_ya_esta_descargado">El mapa de México ya esta descargado e instalado.</string>
+    <string name="error_al_completar_la_descarga_de_mexico">Error al completar la descarga de México: </string>
+    <string name="descarga_completada">Descarga completada al 100% para el mapa de México\nListo, el mapa ya fue descargado y puede ser utilizado de manera offline.</string>
+    <string name="la_descarga_fue_pausada">La descarga fue pausada por el usuario</string>
+    <string name="error_pausa_descarga">Error en la pausa de descarga de regiones. La tarea intentó con demasiada frecuencia volver a intentar la descarga: </string>
+    <string name="reanudado_descarga">Se ha reanudado una descarga previamente pausada.</string>
+    <string name="proceso_cancelado">Cancelado: </string>
+    <string name="tareas_canceladas"> tareas de descarga canceladas.</string>
+    <string name="descargando_mapa">Descargando mapa de México.</string>
+    <string name="progreso">Progreso: </string>
+    <string name="simbolo_porcentaje">%.</string>
+    <string name="nombre_mapa">Nombre del mapa: </string>
+    <string name="id_mapa">ID: </string>
+    <string name="tamano_descarga">Tamaño de descarga: </string>
+    <string name="simbolo_mb"> MB</string>
+    <string name="mapa_descargado_exitosamente">El mapa de México ha sido descargado correctamente. Ahora puedes utilizarlo incluso sin una conexión estable a internet.</string>
+    <string name="mapa_no_descargado">El mapa de México aún no ha sido descargado. Ve a la sección de \"Descargar Mapa\" y comienza el proceso de descarga.</string>
+    <string name="mapa_actualizacon_recomendacion">Te recomendamos buscar actualizaciones para tu mapa descargado. ¿Deseas hacerlo ahora?</string>
+    <string name="buscar_actualizaciones">Buscar actualizaciones</string>
+    <string name="iniciar_actualizacion">Iniciar Actualización</string>
+
+    <!-- AQUI TERMINAN LOS STRINGS PARA DESCARGA DE MAPA DE MEXICO -->
+
+    <!-- ESTAS SON STRINGS PARA INICIO/CIERRE DE SESION -->
+    <string name="seguro_cerrar_sesion">¿Estás seguro de que deseas cerrar sesión?</string>
+    <string name="cerrar_sesión">Cerrar Sesión</string>
+    <string name="error_vacio_username">El usuario no puede estar vacío</string>
+    <string name="error_vacio_password">La contraseña no puede estar vacía</string>
+    <string name="dialog_error_credenciales_titulo">Error de autenticación</string>
+    <string name="dialog_error_credenciale_mensaje">Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo.</string>
+    <string name="error_credenciale_acceptar">Aceptar</string>
+    <string name="inicio_sesión">Inicio de Sesión</string>
+    <string name="iniciar_sesión">Iniciar de Sesión</string>
+    <string name="usuario">Usuario</string>
+    <string name="contrasena">Contraseña</string>
+
+    <!-- AQUI TERMINAN LOS STRINGS PARA INICIO/CIERRE DE SESION -->
 </resources>
