@@ -49,17 +49,13 @@ public class ControlPointsExample {
     public Context context;
     private LayoutInflater layoutInflater;
     public ModalBottomSheetFullScreenFragmentPuntos bottomSheetFragment;
-    public FloatingActionButton fabSave;
-    public LinearLayout llSave;
     public GeoCoordinates last_coordinates;
     public String estado, municipio;
 
-    public ControlPointsExample(Context context, MapView mapView, LayoutInflater layoutInflater, FloatingActionButton fabSave, LinearLayout llSave,DatabaseHelper dbHelper) {
+    public ControlPointsExample(Context context, MapView mapView, LayoutInflater layoutInflater,DatabaseHelper dbHelper) {
         this.context = context;
         this.mapView = mapView;
         this.layoutInflater = layoutInflater;
-        this.fabSave = fabSave;
-        this.llSave = llSave;
         this.dbHelper = dbHelper;
         // Recupera la lista de polígonos de la base de datos
         pointsWithIds = dbHelper.getAllPuntos();
@@ -235,25 +231,7 @@ public class ControlPointsExample {
      *
      * @param geoCoordinates Las coordenadas donde se agregará el marcador.
      */
-    public void startGestures(){
-        // Configurar el listener de clics en el mapa
-        mapView.getGestures().setTapListener(mapViewPoint-> {
-            llSave.setVisibility(View.VISIBLE);
-            // Obtener las coordenadas geográficas del punto.
-            GeoCoordinates geoCoordinates = mapView.viewToGeoCoordinates(mapViewPoint);
-            if(mapMarker!=null) mapView.getMapScene().removeMapMarker(mapMarker);
-            // Agregar un marcador en la coordenada clicada
-            addMapMarker(geoCoordinates, R.drawable.punto_control);
-        });
-    }
-
-    /**
-     * Método para agregar un marcador en el mapa en las coordenadas especificadas.
-     *
-     * @param geoCoordinates Las coordenadas donde se agregará el marcador.
-     */
     public void cleanPoint(){
-        llSave.setVisibility(View.GONE);
         // Eliminar cualquier mapMarker existente en el Adaptador
         if(mapMarker!=null) mapView.getMapScene().removeMapMarker(mapMarker);
         mapMarker=null;
@@ -297,17 +275,6 @@ public class ControlPointsExample {
      * @param vertices Lista de coordenadas que componen el polígono.
      */
     public ModalBottomSheetFullScreenFragmentPuntos getModalBottomSheetFullScreenFragment(){
-        fabSave.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Eliminar cualquier polígono existente en el mapa
-                if(mapMarker!=null){
-                    showSavePointDialog();
-                } else {
-                    Toast.makeText(context, "De click en el mapa para agregar un punto", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
         return bottomSheetFragment;
     }
 }

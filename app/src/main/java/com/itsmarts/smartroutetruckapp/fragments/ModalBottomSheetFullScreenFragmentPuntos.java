@@ -50,7 +50,6 @@ public class ModalBottomSheetFullScreenFragmentPuntos extends BottomSheetDialogF
     public RecyclerView recyclerView;
     private LayoutInflater layoutInflater;
     private ControlPointsExample controlPointsExample;
-    private MaterialButton addPunto;
 
     public ModalBottomSheetFullScreenFragmentPuntos(ControlPointsExample controlPointsExample) {
         this.controlPointsExample = controlPointsExample;
@@ -68,7 +67,6 @@ public class ModalBottomSheetFullScreenFragmentPuntos extends BottomSheetDialogF
         containerBar = view.findViewById(R.id.containerBar);
         vExtraSpace = view.findViewById(R.id.vExtraSpace);
         recyclerView = view.findViewById(R.id.recyclerView);
-        addPunto = view.findViewById(R.id.addPunto);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(controlPointsExample.context));
         adapter = new PointAdapter(controlPointsExample);
@@ -112,10 +110,6 @@ public class ModalBottomSheetFullScreenFragmentPuntos extends BottomSheetDialogF
         });
         btnCancel.setOnClickListener(v->mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN));
         btnOpen.setOnClickListener(v->mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED));
-        addPunto.setOnClickListener(v->{
-            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-            controlPointsExample.startGestures();
-        });
         return bottomSheetDialog;
     }
 

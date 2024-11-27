@@ -6,7 +6,7 @@
     <string name="menu_control_points">Puntos de Control</string>
     <string name="menu_early_points">Puntos cercanos</string>
     <string name="menu_prohibited_areas">Zonas Prohibidas</string>
-    <string name="menu_route">Crear Ruta</string>
+    <string name="menu_route">Obtener Ruta</string>
     <string name="menu_config">Configuracion</string>
     <string name="menu_black_and_white">Blanco/Negro</string>
     <string name="menu_location">Localizacion</string>

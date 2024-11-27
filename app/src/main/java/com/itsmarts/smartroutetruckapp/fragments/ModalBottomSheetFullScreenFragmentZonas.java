@@ -49,7 +49,6 @@ public class ModalBottomSheetFullScreenFragmentZonas extends BottomSheetDialogFr
     public RecyclerView recyclerView;
     private LayoutInflater layoutInflater;
     private AvoidZonesExample avoidZonesExample;
-    private MaterialButton addZona;
 
     public ModalBottomSheetFullScreenFragmentZonas(AvoidZonesExample avoidZonesExample) {
         this.avoidZonesExample = avoidZonesExample;
@@ -67,7 +66,6 @@ public class ModalBottomSheetFullScreenFragmentZonas extends BottomSheetDialogFr
         containerBar = view.findViewById(R.id.containerBar);
         vExtraSpace = view.findViewById(R.id.vExtraSpace);
         recyclerView = view.findViewById(R.id.recyclerView);
-        addZona = view.findViewById(R.id.addZona);
 
         recyclerView.setLayoutManager(new LinearLayoutManager(avoidZonesExample.context));
         if(avoidZonesExample.polygonWithIds.size()>0){
@@ -114,10 +112,6 @@ public class ModalBottomSheetFullScreenFragmentZonas extends BottomSheetDialogFr
         });
         btnCancel.setOnClickListener(v->mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN));
         btnOpen.setOnClickListener(v->mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_EXPANDED));
-        addZona.setOnClickListener(v->{
-            mBottomSheetBehavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-            avoidZonesExample.startGestures();
-        });
         return bottomSheetDialog;
     }
 

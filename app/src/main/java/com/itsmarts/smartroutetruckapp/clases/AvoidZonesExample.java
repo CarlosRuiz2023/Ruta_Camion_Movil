@@ -56,20 +56,14 @@ public class AvoidZonesExample {
     public Context context;
     private LayoutInflater layoutInflater;
     public ModalBottomSheetFullScreenFragmentZonas bottomSheetFragment;
-    public FloatingActionButton fbReset, fbSave;
-    public LinearLayout llSave, llReset;
     public GeoPolygon selected_geometry;
     public MapMarker selected_marker;
     public String estado, municipio;
 
-    public AvoidZonesExample(Context context, MapView mapView, LayoutInflater layoutInflater, FloatingActionButton fbReset, FloatingActionButton fbSave, LinearLayout llReset, LinearLayout llSave,DatabaseHelper dbHelper) {
+    public AvoidZonesExample(Context context, MapView mapView, LayoutInflater layoutInflater,DatabaseHelper dbHelper) {
         this.context = context;
         this.mapView = mapView;
         this.layoutInflater = layoutInflater;
-        this.fbReset = fbReset;
-        this.fbSave = fbSave;
-        this.llSave = llSave;
-        this.llReset = llReset;
         this.dbHelper = dbHelper;
 
         // Recupera la lista de polígonos de la base de datos
@@ -145,71 +139,6 @@ public class AvoidZonesExample {
         mapView.getMapScene().addMapPolygon(mapPolygon);
     }
 
-    /**
-     * Método para dibujar un polígono en el mapa usando una lista de vértices.
-     *
-     * @param vertices Lista de coordenadas que componen el polígono.
-     */
-    public void showSavePolygonDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        // Infla el layout personalizado
-        View dialogView = layoutInflater.inflate(R.layout.dialog_save_polygon, null);
-        builder.setView(dialogView);
-
-        // Obtén las referencias a los elementos del layout
-        final EditText input = dialogView.findViewById(R.id.polygon_name_input);
-        final CheckBox is_dangerous_checkbox = dialogView.findViewById(R.id.is_dangerous_checkbox);
-        MaterialButton cancelButton = dialogView.findViewById(R.id.cancel_button);
-        MaterialButton saveButton = dialogView.findViewById(R.id.save_button);
-
-        // Configura los listeners de los botones
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Cierra el diálogo
-                llSave.setVisibility(View.GONE);
-                cleanPolygon();
-                dialog.dismiss();
-            }
-        });
-
-        saveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String polygonName = input.getText().toString();
-                if(polygonName.isEmpty()){
-                    Toast.makeText(context, "Ingrese un nombre para el polígono", Toast.LENGTH_SHORT).show();
-                    input.setError("Ingrese un nombre para el polígono");
-                    return;
-                }
-                AddressQuery query = new AddressQuery("",calculateCentroid(mapPolygon.getGeometry().vertices));
-                SearchOptions options = new SearchOptions();
-                SearchEngine searchEngine = null;
-                try {
-                    searchEngine = new SearchEngine();
-                } catch (InstantiationErrorException e) {
-                    //throw new RuntimeException(e);
-                }
-                searchEngine.search(query, options, geocodeAddressSearchCallback);
-                int is_dangerous = is_dangerous_checkbox.isChecked() ? 1 : 0;
-                // Guarda el polígono en la base de datos
-                dbHelper.saveZona(mapPolygon, polygonName,estado,municipio,is_dangerous);
-                for (PolygonWithId polygon : polygonWithIds) {
-                    mapView.getMapScene().removeMapPolygon(polygon.polygon);
-                }
-                polygonWithIds = dbHelper.getAllZonas();
-                llSave.setVisibility(View.GONE);
-                cleanPolygon();
-                dialog.dismiss(); // Cierra el diálogo
-            }
-        });
-        mapView.getGestures().setTapListener(null);
-
-        // Muestra el diálogo
-        dialog = builder.create();
-        dialog.show();
-    }
-
     private final SearchCallback geocodeAddressSearchCallback = new SearchCallback() {
         @Override
         public void onSearchCompleted(SearchError searchError, List<Place> list) {
@@ -233,110 +162,7 @@ public class AvoidZonesExample {
      *
      * @param vertices Lista de coordenadas que componen el polígono.
      */
-    public void showSavePolygonDialog(PolygonWithId polygonWithId) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        // Infla el layout personalizado
-        View dialogView = layoutInflater.inflate(R.layout.dialog_save_polygon, null);
-        builder.setView(dialogView);
-
-        // Obtén las referencias a los elementos del layout
-        final EditText input = dialogView.findViewById(R.id.polygon_name_input);
-        input.setText(polygonWithId.name);
-        MaterialButton cancelButton = dialogView.findViewById(R.id.cancel_button);
-        MaterialButton saveButton = dialogView.findViewById(R.id.save_button);
-
-        // Configura los listeners de los botones
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                polygonWithId.polygon.setGeometry(selected_geometry);
-                cleanPolygon();
-                llReset.setVisibility(View.GONE);
-                llSave.setVisibility(View.GONE);
-                dialog.dismiss();
-            }
-        });
-
-        saveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String polygonName = input.getText().toString();
-                // Guarda el polígono en la base de datos
-                dbHelper.updateZona(polygonWithId.id,mapPolygon, polygonName);
-                polygonWithIds = dbHelper.getAllZonas();
-                cleanPolygon();
-                llReset.setVisibility(View.GONE);
-                llSave.setVisibility(View.GONE);
-                dialog.dismiss(); // Cierra el diálogo
-            }
-        });
-        mapView.getGestures().setTapListener(null);
-
-        // Muestra el diálogo
-        dialog = builder.create();
-        dialog.show();
-    }
-
-    /**
-     * Método para dibujar un polígono en el mapa usando una lista de vértices.
-     *
-     * @param vertices Lista de coordenadas que componen el polígono.
-     */
-    public void startGestures(){
-        // Configurar el listener de clics en el mapa
-        mapView.getGestures().setTapListener(mapViewPoint-> {
-            llReset.setVisibility(View.VISIBLE);
-            // Obtener las coordenadas geográficas del punto.
-            GeoCoordinates geoCoordinates = mapView.viewToGeoCoordinates(mapViewPoint);
-            // Agregar la coordenada clicada a la lista de vértices
-            polygonVertices.add(geoCoordinates);
-            // Agregar un marcador en la coordenada clicada
-            addMapMarker(geoCoordinates, R.drawable.red_dot);
-            // Si hay al menos tres vértices, dibujar el polígono
-            if (polygonVertices.size() > 2) {
-                llSave.setVisibility(View.VISIBLE);
-                drawPolygon(polygonVertices);
-            }
-        });
-    }
-
-    /**
-     * Método para dibujar un polígono en el mapa usando una lista de vértices.
-     *
-     * @param vertices Lista de coordenadas que componen el polígono.
-     */
-    public void startGestures(PolygonWithId polygonWithId){
-        // Configurar el listener de clics en el mapa
-        mapView.getGestures().setTapListener(mapViewPoint-> {
-            llReset.setVisibility(View.VISIBLE);
-            // Obtener las coordenadas geográficas del punto.
-            GeoCoordinates geoCoordinates = mapView.viewToGeoCoordinates(mapViewPoint);
-            // Agregar la coordenada clicada a la lista de vértices
-            polygonVertices.add(geoCoordinates);
-            // Agregar un marcador en la coordenada clicada
-            addMapMarker(geoCoordinates, R.drawable.red_dot);
-            // Si hay al menos tres vértices, dibujar el polígono
-            if (polygonVertices.size() > 2) {
-                llSave.setVisibility(View.VISIBLE);
-                fbSave.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        showSavePolygonDialog(polygonWithId);
-                    }
-                });
-                drawPolygon(polygonVertices);
-            }
-        });
-    }
-
-    /**
-     * Método para dibujar un polígono en el mapa usando una lista de vértices.
-     *
-     * @param vertices Lista de coordenadas que componen el polígono.
-     */
     public void cleanPolygon(){
-        llSave.setVisibility(View.GONE);
-        llReset.setVisibility(View.GONE);
         // Eliminar cualquier polígono existente
         if(mapPolygon!=null)mapView.getMapScene().removeMapPolygon(mapPolygon);
         for(PolygonWithId polygon : polygonWithIds){
@@ -394,17 +220,6 @@ public class AvoidZonesExample {
      * @param vertices Lista de coordenadas que componen el polígono.
      */
     public ModalBottomSheetFullScreenFragmentZonas getModalBottomSheetFullScreenFragment(){
-        fbSave.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Eliminar cualquier polígono existente en el mapa
-                if(mapPolygon!=null){
-                    showSavePolygonDialog();
-                } else {
-                    Toast.makeText(context, "Genere un polígono válido antes de guardar", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
         return bottomSheetFragment;
     }
 

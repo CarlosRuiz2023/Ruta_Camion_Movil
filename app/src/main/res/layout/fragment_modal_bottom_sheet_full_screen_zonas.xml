@@ -107,19 +107,6 @@
                 android:padding="10dp"
                 app:layout_constraintTop_toTopOf="parent">
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/addZona"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:text="Agregar Zona"
-                    android:textColor="@android:color/holo_red_light"
-                    app:icon="@drawable/ic_add"
-                    app:iconTint="@android:color/holo_red_light"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    app:strokeColor="@android:color/holo_red_dark"
-                    />
-
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/recyclerView"
                     android:layout_width="match_parent"

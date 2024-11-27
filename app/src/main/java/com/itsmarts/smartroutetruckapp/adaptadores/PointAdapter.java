@@ -89,54 +89,6 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
             icon_delete = itemView.findViewById(R.id.icon_delete);
             icon_visibility = itemView.findViewById(R.id.icon_visibility);
             icon_label = itemView.findViewById(R.id.icon_label);
-            // Configura el OnClickListener para el ImageView de editar
-            icon_edit.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        PointWithId punto = controlPointsExample.pointsWithIds.get(position);
-                        List<MapView.ViewPin> mapViewPins = controlPointsExample.mapView.getViewPins();
-                        for (MapView.ViewPin viewPin : new ArrayList<>(mapViewPins)) {
-                            if(punto.mapMarker.getCoordinates().latitude==viewPin.getGeoCoordinates().latitude && punto.mapMarker.getCoordinates().longitude==viewPin.getGeoCoordinates().longitude){
-                                viewPin.unpin();
-                            }
-                        }
-                        if(!punto.status){
-                            addMapMarker(punto.mapMarker.getCoordinates(), R.drawable.punto_control);
-                        }else{
-                            controlPointsExample.mapView.getMapScene().removeMapMarker(punto.mapMarker);
-                            addMapMarker(punto.mapMarker.getCoordinates(), R.drawable.punto_control);
-                        }
-                        controlPointsExample.llSave.setVisibility(View.GONE);
-                        // Centra el mapa en el polígono y ajusta el nivel de zoom
-                        flyTo(controlPointsExample.mapView, controlPointsExample.mapMarker.getCoordinates());
-                        controlPointsExample.mapView.getGestures().setTapListener(touchPoint -> pickMapMarker(touchPoint));
-                    }
-                }
-            });
-            // Configura el OnClickListener para el ImageView de eliminar
-            icon_delete.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    int position = getAdapterPosition();
-                    if (position != RecyclerView.NO_POSITION) {
-                        PointWithId punto = controlPointsExample.pointsWithIds.get(position);
-                        controlPointsExample.mapView.getMapScene().removeMapMarker(punto.mapMarker);
-                        controlPointsExample.pointsWithIds.remove(position);
-                        adapter.notifyItemRemoved(position); // Llama al método desde el adaptador
-                        adapter.notifyItemRangeChanged(position, controlPointsExample.pointsWithIds.size());
-                        controlPointsExample.dbHelper.deletePunto(punto.id);
-                        if(controlPointsExample.mapMarker!=null)controlPointsExample.mapMarker = null;
-                        List<MapView.ViewPin> mapViewPins = controlPointsExample.mapView.getViewPins();
-                        for (MapView.ViewPin viewPin : new ArrayList<>(mapViewPins)) {
-                            if(punto.mapMarker.getCoordinates().latitude==viewPin.getGeoCoordinates().latitude && punto.mapMarker.getCoordinates().longitude==viewPin.getGeoCoordinates().longitude){
-                                viewPin.unpin();
-                            }
-                        }
-                    }
-                }
-            });
             //Actualizar status al dar click en el Checkbox
             icon_visibility.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -198,63 +150,6 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
         controlPointsExample.mapView.getMapScene().addMapMarker(controlPointsExample.mapMarker);
     }
 
-    private static void pickMapMarker(final Point2D touchPoint) {
-        // Establece el radio en metros
-        float radiusInPixel = 2;
-
-        // Obtener las coordenadas del punto del toque
-        controlPointsExample.mapView.pickMapItems(touchPoint, radiusInPixel, new MapViewBase.PickMapItemsCallback() {
-            @Override
-            public void onPickMapItems(@Nullable PickMapItemsResult pickMapItemsResult) {
-                try{
-                    // Verificar si se ha seleccionado un MapMarker
-                    if (pickMapItemsResult == null) {
-                        return;
-                    }
-
-                    // Obtener el MapMarker seleccionado
-                    MapMarker topmostMapMarker = pickMapItemsResult.getMarkers().get(0);
-
-                    // Verificar si el MapMarker es nulo
-                    if (topmostMapMarker == null) {
-                        return;
-                    }
-                    changeMapMarker(topmostMapMarker);
-
-                } catch (Exception e) {
-                    // Manejo de excepciones
-                }
-            }
-        });
-    }
-    private static void changeMapMarker(MapMarker topmostMapMarker) {
-
-        if(topmostMapMarker == controlPointsExample.mapMarker){
-            MapImage mapImage = MapImageFactory.fromResource(controlPointsExample.context.getResources(), R.drawable.green_dot);
-            controlPointsExample.mapMarker.setImage(mapImage);
-
-            controlPointsExample.mapView.getGestures().setTapListener(new TapListener() {
-                @Override
-                public void onTap(@NonNull Point2D point2D) {
-                    if (controlPointsExample.mapMarker != null) { // Solo si hay un marcador seleccionado
-                        controlPointsExample.llSave.setVisibility(View.VISIBLE);
-                        // Segundo clic: Mover el marcador a la nueva posición
-                        controlPointsExample.last_coordinates = controlPointsExample.mapView.viewToGeoCoordinates(point2D);
-                        controlPointsExample.fabSave.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                controlPointsExample.showSavePointDialog(controlPointsExample.pointsWithIds.get(position));
-                            }
-                        });
-                        controlPointsExample.mapMarker.setCoordinates(controlPointsExample.last_coordinates);
-                        MapImage mapImage = MapImageFactory.fromResource(controlPointsExample.context.getResources(), R.drawable.punto_control);
-                        controlPointsExample.mapMarker.setImage(mapImage);
-                        controlPointsExample.mapView.getGestures().setTapListener(touchPoint -> pickMapMarker(touchPoint));
-                    }
-                }
-            });
-        }
-    }
     private static void flyTo(MapView mapView, GeoCoordinates geoCoordinates) {
         GeoCoordinatesUpdate geoCoordinatesUpdate = new GeoCoordinatesUpdate(geoCoordinates);
         double bowFactor = 1;

@@ -114,6 +114,7 @@ import com.here.sdk.transport.GeneralVehicleSpeedLimits;
 import com.itsmarts.smartroutetruckapp.MainActivity;
 import com.itsmarts.smartroutetruckapp.modelos.PointWithId;
 import com.itsmarts.smartroutetruckapp.modelos.PolygonWithId;
+import com.itsmarts.smartroutetruckapp.helpers.Distances;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -328,30 +329,25 @@ public class NavigationEventHandler {
                     mainActivity.currentGeoCoordinates = currentNavigableLocation.originalLocation.coordinates;
                 }
 
-//                if (mainActivity.rotateAnimation != null) {
-//                    mainActivity.loading.clearAnimation();
-//                    mainActivity.rotateAnimation.cancel();
-//                    mainActivity.rotateAnimation = null;
-//                }
-//
-//                if (!mainActivity.animacionEjecutada) {
-//                    mainActivity.mapView.setVisibility(VISIBLE);
-//                    mainActivity.mapView.startAnimation(mainActivity.cargaAnimacion);
-//                    mainActivity.fbPrincipal.setVisibility(View.VISIBLE);
-//                    mainActivity.fbPrincipal.startAnimation(mainActivity.cargaAnimacion);
-//                    mainActivity.trackCamara.setVisibility(View.VISIBLE);
-//                    mainActivity.trackCamara.startAnimation(mainActivity.cargaAnimacion);
-//                    mainActivity.txtNavegacion.startAnimation(mainActivity.cargaAnimacion);
-//                    mainActivity.txtNavegacion.setVisibility(VISIBLE);
-//                    mainActivity.layoutSwitchOffline.setVisibility(VISIBLE);
-//                    mainActivity.layoutSwitchOffline.startAnimation(mainActivity.cargaAnimacion);
-//
-//                    mainActivity.speedTextView.setVisibility(View.VISIBLE);
-//                    mainActivity.speedTextView.startAnimation(mainActivity.cargaAnimacion);
-//                    mainActivity.imgVelocidad.setVisibility(View.VISIBLE);
-//                    mainActivity.imgVelocidad.startAnimation(mainActivity.cargaAnimacion);
-//                    mainActivity.animacionEjecutada = true;
-//                }
+                if (mainActivity.rotateAnimation != null) {
+                    //mainActivity.loading.clearAnimation();
+                    mainActivity.rotateAnimation.cancel();
+                    mainActivity.rotateAnimation = null;
+                }
+
+                if (!mainActivity.animacionEjecutada) {
+                    mainActivity.hideable_content.setVisibility(View.GONE);
+                    mainActivity.home_content.setVisibility(View.VISIBLE);
+                    mainActivity.toolbar.setVisibility(View.VISIBLE);
+                    mainActivity.mapView.setVisibility(VISIBLE);
+                    mainActivity.mapView.startAnimation(mainActivity.cargaAnimacion);
+                    mainActivity.toolbar.startAnimation(mainActivity.cargaAnimacion);
+                    mainActivity.trackCamara.startAnimation(mainActivity.cargaAnimacion);
+                    mainActivity.txtNavegacion.startAnimation(mainActivity.cargaAnimacion);
+                    mainActivity.speedTextView.startAnimation(mainActivity.cargaAnimacion);
+                    mainActivity.imgVelocidad.startAnimation(mainActivity.cargaAnimacion);
+                    mainActivity.animacionEjecutada = true;
+                }
 
                 lastMapMatchedLocation = currentNavigableLocation.mapMatchedLocation;
 
@@ -387,7 +383,7 @@ public class NavigationEventHandler {
 
                 if (mainActivity.ruta != null) {
                     if(!hasNotifiedDeviation){
-                        double distanceToPolyline = mainActivity.distanceToPolyline(lastMapMatchedLocation.coordinates, mainActivity.ruta.polyline.getGeometry());
+                        double distanceToPolyline = Distances.distanceToPolyline(lastMapMatchedLocation.coordinates, mainActivity.ruta.polyline.getGeometry());
                         if (distanceToPolyline > 100) {
                             NotificationHelper.showNotification(
                                     context,
