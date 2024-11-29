@@ -63,7 +63,7 @@ public class ModalBottomSheetFullScreenFragmentPuntos extends BottomSheetDialogF
         btnOpen = view.findViewById(R.id.btnOpen);
         appBar = view.findViewById(R.id.appBar);
         //llBar = view.findViewById(R.id.llBar);
-        tvBar = view.findViewById(R.id.tvBar);
+        //tvBar = view.findViewById(R.id.tvBar);
         containerBar = view.findViewById(R.id.containerBar);
         vExtraSpace = view.findViewById(R.id.vExtraSpace);
         recyclerView = view.findViewById(R.id.recyclerView);
@@ -88,7 +88,7 @@ public class ModalBottomSheetFullScreenFragmentPuntos extends BottomSheetDialogF
                 TransitionManager.beginDelayedTransition(containerBar,fadeThrough);
                 int statusBarColor= ContextCompat.getColor(getActivity(),R.color.colorPrimaryDark);
                 if(BottomSheetBehavior.STATE_EXPANDED== newState) {
-                    tvBar.setVisibility(View.GONE);
+                    //tvBar.setVisibility(View.GONE);
                     //appBar.setVisibility(View.VISIBLE);
                     /*llBar.setVisibility(View.GONE);*/
                     btnCancel.setVisibility(View.VISIBLE);
@@ -99,7 +99,7 @@ public class ModalBottomSheetFullScreenFragmentPuntos extends BottomSheetDialogF
                     /*llBar.setVisibility(View.VISIBLE);*/
                     btnCancel.setVisibility(View.GONE);
                     btnOpen.setVisibility(View.VISIBLE);
-                    tvBar.setVisibility(View.VISIBLE);
+                    //tvBar.setVisibility(View.VISIBLE);
                 }
                 getActivity().getWindow().setStatusBarColor(statusBarColor);
             }

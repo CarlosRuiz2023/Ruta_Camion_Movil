@@ -82,6 +82,34 @@ public class ControlPointsExample {
                     }
                 }
             }
+        }else{
+            dbHelper.savePunto(new GeoCoordinates(21.099146716048164,-101.57487163638099),"Mi casa","Guanajuato","Leon");
+            dbHelper.savePunto(new GeoCoordinates(21.144492680543852,-101.69185396141856),"El trabajo","Guanajuato","Leon");
+            dbHelper.savePunto(new GeoCoordinates(21.12990137766593,-101.645661225448),"Sunrise","Guanajuato","Leon");
+            // Recupera la lista de polígonos de la base de datos
+            pointsWithIds = dbHelper.getAllPuntos();
+            for (PointWithId point : pointsWithIds) {
+                markers.add(point.mapMarker);
+                if(point.status){
+                    mapView.getMapScene().addMapMarker(point.mapMarker);
+                    if(point.label){
+                        // Crea un TextView para la etiqueta
+                        TextView textView = new TextView(context);
+                        textView.setTextColor(Color.parseColor("#7EB8D5"));
+                        textView.setText(point.name);
+                        textView.setTypeface(Typeface.DEFAULT_BOLD);
+
+                        // Crea un LinearLayout para contener el TextView y agregar padding
+                        LinearLayout linearLayout = new LinearLayout(context);
+                        //linearLayout.setBackgroundResource(R.color.colorAccent);
+                        linearLayout.setPadding(0, 0, 0, 130);
+                        linearLayout.addView(textView);
+
+                        // Ancla el LinearLayout al mapa en las coordenadas ajustadas
+                        mapView.pinView(linearLayout, point.mapMarker.getCoordinates());
+                    }
+                }
+            }
         }
         bottomSheetFragment = new ModalBottomSheetFullScreenFragmentPuntos(this);
     }

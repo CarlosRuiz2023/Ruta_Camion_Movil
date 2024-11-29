@@ -98,6 +98,69 @@ public class AvoidZonesExample {
                     mapView.pinView(linearLayout, midpoint);
                 }
             }
+        }else{
+            MapPolygon mapPolygon = null, mapPolygon1 = null, mapPolygon2 = null;
+            List<GeoCoordinates> vertices = new ArrayList<>();
+            vertices.add(new GeoCoordinates(21.101579497244543,-101.61594078421876));
+            vertices.add(new GeoCoordinates(21.104292047419793,-101.61396701803433));
+            vertices.add(new GeoCoordinates(21.102307254608633,-101.60879553009859));
+            vertices.add(new GeoCoordinates(21.09807302994483,-101.61140884063329));
+            vertices.add(new GeoCoordinates(21.099230825751338,-101.61590770433858));
+            vertices.add(new GeoCoordinates(21.101579497244543,-101.61594078421876));
+            List<GeoCoordinates> vertices1 = new ArrayList<>();
+            vertices1.add(new GeoCoordinates(21.096174668016264,-101.63235086115643));
+            vertices1.add(new GeoCoordinates(21.10113648473711,-101.62627516721253));
+            vertices1.add(new GeoCoordinates(21.0961240372334,-101.62126271970882));
+            vertices1.add(new GeoCoordinates(21.090048343289503,-101.62569291320958));
+            vertices1.add(new GeoCoordinates(21.09192168225554,-101.63711015474581));
+            vertices1.add(new GeoCoordinates(21.096174668016264,-101.63235086115643));
+            List<GeoCoordinates> vertices2 = new ArrayList<>();
+            vertices2.add(new GeoCoordinates(21.096998891067,-101.6302840110248));
+            vertices2.add(new GeoCoordinates(21.101087283359682,-101.61989062820845));
+            vertices2.add(new GeoCoordinates(21.09212237495886,-101.61900398891606));
+            vertices2.add(new GeoCoordinates(21.08936394160476,-101.63240209377884));
+            vertices2.add(new GeoCoordinates(21.096998891067,-101.6302840110248));
+            try {
+                mapPolygon = new MapPolygon(new GeoPolygon(vertices),new Color(1f, 0f, 0f, 0.63f));
+                mapPolygon1 = new MapPolygon(new GeoPolygon(vertices1),new Color(1f, 0f, 0f, 0.63f));
+                mapPolygon2 = new MapPolygon(new GeoPolygon(vertices2),new Color(1f, 0f, 0f, 0.63f));
+            } catch (InstantiationErrorException e) {
+                //throw new RuntimeException(e);
+            }
+            dbHelper.saveZona(mapPolygon,"Zona Prohibida","Guanajuato","Leon",0);
+            dbHelper.saveZona(mapPolygon1,"Zona Prohibida2","Guanajuato","Leon",0);
+            dbHelper.saveZona(mapPolygon2,"Zona Peligrosa","Guanajuato","Leon",1);
+            // Recupera la lista de polígonos de la base de datos
+            polygonWithIds = dbHelper.getAllZonas();
+            for (PolygonWithId polygonWithId : polygonWithIds) {
+                poligonos.add(polygonWithId.polygon);
+                if(polygonWithId.status){
+                    mapView.getMapScene().addMapPolygon(polygonWithId.polygon);
+                }
+                if(polygonWithId.label){
+                    // Crea un TextView para la etiqueta
+                    TextView textView = new TextView(context);
+                    if(polygonWithId.peligrosa){
+                        textView.setTextColor(android.graphics.Color.parseColor("#000000"));
+                    }else{
+                        textView.setTextColor(android.graphics.Color.parseColor("#FF0000"));
+                    }
+                    textView.setText(polygonWithId.name);
+                    textView.setTypeface(Typeface.DEFAULT_BOLD);
+
+                    // Crea un LinearLayout para contener el TextView y agregar padding
+                    LinearLayout linearLayout = new LinearLayout(context);
+                    //linearLayout.setBackgroundResource(R.color.colorAccent);
+                    //linearLayout.setPadding(0, 0, 0, 130);
+                    linearLayout.addView(textView);
+
+                    // Crear un nuevo GeoCoordinates para el punto medio
+                    GeoCoordinates midpoint = calculateCentroid(polygonWithId.polygon.getGeometry().vertices);
+
+                    // Usar el punto medio para anclar la vista
+                    mapView.pinView(linearLayout, midpoint);
+                }
+            }
         }
         bottomSheetFragment = new ModalBottomSheetFullScreenFragmentZonas(this);
     }

@@ -56,10 +56,6 @@ public class OfflineMap {
      */
     private MainActivity mainActivity;
     /**
-     * Variable para acceder al MapView
-     */
-    private final MapView mapView;
-    /**
      * Variable del SDK para procesos de descarga del mapa
      */
     @Nullable
@@ -85,10 +81,8 @@ public class OfflineMap {
      * @param mapView      acceso al map view del MainActivity
      * @param mainActivity acceso al MainActivity
      */
-    public OfflineMap(MapView mapView, MainActivity mainActivity) {
-
+    public OfflineMap(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
-        this.mapView = mapView;
 
 
         SDKNativeEngine sdkNativeEngine = SDKNativeEngine.getSharedInstance();

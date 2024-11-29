@@ -85,8 +85,6 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
             super(itemView);
             // Enlaza el TextView con el layout
             polygonNameTextView = itemView.findViewById(R.id.polygon_name);
-            icon_edit = itemView.findViewById(R.id.icon_edit);
-            icon_delete = itemView.findViewById(R.id.icon_delete);
             icon_visibility = itemView.findViewById(R.id.icon_visibility);
             icon_label = itemView.findViewById(R.id.icon_label);
             //Actualizar status al dar click en el Checkbox

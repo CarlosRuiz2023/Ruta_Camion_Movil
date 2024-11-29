@@ -346,6 +346,7 @@ public class NavigationEventHandler {
                     mainActivity.txtNavegacion.startAnimation(mainActivity.cargaAnimacion);
                     mainActivity.speedTextView.startAnimation(mainActivity.cargaAnimacion);
                     mainActivity.imgVelocidad.startAnimation(mainActivity.cargaAnimacion);
+                    mainActivity.llMapas.startAnimation(mainActivity.cargaAnimacion);
                     mainActivity.animacionEjecutada = true;
                 }
 

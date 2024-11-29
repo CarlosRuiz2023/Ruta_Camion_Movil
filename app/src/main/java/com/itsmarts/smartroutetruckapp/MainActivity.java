@@ -7,6 +7,7 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
+import android.content.res.AssetManager;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -45,6 +46,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.here.sdk.core.Anchor2D;
 import com.here.sdk.core.Color;
@@ -59,6 +61,7 @@ import com.here.sdk.core.Size2D;
 import com.here.sdk.core.errors.InstantiationErrorException;
 import com.here.sdk.location.LocationAccuracy;
 import com.here.sdk.mapview.LineCap;
+import com.here.sdk.mapview.MapError;
 import com.here.sdk.mapview.MapImage;
 import com.here.sdk.mapview.MapImageFactory;
 import com.here.sdk.mapview.MapMarker;
@@ -66,6 +69,7 @@ import com.here.sdk.mapview.MapMeasureDependentRenderSize;
 import com.here.sdk.mapview.MapPolygon;
 import com.here.sdk.mapview.MapPolyline;
 import com.here.sdk.mapview.MapScene;
+import com.here.sdk.mapview.MapScheme;
 import com.here.sdk.mapview.MapView;
 import com.here.sdk.mapview.MapViewBase;
 import com.here.sdk.mapview.PickMapContentResult;
@@ -119,12 +123,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public ControlPointsExample controlPointsExample;
     public List<RoutesWithId> rutas;
     public Animation rotateAnimation, cargaAnimacion, animSalida, animacionClick;
-    public boolean animacionEjecutada = false, isFirstClick = true, isNightMode = false, isMenuOpen = false, rutaGenerada = false, isTrackingCamera = true, isExactRouteEnabled = false, isSimularRutaVisible = false, isRutaVisible = false, isDialogShowing = false, routeSuccessfullyProcessed = false, activarGeocercas = true, mapOfflineMexDownload = false;
+    public boolean animacionEjecutada = false, isFirstClick = true, isMenuOpen = false, rutaGenerada = false, isTrackingCamera = true, isExactRouteEnabled = false, isSimularRutaVisible = false, isRutaVisible = false, isDialogShowing = false, routeSuccessfullyProcessed = false, activarGeocercas = true, mapOfflineMexDownload = false;
     public RoutesWithId ruta,rutaPre;
     public ImageButton trackCamara, btnTerminarRuta, btnGeocercas;
     public ImageView imgVelocidad;
     public View detallesRuta;
-    public LinearLayout llGeocerca;
+    public LinearLayout llGeocerca, llPois, llMapas;
     public Geocercas geocercas;
     public RoutingExample routingExample;
     public DatabaseHelper dbHelper;
@@ -143,6 +147,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /** TextView para mosntrar como se descarga y el porcentaje de descarga del mapa*/
     public TextView txtProcesoDescarga,txtDescargaTitulo;
     public List<GeoCoordinates> waypointsGlobal = new ArrayList<>();
+    public FloatingActionButton fbEliminarPoi, fbMapas;
+    public int styleCounter=0;
+    // INICIALIZACION DE LA VARIABLE TIPO MapScheme PARA EL ESTILO DEL MAPA POR DEFECTO
+    private MapScheme style = MapScheme.NORMAL_DAY;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -155,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mapView.onCreate(savedInstanceState);
         mMapHelper.loadMapScene(mapView, this);
         mMapHelper.tiltMap(mapView);
+        setTapGestureHandler();
         initializeBD();
         initializeSecondClass();
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -403,7 +412,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
                 alertDialogRuta.show();
                 break;
-            case "Puntos Cercanos":
+            case "Puntos cercanos":
                 avoidZonesExample.cleanPolygon();
                 controlPointsExample.cleanPoint();
                 setTapGestureHandler();
@@ -438,17 +447,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             int radius = Integer.parseInt(radiusStr);
                             // Llamar a la función para buscar el POI más cercano
                             searchNearestPoi(selectedPoiType, radius);
-                            //fbEliminarPoi.setVisibility(VISIBLE);
-                            //txtEliminarPoi.setVisibility(VISIBLE);
-                            /*fbEliminarPoi.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    clearMapMarkersPOIsAndCircle(true);
-                                    showCustomToast("Se eliminaron los poi");
-                                    fbEliminarPoi.setVisibility(View.GONE);
-                                    txtEliminarPoi.setVisibility(View.GONE);
-                                }
-                            });*/
+                            llPois.setVisibility(VISIBLE);
                             dialogPoi.dismiss();
 
                         } else {
@@ -611,9 +610,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mMapHelper = new mapHelper(this);
         messages = new Messages(this);
         geocercas = new Geocercas(this);
+        adapterFinishedRoutes = new RouterFinishedAdapter(this);
+        adapterCanceledRoutes = new RouterCanceledAdapter(this);
     }
     private void initializeSecondClass(){
         routingExample = new RoutingExample(this);
+        offlineMap = new OfflineMap(this);
         try{
             searchEngine = new SearchEngine();
             offlineSearchEngine = new OfflineSearchEngine();
@@ -681,6 +683,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         timeTextView = findViewById(R.id.timeTextView);
         llGeocerca = findViewById(R.id.llGeocerca);
         btnGeocercas = findViewById(R.id.btnGeocercas);
+        llPois = findViewById(R.id.llPois);
+        fbEliminarPoi = findViewById(R.id.fbEliminarPoi);
+        llMapas = findViewById(R.id.llMapas);
+        fbMapas = findViewById(R.id.fbMapas);
 
         // Set the toolbar as the action bar
         this.setSupportActionBar(toolbar);
@@ -777,6 +783,102 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         //recalculateRouteButton.setVisibility(View.GONE);
                     }
                 }, 400);
+            }
+        });
+        fbEliminarPoi.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                clearMapMarkersPOIsAndCircle(true);
+                messages.showCustomToast("Se eliminaron los poi");
+                llPois.setVisibility(View.GONE);
+            }
+        });
+        fbMapas.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                avoidZonesExample.cleanPolygon();
+                controlPointsExample.cleanPoint();
+                messages.showCustomToast("Cambiando estilo del mapa");
+                String filename="";
+                // AUMENTAMOS EL CONTADOR DE ESTILOS
+                styleCounter++;
+                // VERIFICAMOS EL CONTADOR DE ESTILOS NO SALGA DEL RANGO
+                if(styleCounter==7)styleCounter=0;
+                // VALIDAMOS POR EL CONTADOR DE ESTILOS
+                switch (styleCounter) {
+                    case 0:
+                        // CAMBIAMOS EL ESTILO
+                        style = MapScheme.NORMAL_DAY;
+                        break;
+                    case 1:
+                        // CAMBIAMOS EL ESTILO
+                        style = MapScheme.NORMAL_NIGHT;
+                        break;
+                    case 2:
+                        // CAMBIAMOS EL ESTILO A NULO
+                        style = null;
+                        // TOMAMOS EL NOMBRE DEL ARCHIVO JSON
+                        filename = "custom-dark-style-neon-rds.json";
+                        break;
+                    case 3:
+                        // CAMBIAMOS EL ESTILO A NULO
+                        style = null;
+                        // TOMAMOS EL NOMBRE DEL ARCHIVO JSON
+                        filename = "Day.json";
+                        break;
+                    case 4:
+                        // CAMBIAMOS EL ESTILO A NULO
+                        style = null;
+                        // TOMAMOS EL NOMBRE DEL ARCHIVO JSON
+                        filename = "prueba.json";
+                        break;
+                    case 5:
+                        // CAMBIAMOS EL ESTILO
+                        style = MapScheme.HYBRID_DAY;
+                        break;
+                    case 6:
+                        // CAMBIAMOS EL ESTILO A NULO
+                        style = MapScheme.SATELLITE;
+                        break;
+                }
+                // TOMAMOS LOS ASSETS DEL PROYECTO
+                AssetManager assetManager = getApplicationContext().getAssets();
+                try {
+                    // CARGAMOS EL ARCHIVO JSON
+                    assetManager.open(filename);
+                } catch (Exception e) {
+                    // MANDAMOS UN MENSAJE DE ERROR
+                    Log.e("Error", e.getMessage());
+                }
+                // VERIFICAMOS SI EL ESTYLO ES NULO
+                if(style==null){
+                    // CARGAMOS EL ESTILO POR DEFECTO
+                    mapView.getMapScene().loadScene(""+filename, new MapScene.LoadSceneCallback() {
+                        @Override
+                        public void onLoadScene(@Nullable MapError errorCode) {
+                            if (errorCode == null) {
+                            } else {
+                                // Style loading failed
+                            }
+                        }
+                    });
+                }else{
+                    // CARGAMOS ALGUNO DE LOS ESTILOS PREDETERMINADOS DE LA SDK
+                    mapView.getMapScene().loadScene(style, new MapScene.LoadSceneCallback() {
+                        @Override
+                        public void onLoadScene(@Nullable MapError errorCode) {
+                            if (errorCode == null) {
+                                // VERIFICAMOS SI ESTA ACTIVADO EL TRAFICO
+                                /*if(isActiveTraffic) {
+                                    // ACTIVAMOS EL TRAFICO
+                                    trafficExample.enableAll();
+                                }*/
+                            } else {
+                                // Style loading failed
+                            }
+                        }
+                    });
+                }
             }
         });
     }
@@ -896,23 +998,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         txtTerminarRuta.startAnimation(animSalida);
         txtTerminarRuta.setVisibility(View.GONE);
 
-        /*if(rutaGenerada){
-            ViewGroup.LayoutParams layoutParams = layoutSwitchOffline.getLayoutParams();
-            ViewGroup.MarginLayoutParams marginLayoutParams=null;
-            if (layoutParams instanceof ViewGroup.MarginLayoutParams) {
-                marginLayoutParams = (ViewGroup.MarginLayoutParams) layoutParams;
-                int marginDecrease = 160; // Valor en píxeles para disminuir el margen
-                marginLayoutParams.setMargins(
-                        marginLayoutParams.leftMargin,
-                        marginLayoutParams.topMargin,
-                        marginLayoutParams.rightMargin,
-                        marginLayoutParams.bottomMargin - marginDecrease
-                );
-            }
-            layoutSwitchOffline.setLayoutParams(marginLayoutParams);
-        }*/
         rutaGenerada = false;
-
         coordenadasDestino = null;
         clearMapPolylines();
         routingExample.clearMap();
@@ -980,11 +1066,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         }
-        if(mapPolygon!=null){
-            mapView.getMapScene().removeMapPolygon(mapPolygon);
+        if(geocercas.mapPolygon!=null){
+            mapView.getMapScene().removeMapPolygon(geocercas.mapPolygon);
         }
-        //fbEliminarPoi.setVisibility(View.GONE);
-        //txtEliminarPoi.setVisibility(View.GONE);
     }
 
     private void setTapGestureHandler() {

@@ -238,4 +238,77 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:id="@+id/llPois"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/imgVelocidad"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone">
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fbEliminarPoi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="@color/deepOrange_800"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/eliminar_direccion"
+            app:tint="@android:color/white" />
+
+        <TextView
+            android:id="@+id/txtEliminarPoi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="15dp"
+            android:elevation="2dp"
+            android:text="Eliminar Pois"
+            android:textColor="@color/deepOrange_800"
+            android:textSize="15dp"
+            android:textStyle="bold" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llMapas"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/detallesRuta"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/txtMapas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="5dp"
+            android:layout_marginTop="15dp"
+            android:elevation="2dp"
+            android:text="Cambiar estilo"
+            android:textColor="@color/deepOrange_800"
+            android:textSize="15dp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fbMapas"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="@color/deepOrange_800"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/mapa"
+            app:tint="@android:color/white" />
+
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
