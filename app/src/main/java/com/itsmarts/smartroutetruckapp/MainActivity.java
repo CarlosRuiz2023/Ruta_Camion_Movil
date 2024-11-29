@@ -94,6 +94,7 @@ import com.itsmarts.smartroutetruckapp.clases.NavigationEventHandler;
 import com.itsmarts.smartroutetruckapp.clases.NavigationExample;
 import com.itsmarts.smartroutetruckapp.clases.OfflineMap;
 import com.itsmarts.smartroutetruckapp.clases.RoutingExample;
+import com.itsmarts.smartroutetruckapp.clases.TruckConfig;
 import com.itsmarts.smartroutetruckapp.clases.mapHelper;
 import com.itsmarts.smartroutetruckapp.fragments.ModalBottomSheetFullScreenFragmentPuntos;
 import com.itsmarts.smartroutetruckapp.fragments.ModalBottomSheetFullScreenFragmentZonas;
@@ -109,7 +110,7 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, NavigationEventHandler.SpeedUpdateListener, NavigationEventHandler.DestinationDistanceListener, NavigationEventHandler.DestinationReachedListener{
 
-    public ConstraintLayout hideable_content, home_content;
+    public ConstraintLayout hideable_content, home_content, truck_config_content;
     public MapView mapView;
     public mapHelper mMapHelper;
     NavigationView nmd;
@@ -118,11 +119,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public Messages messages;
     public NavigationExample navigationExample;
     public TextView messageView, txtNavegacion, speedTextView, txtTerminarRuta, distanceTextView, timeTextView, txtDescargaInfo, txtProcesoActualizacion;
-    public GeoCoordinates currentGeoCoordinates, coordenadasDestino, coordenada1, coordenada2, geoCoordinatesPOI, destinationGeoCoordinates;;
+    public GeoCoordinates currentGeoCoordinates, coordenadasDestino, coordenada1, coordenada2, geoCoordinatesPOI = null, destinationGeoCoordinates;
     public AvoidZonesExample avoidZonesExample;
     public ControlPointsExample controlPointsExample;
     public List<RoutesWithId> rutas;
-    public Animation rotateAnimation, cargaAnimacion, animSalida, animacionClick;
+    public Animation rotateAnimation, cargaAnimacion, animSalida, animacionClick, animEntrada;
     public boolean animacionEjecutada = false, isFirstClick = true, isMenuOpen = false, rutaGenerada = false, isTrackingCamera = true, isExactRouteEnabled = false, isSimularRutaVisible = false, isRutaVisible = false, isDialogShowing = false, routeSuccessfullyProcessed = false, activarGeocercas = true, mapOfflineMexDownload = false;
     public RoutesWithId ruta,rutaPre;
     public ImageButton trackCamara, btnTerminarRuta, btnGeocercas;
@@ -151,6 +152,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public int styleCounter=0;
     // INICIALIZACION DE LA VARIABLE TIPO MapScheme PARA EL ESTILO DEL MAPA POR DEFECTO
     private MapScheme style = MapScheme.NORMAL_DAY;
+    public TruckConfig truckConfig;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -474,9 +476,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 controlPointsExample.cleanPoint();
                 mapView.getGestures().setTapListener(null);
                 animSalida = AnimationUtils.loadAnimation(MainActivity.this, R.anim.salida2);
-                //hideComponentsForRuta(animSalida);
-                //fbEliminarPoi.setVisibility(View.GONE);
-                //txtEliminarPoi.setVisibility(View.GONE);
                 clearMapMarkersPOIsAndCircle(true);
                 controlPointsExample.getModalBottomSheetFullScreenFragment().show(getSupportFragmentManager(), ModalBottomSheetFullScreenFragmentPuntos.TAG);
                 break;
@@ -487,21 +486,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 avoidZonesExample.cleanPolygon();
                 mapView.getGestures().setTapListener(null);
                 animSalida = AnimationUtils.loadAnimation(MainActivity.this, R.anim.salida2);
-                //hideComponentsForRuta(animSalida);
-                //fbEliminarPoi.setVisibility(View.GONE);
-                //txtEliminarPoi.setVisibility(View.GONE);
                 clearMapMarkersPOIsAndCircle(true);
                 avoidZonesExample.getModalBottomSheetFullScreenFragment().show(getSupportFragmentManager(), ModalBottomSheetFullScreenFragmentZonas.TAG);
                 break;
             case "Descargar Mapa":
                 avoidZonesExample.cleanPolygon();
                 controlPointsExample.cleanPoint();
-                setTapGestureHandler();
 
                 LayoutInflater inflater = getLayoutInflater();
                 dialogView = inflater.inflate(R.layout.ventana_descargar_mapa, null);
 
-                builder = new AlertDialog.Builder(this.getApplicationContext());
+                builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setView(dialogView);
 
                 final AlertDialog alertDialogOffline = builder.create();
@@ -549,6 +544,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 alertDialogOffline.show();
                 break;
+            case "Configuracion":
+                avoidZonesExample.cleanPolygon();
+                controlPointsExample.cleanPoint();
+                mapView.getGestures().setTapListener(null);
+                truckConfig.mostrarMenu();
+                break;
             case "Salir":
                 finish();
                 break;
@@ -592,8 +593,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Toast.makeText(this, name+" selected", Toast.LENGTH_SHORT).show();
                 if(item.isChecked()){
                     item.setChecked(false);
+                    offlineMap.onSwitchOfflineButtonClicked();
                 }else{
                     item.setChecked(true);
+                    offlineMap.onSwitchOnlineButtonClicked();
                 }
                 break;
             default:
@@ -616,6 +619,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void initializeSecondClass(){
         routingExample = new RoutingExample(this);
         offlineMap = new OfflineMap(this);
+        truckConfig = new TruckConfig(this);
         try{
             searchEngine = new SearchEngine();
             offlineSearchEngine = new OfflineSearchEngine();
@@ -659,10 +663,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void initializeComponents(){
         // Inicializar animaciones
-        animSalida = AnimationUtils.loadAnimation(MainActivity.this, R.anim.salida2);
-        animacionClick = AnimationUtils.loadAnimation(MainActivity.this, R.anim.click);
+        animSalida = AnimationUtils.loadAnimation(this, R.anim.salida2);
+        animacionClick = AnimationUtils.loadAnimation(this, R.anim.click);
         cargaAnimacion = AnimationUtils.loadAnimation(this, R.anim.fade_in);
         rotateAnimation = AnimationUtils.loadAnimation(this, R.anim.rotate);
+        animEntrada = AnimationUtils.loadAnimation(this, R.anim.entrada2);
 
         // Inicializar componentes
         hideable_content = findViewById(R.id.hideable_content);
@@ -687,6 +692,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         fbEliminarPoi = findViewById(R.id.fbEliminarPoi);
         llMapas = findViewById(R.id.llMapas);
         fbMapas = findViewById(R.id.fbMapas);
+        truck_config_content = findViewById(R.id.truck_config_content);
 
         // Set the toolbar as the action bar
         this.setSupportActionBar(toolbar);

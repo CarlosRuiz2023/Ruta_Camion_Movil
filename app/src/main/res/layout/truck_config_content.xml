@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintTop_toBottomOf="@id/toolbar">
+
+    <View
+        android:id="@+id/viewDetalles"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_margin="20dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="30dp"
+        android:layout_marginBottom="30dp"
+        android:background="@drawable/rounded_dialog_background"
+        android:backgroundTint="#DBE2EF"
+        android:elevation="6dp"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtCamion"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="50dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="50dp"
+        android:elevation="6dp"
+        android:fontFamily="serif"
+        android:text="Configuración"
+        android:textAlignment="center"
+        android:textColor="#000000"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="@+id/viewDetalles"
+        app:layout_constraintStart_toStartOf="@+id/viewDetalles"
+        app:layout_constraintTop_toTopOf="@+id/viewDetalles" />
+
+    <ImageView
+        android:id="@+id/imgTruck"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_below="@+id/txtCamion"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="40dp"
+        android:elevation="6dp"
+        android:adjustViewBounds="true"
+        android:src="@drawable/no_image"
+        app:layout_constraintEnd_toEndOf="@+id/viewDetalles"
+        app:layout_constraintStart_toStartOf="@+id/viewDetalles"
+        app:layout_constraintTop_toBottomOf="@+id/txtCamion" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/etSpinner"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imgTonelada"
+        android:layout_alignStart="@+id/viewDetalles"
+        android:layout_marginTop="15dp"
+        android:backgroundTint="#D3D3D3"
+        android:elevation="6dp"
+        android:gravity="center"
+        android:textAlignment="center"
+        android:textColorHint="@color/black"
+        app:boxBackgroundColor="@color/white"
+        app:endIconMode="dropdown_menu"
+        app:helperTextTextColor="@color/black"
+        app:hintEnabled="false"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@+id/viewDetalles"
+        app:layout_constraintTop_toBottomOf="@+id/imgTruck">
+
+        <AutoCompleteTextView
+            android:id="@+id/autOpciones"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:dropDownHeight="200dp"
+            android:gravity="center"
+            android:inputType="none"
+            android:overlapAnchor="false"
+            android:text="Seleccione una opción"
+            android:textAlignment="center" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <ImageView
+        android:id="@+id/imgTonelada"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imgTruck"
+        android:layout_marginStart="57dp"
+        android:layout_marginTop="95dp"
+        android:elevation="6dp"
+        app:layout_constraintStart_toStartOf="@+id/viewDetalles"
+        app:layout_constraintTop_toBottomOf="@+id/imgTruck"
+        app:srcCompat="@drawable/tonelada" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/etPeso"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imgTonelada"
+        android:layout_alignStart="@+id/viewDetalles"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="15dp"
+        android:backgroundTint="#D3D3D3"
+        android:elevation="6dp"
+        android:textColorHint="@color/black"
+        app:boxBackgroundColor="@color/white"
+        app:endIconMode="clear_text"
+        app:helperText="En toneladas"
+        app:helperTextTextColor="@color/black"
+        app:layout_constraintStart_toStartOf="@+id/viewDetalles"
+        app:layout_constraintTop_toBottomOf="@+id/imgTonelada">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/txtToneladas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Toneladas"
+            android:inputType="numberDecimal"
+            android:textColor="#000080"
+            android:enabled="false"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <ImageView
+        android:id="@+id/imgAltura"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imgTruck"
+        android:layout_alignEnd="@+id/viewDetalles"
+        android:layout_marginTop="95dp"
+        android:layout_marginEnd="57dp"
+        android:elevation="6dp"
+        app:layout_constraintEnd_toEndOf="@+id/viewDetalles"
+        app:layout_constraintTop_toBottomOf="@+id/imgTruck"
+        app:srcCompat="@drawable/altura" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/etAltura"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imgAltura"
+        android:layout_alignEnd="@+id/viewDetalles"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="30dp"
+        android:backgroundTint="#D3D3D3"
+        android:elevation="6dp"
+        android:textColorHint="@color/black"
+        app:boxBackgroundColor="@color/white"
+        app:endIconMode="clear_text"
+        app:helperText="En metros"
+        app:helperTextTextColor="@color/black"
+        app:layout_constraintEnd_toEndOf="@+id/viewDetalles"
+        app:layout_constraintTop_toBottomOf="@+id/imgAltura">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/txtAltura"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Altura"
+            android:inputType="numberDecimal"
+            android:textColor="#000080"
+            android:enabled="false"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <ImageView
+        android:id="@+id/imgAncho"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/etPeso"
+        android:layout_alignStart="@+id/viewDetalles"
+        android:layout_marginStart="57dp"
+        android:layout_marginTop="20dp"
+        android:elevation="6dp"
+        app:layout_constraintStart_toStartOf="@+id/viewDetalles"
+        app:layout_constraintTop_toBottomOf="@+id/etPeso"
+        app:srcCompat="@drawable/anchocamion" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/etAncho"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imgAncho"
+        android:layout_alignStart="@+id/viewDetalles"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="15dp"
+        android:backgroundTint="#D3D3D3"
+        android:elevation="6dp"
+        android:textColorHint="@color/black"
+        app:boxBackgroundColor="@color/white"
+        app:endIconMode="clear_text"
+        app:helperText="En metros"
+        app:helperTextTextColor="@color/black"
+        app:layout_constraintStart_toStartOf="@+id/viewDetalles"
+        app:layout_constraintTop_toBottomOf="@+id/imgAncho">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/txtAncho"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ancho"
+            android:inputType="numberDecimal"
+            android:textColor="#000080"
+            android:enabled="false"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <ImageView
+        android:id="@+id/imgLargo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/etAltura"
+        android:layout_alignEnd="@+id/viewDetalles"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="57dp"
+        android:elevation="6dp"
+        app:layout_constraintEnd_toEndOf="@+id/viewDetalles"
+        app:layout_constraintTop_toBottomOf="@+id/etAltura"
+        app:srcCompat="@drawable/largo" />
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/etLongitud"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imgLargo"
+        android:layout_alignEnd="@+id/viewDetalles"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="30dp"
+        android:backgroundTint="#D3D3D3"
+        android:elevation="6dp"
+        android:textColorHint="@color/black"
+        app:boxBackgroundColor="@color/white"
+        app:endIconMode="clear_text"
+        app:helperText="En metros"
+        app:helperTextTextColor="@color/black"
+        app:layout_constraintEnd_toEndOf="@+id/viewDetalles"
+        app:layout_constraintTop_toBottomOf="@+id/imgLargo">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/txtLargo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Largo"
+            android:inputType="numberDecimal"
+            android:textColor="#000080"
+            android:enabled="false"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/btnEnviar"
+        style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/imgTruck"
+        android:layout_alignStart="@+id/viewDetalles"
+        android:layout_alignEnd="@+id/viewDetalles"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="20dp"
+        android:elevation="6dp"
+        android:text="Aceptar"
+        android:textColor="#F2F4F7"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/etAncho" />
+
+    <ImageButton
+        android:id="@+id/btnCerrar"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_alignStart="@+id/viewDetalles"
+        android:layout_alignTop="@+id/viewDetalles"
+        android:backgroundTint="#00000000"
+        android:elevation="6dp"
+        app:layout_constraintStart_toStartOf="@+id/viewDetalles"
+        app:layout_constraintTop_toTopOf="@+id/viewDetalles"
+        app:srcCompat="@drawable/cerrar" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

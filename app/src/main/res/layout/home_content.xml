@@ -9,14 +9,12 @@
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintTop_toBottomOf="@id/toolbar">
 
+
     <com.here.sdk.mapview.MapView
         android:id="@+id/map_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
-        tools:visibility="visible"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        android:visibility="gone"/>
 
     <LinearLayout
         android:id="@+id/layoutSwitchOffline"
@@ -280,7 +278,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="8dp"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toTopOf="@+id/detallesRuta"
         android:layout_marginStart="16dp"
@@ -291,7 +288,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginEnd="5dp"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="20dp"
             android:elevation="2dp"
             android:text="Cambiar estilo"
             android:textColor="@color/deepOrange_800"
@@ -310,5 +307,14 @@
             app:tint="@android:color/white" />
 
     </LinearLayout>
+
+    <include
+        android:id="@+id/truck_config_content"
+        layout="@layout/truck_config_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:visibility="gone"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

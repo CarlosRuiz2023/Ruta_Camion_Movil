@@ -22,14 +22,6 @@
             android:title="@string/menu_download_map"
             android:icon="@drawable/ic_download"/>
         <item
-            android:id="@+id/action_black_and_white"
-            android:title="@string/menu_black_and_white"
-            android:icon="@drawable/ic_contrast"/>
-        <item
-            android:id="@+id/action_location"
-            android:title="@string/menu_location"
-            android:icon="@drawable/location"/>
-        <item
             android:id="@+id/action_config"
             android:title="@string/menu_config"
             android:icon="@drawable/truck"/>
