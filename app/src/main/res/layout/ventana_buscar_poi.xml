@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -9,27 +10,51 @@
     app:cardCornerRadius="8dp"
     app:cardElevation="4dp">
 
+    <LinearLayout
+        android:id="@+id/llTituloPois"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center">
+        <ImageView
+            android:id="@+id/imageView10"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            app:srcCompat="@drawable/imagen_poi" />
+
+        <TextView
+            android:id="@+id/textView9"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Buscar POI cercano"
+            android:textColor="#000000"
+            android:textStyle="bold"
+            android:textSize="24sp" />
+    </LinearLayout>
+
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/materialTextView2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="25dp"
         android:text="Seleccione el tipo de POI"
-        android:textAlignment="center"
-        android:textAppearance="?attr/textAppearanceHeadline6"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView9" />
+        app:layout_constraintTop_toBottomOf="@+id/llTituloPois" />
 
     <Spinner
         android:id="@+id/spinnerPoiType"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="53dp"
         android:layout_marginTop="10dp"
-        android:background="@android:drawable/btn_dropdown"
+        android:background="@drawable/spinner_background_with_icon"
+        android:padding="8dp"
+        android:spinnerMode="dropdown"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/materialTextView2" />
+        app:layout_constraintTop_toBottomOf="@+id/materialTextView2"
+        style="@style/Widget.AppCompat.Spinner.Underlined" />
+
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/materialTextView"
@@ -37,9 +62,6 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="25dp"
         android:text="Ingrese el radio (en metros)"
-        android:textAlignment="center"
-        android:textAppearance="?attr/textAppearanceHeadline6"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/spinnerPoiType" />
 
@@ -63,36 +85,13 @@
             android:inputType="number" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <TextView
-        android:id="@+id/textView9"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
-        android:text="Buscar POI Cercano"
-        android:textAlignment="center"
-        android:textColor="#000000"
-        android:textSize="24sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/imageView10"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageView
-        android:id="@+id/imageView10"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
-        app:layout_constraintBottom_toBottomOf="@+id/textView9"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/textView9"
-        app:srcCompat="@drawable/imagen_poi" />
-
     <Button
         android:id="@+id/btnBuscar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:text="Buscar"
+        android:backgroundTint="@color/blue"
         android:textColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/btnCancelar"
@@ -104,6 +103,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:text="Cancelar"
+        android:backgroundTint="@color/red"
         android:textColor="@android:color/white"
         app:layout_constraintEnd_toStartOf="@+id/btnBuscar"
         app:layout_constraintStart_toStartOf="parent"

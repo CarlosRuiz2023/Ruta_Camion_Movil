@@ -94,8 +94,8 @@
 
     <ImageView
         android:id="@+id/imgTonelada"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:layout_below="@+id/imgTruck"
         android:layout_marginStart="57dp"
         android:layout_marginTop="95dp"
@@ -135,8 +135,8 @@
 
     <ImageView
         android:id="@+id/imgAltura"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:layout_below="@+id/imgTruck"
         android:layout_alignEnd="@+id/viewDetalles"
         android:layout_marginTop="95dp"
@@ -177,8 +177,8 @@
 
     <ImageView
         android:id="@+id/imgAncho"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:layout_below="@+id/etPeso"
         android:layout_alignStart="@+id/viewDetalles"
         android:layout_marginStart="57dp"
@@ -186,7 +186,7 @@
         android:elevation="6dp"
         app:layout_constraintStart_toStartOf="@+id/viewDetalles"
         app:layout_constraintTop_toBottomOf="@+id/etPeso"
-        app:srcCompat="@drawable/anchocamion" />
+        app:srcCompat="@drawable/ancho" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/etAncho"
@@ -219,8 +219,8 @@
 
     <ImageView
         android:id="@+id/imgLargo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:layout_below="@+id/etAltura"
         android:layout_alignEnd="@+id/viewDetalles"
         android:layout_marginTop="20dp"
@@ -270,6 +270,7 @@
         android:layout_marginStart="30dp"
         android:layout_marginTop="15dp"
         android:layout_marginEnd="20dp"
+        android:backgroundTint="@color/blue"
         android:elevation="6dp"
         android:text="Aceptar"
         android:textColor="#F2F4F7"

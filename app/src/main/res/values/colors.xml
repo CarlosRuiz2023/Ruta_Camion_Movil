@@ -2,11 +2,16 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="blue">#1838B7</color>
     <color name="teal_700">#3B5D83</color>
     <color name="rojo">#FF0000</color>
     <color name="deepOrange_800">#3F72AF</color>
     <color name="colorSecond">#7EB8D5</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+    <color name="blue">#3F72AF</color>
+    <color name="red">#B71818</color>
+    <color name="pressed_background">#32424A</color>
+    <color name="selected_background">#0091EA</color>
+    <color name="purple">#767676</color>
+    <color name="gray">#304FFE</color>
 </resources>

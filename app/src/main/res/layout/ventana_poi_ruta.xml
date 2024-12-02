@@ -1,90 +1,107 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:background="@color/white">
 
-
+    <!-- Título -->
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/dialog_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="16dp"
         android:text="Título"
-        android:textColor="@android:color/black"
-        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:textSize="22sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <!-- Dirección -->
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/dialog_address"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="30dp"
-        android:text="Dirección"
-        android:textAlignment="center"
-        android:textColor="@android:color/black"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="Dirección: Ejemplo de dirección"
+        android:textColor="@color/gray"
         android:textSize="16sp"
+        android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/dialog_title" />
+        app:layout_constraintTop_toBottomOf="@id/dialog_title" />
 
+    <!-- Categoría -->
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/textView3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="16dp"
         android:text="Categoría"
-        android:textColor="@android:color/black"
-        android:textSize="20sp"
+        android:textColor="@color/black"
+        android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/dialog_address" />
+        app:layout_constraintTop_toBottomOf="@id/dialog_address" />
 
     <com.google.android.material.textview.MaterialTextView
         android:id="@+id/dialog_categories"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
-        android:layout_marginTop="5dp"
-        android:layout_marginEnd="30dp"
-        android:textAlignment="center"
-        android:textColor="#000000"
+        android:layout_marginTop="8dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:text="Ejemplo de categoría"
+        android:textColor="@color/gray"
         android:textSize="16sp"
+        android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView3" />
+        app:layout_constraintTop_toBottomOf="@id/textView3" />
 
+    <!-- Botones en LinearLayout -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/dialog_categories">
+        app:layout_constraintTop_toBottomOf="@id/dialog_categories">
 
+        <!-- Botón Cerrar -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/dialog_close_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Cerrar" />
+            android:backgroundTint="@color/red"
+            android:text="Cerrar"
+            android:textColor="@color/white"
+            android:textStyle="bold" />
 
+        <!-- Espaciado entre botones -->
+        <View
+            android:layout_width="8dp"
+            android:layout_height="0dp" />
+
+        <!-- Botón Ir -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/dialog_go_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:backgroundTint="@color/blue"
             android:text="Ir"
-            android:layout_marginStart="8dp" />
-
+            android:textColor="@color/white"
+            android:textStyle="bold" />
     </LinearLayout>
-
 
 </androidx.constraintlayout.widget.ConstraintLayout>

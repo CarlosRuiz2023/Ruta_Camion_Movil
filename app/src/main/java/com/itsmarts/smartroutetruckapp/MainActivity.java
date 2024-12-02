@@ -44,6 +44,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -88,6 +89,7 @@ import com.here.sdk.search.TextQuery;
 import com.itsmarts.smartroutetruckapp.adaptadores.RouterCanceledAdapter;
 import com.itsmarts.smartroutetruckapp.adaptadores.RouterFinishedAdapter;
 import com.itsmarts.smartroutetruckapp.bd.DatabaseHelper;
+import com.itsmarts.smartroutetruckapp.clases.AnimatorNew;
 import com.itsmarts.smartroutetruckapp.clases.AvoidZonesExample;
 import com.itsmarts.smartroutetruckapp.clases.ControlPointsExample;
 import com.itsmarts.smartroutetruckapp.clases.NavigationEventHandler;
@@ -153,6 +155,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // INICIALIZACION DE LA VARIABLE TIPO MapScheme PARA EL ESTILO DEL MAPA POR DEFECTO
     private MapScheme style = MapScheme.NORMAL_DAY;
     public TruckConfig truckConfig;
+    private LottieAnimationView likeAnimationView;
+    private AnimatorNew likeAnimator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -461,8 +465,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 btnCancelarPoi.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        //fbEliminarPoi.setVisibility(View.GONE);
-                        //txtEliminarPoi.setVisibility(View.GONE);
                         dialogPoi.dismiss();
                     }
                 });
@@ -544,7 +546,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 alertDialogOffline.show();
                 break;
-            case "Configuracion":
+            case "Vehiculo":
                 avoidZonesExample.cleanPolygon();
                 controlPointsExample.cleanPoint();
                 mapView.getGestures().setTapListener(null);
@@ -573,7 +575,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         String name = item.getTitle().toString();
-        Log.e("Prueba",""+name);
 
         // Handle other menu items you have defined in your menu resource file
         switch (name) {
@@ -615,6 +616,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         geocercas = new Geocercas(this);
         adapterFinishedRoutes = new RouterFinishedAdapter(this);
         adapterCanceledRoutes = new RouterCanceledAdapter(this);
+        likeAnimator = new AnimatorNew();
     }
     private void initializeSecondClass(){
         routingExample = new RoutingExample(this);
@@ -693,6 +695,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         llMapas = findViewById(R.id.llMapas);
         fbMapas = findViewById(R.id.fbMapas);
         truck_config_content = findViewById(R.id.truck_config_content);
+        likeAnimationView = findViewById(R.id.likeImageView);
+
+        //Animacion de cargando
+        //cohete
+        likeAnimator.beginAnimation(likeAnimationView,R.raw.loading_2,R.raw.loading_5);
 
         // Set the toolbar as the action bar
         this.setSupportActionBar(toolbar);

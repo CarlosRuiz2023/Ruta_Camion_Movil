@@ -22,8 +22,8 @@
             android:title="@string/menu_download_map"
             android:icon="@drawable/ic_download"/>
         <item
-            android:id="@+id/action_config"
-            android:title="@string/menu_config"
+            android:id="@+id/action_vehiculo"
+            android:title="@string/menu_vehiculo"
             android:icon="@drawable/truck"/>
     </group>
     <item

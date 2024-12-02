@@ -42,4 +42,5 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
 
     implementation(files("/libs/hereSDK.aar"))
+    implementation("com.airbnb.android:lottie:3.5.0")
 }

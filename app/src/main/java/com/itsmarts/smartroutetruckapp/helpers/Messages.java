@@ -57,7 +57,8 @@ public class Messages {
 
         mainActivity.isDialogShowing = true;
 
-        Dialog dialog = new Dialog(mainActivity.getApplicationContext());
+        Dialog dialog = new Dialog(mainActivity);
+        Log.e("Prueba",""+geoCoordinatesPOI);
         if(geoCoordinatesPOI != null){
             dialog.setContentView(R.layout.ventana_poi_ruta);
             Button goButton = dialog.findViewById(R.id.dialog_go_button);
@@ -157,6 +158,7 @@ public class Messages {
             }
         } else {
             dialog.setContentView(R.layout.ventana_poi_normal);
+            Log.e("Prueba","POI sin coordenadas");
         }
         TextView titleView = dialog.findViewById(R.id.dialog_title);
         TextView addressView = dialog.findViewById(R.id.dialog_address);
@@ -166,6 +168,7 @@ public class Messages {
 
         titleView.setText(title);
         addressView.setText(mainInfo);
+        Log.e("Prueba",mainInfo);
 
         if (!additionalInfo.isEmpty()) {
             categoriesView.setText(additionalInfo);
@@ -174,6 +177,7 @@ public class Messages {
             categoriesView.setVisibility(View.GONE);
             typeView.setVisibility(View.GONE);
         }
+        Log.e("Prueba",type);
 
         if (!type.isEmpty()) {
             typeView.setText(type);
@@ -190,6 +194,7 @@ public class Messages {
             mainActivity.isDialogShowing = false;
         });
 
+        Log.e("Prueba","show");
         dialog.show();
 
         Window window = dialog.getWindow();

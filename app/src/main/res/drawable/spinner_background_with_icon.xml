@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Fondo blanco con bordes redondeados -->
+    <item>
+        <shape xmlns:android="http://schemas.android.com/apk/res/android">
+            <solid android:color="@android:color/white" />
+            <stroke
+                android:width=".8dp"
+                android:color="@color/purple" />
+            <corners android:radius="3dp" />
+        </shape>
+    </item>
+
+    <!-- Ícono de flecha hacia abajo -->
+    <item android:drawable="@drawable/ic_expand_more" android:gravity="end|center_vertical" />
+</layer-list>
