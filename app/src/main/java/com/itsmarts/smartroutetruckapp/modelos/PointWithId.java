@@ -4,24 +4,26 @@ import com.here.sdk.mapview.MapMarker;
 
 public class PointWithId {
     public int id;
-    public int idRuta;
+    public int[] rutasIds;
     public MapMarker mapMarker;
     public String name;
-    public String estado;
-    public String municipio;
+    public int id_estado;
+    public int id_municipio;
     public int[] truckSpecIds;
     public Boolean label;
+    public Boolean visibility;
     public Boolean status;
 
-    public PointWithId(int id, int idRuta, MapMarker mapMarker, String name, String estado, String municipio, int[] truckSpecIds,Boolean label, Boolean status) {
+    public PointWithId(int id, int[] rutasIds, MapMarker mapMarker, String name, int id_estado, int id_municipio, int[] truckSpecIds,Boolean label,Boolean visibility, Boolean status) {
         this.id = id;
-        this.idRuta = idRuta;
+        this.rutasIds = rutasIds;
         this.mapMarker = mapMarker;
         this.name = name;
-        this.estado = estado;
-        this.municipio = municipio;
+        this.id_estado = id_estado;
+        this.id_municipio = id_municipio;
         this.truckSpecIds = truckSpecIds;
         this.label = label;
+        this.visibility = visibility;
         this.status = status;
     }
 
@@ -49,6 +51,13 @@ public class PointWithId {
         this.mapMarker = mapMarker;
     }
 
+    public Boolean visibility() {
+        return visibility;
+    }
+    public void setVisibility(Boolean visibility) {
+        this.visibility = visibility;
+    }
+
     public Boolean status() {
         return status;
     }
@@ -64,20 +73,20 @@ public class PointWithId {
         this.label = label;
     }
 
-    public String estado() {
-        return estado;
+    public int id_estado() {
+        return id_estado;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
+    public void setId_estado(int id_estado) {
+        this.id_estado = id_estado;
     }
 
-    public String municipio() {
-        return municipio;
+    public int id_municipio() {
+        return id_municipio;
     }
 
-    public void setMunicipio(String municipio) {
-        this.municipio = municipio;
+    public void setId_municipio(int id_municipio) {
+        this.id_municipio = id_municipio;
     }
 
     public int[] truckSpecIds() {
@@ -88,11 +97,11 @@ public class PointWithId {
         this.truckSpecIds = truckSpecIds;
     }
 
-    public int idRuta() {
-        return idRuta;
+    public int[] rutasIds() {
+        return rutasIds;
     }
 
-    public void setIdRuta(int idRuta) {
-        this.idRuta = idRuta;
+    public void setRutasIds(int[] rutasIds) {
+        this.rutasIds = rutasIds;
     }
 }

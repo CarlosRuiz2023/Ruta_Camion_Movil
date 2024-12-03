@@ -59,7 +59,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
     public void onBindViewHolder(PointViewHolder holder, int position) {
         // Asigna el nombre del polígono basado en su posición
         holder.polygonNameTextView.setText(controlPointsExample.pointsWithIds.get(position).name);
-        if(controlPointsExample.pointsWithIds.get(position).status){
+        if(controlPointsExample.pointsWithIds.get(position).visibility){
             holder.icon_visibility.setImageDrawable(no_visible);
         }else{
             holder.icon_visibility.setImageDrawable(visible);
@@ -94,14 +94,14 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         PointWithId point = controlPointsExample.pointsWithIds.get(position);
-                        controlPointsExample.dbHelper.updateStatusPunto(point.id, !controlPointsExample.pointsWithIds.get(position).status);
-                        if(!controlPointsExample.pointsWithIds.get(position).status){
+                        controlPointsExample.dbHelper.updateStatusPunto(point.id, !controlPointsExample.pointsWithIds.get(position).visibility);
+                        if(!controlPointsExample.pointsWithIds.get(position).visibility()){
                             controlPointsExample.mapView.getMapScene().addMapMarker(point.mapMarker);
-                            controlPointsExample.pointsWithIds.get(position).status = true;
+                            controlPointsExample.pointsWithIds.get(position).visibility = true;
                             icon_visibility.setImageDrawable(no_visible);
                         }else{
                             controlPointsExample.mapView.getMapScene().removeMapMarker(point.mapMarker);
-                            controlPointsExample.pointsWithIds.get(position).status = false;
+                            controlPointsExample.pointsWithIds.get(position).visibility = false;
                             icon_visibility.setImageDrawable(visible);
                         }
                     }

@@ -173,12 +173,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         initializeBD();
         initializeSecondClass();
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            navigationExample = new NavigationExample(this, mapView, messageView);
-            navigationExample.getNavigationEventHandler().setSpeedUpdateListener(this);
-            navigationExample.getNavigationEventHandler().setDestinationDistanceListener(this);
-            navigationExample.getNavigationEventHandler().setDestinationReachedListener(this);
-            avoidZonesExample = new AvoidZonesExample(this,mapView,getLayoutInflater(),dbHelper);
-            controlPointsExample = new ControlPointsExample(this,mapView,getLayoutInflater(),dbHelper);
             navigationExample.startLocationProvider();
         }else{
             //mMapHelper.permisoLocalizacion(this, this);
@@ -245,12 +239,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 alertDialogRuta.dismiss();
                                 List<GeoCoordinates> puntos = new ArrayList<>();
                                 for(PointWithId pointWithId:controlPointsExample.pointsWithIds){
-                                    if(pointWithId.idRuta==0 || pointWithId.idRuta==ruta.id){
+                                    //if(pointWithId.idRuta==0 || pointWithId.idRuta==ruta.id){
                                         if(pointWithId.status){
                                             puntos.add(pointWithId.mapMarker.getCoordinates());
                                             geocercas.drawGecocercaControlPoint(pointWithId.mapMarker.getCoordinates(), 100);
                                         }
-                                    }
+                                    //}
                                 }
                                 List<MapPolygon> poligonos = new ArrayList<>();
                                 for(PolygonWithId polygonWithId:avoidZonesExample.polygonWithIds){
@@ -622,6 +616,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         routingExample = new RoutingExample(this);
         offlineMap = new OfflineMap(this);
         truckConfig = new TruckConfig(this);
+        navigationExample = new NavigationExample(this, mapView, messageView);
+        navigationExample.getNavigationEventHandler().setSpeedUpdateListener(this);
+        navigationExample.getNavigationEventHandler().setDestinationDistanceListener(this);
+        navigationExample.getNavigationEventHandler().setDestinationReachedListener(this);
+        avoidZonesExample = new AvoidZonesExample(this,mapView,getLayoutInflater(),dbHelper);
+        controlPointsExample = new ControlPointsExample(this,mapView,getLayoutInflater(),dbHelper);
         try{
             searchEngine = new SearchEngine();
             offlineSearchEngine = new OfflineSearchEngine();
@@ -1295,5 +1295,31 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         // Usar el punto medio para anclar la vista
         mapView.pinView(linearLayout, poiCoordinates);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mapView.onPause();
+        mMapHelper.handleAndroidPermissions();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mapView.onResume();
+        mMapHelper.handleAndroidPermissions();
+        //mMapHelper.permisoLocalizacion(this, this);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        mapView.onDestroy();
+        mMapHelper.disposeHERESDK();
+        navigationExample.stopNavigation(false);
+        stopLocalVoiceInteraction();
+        navigationExample.stopLocating();
+        navigationExample.stopRendering();
     }
 }

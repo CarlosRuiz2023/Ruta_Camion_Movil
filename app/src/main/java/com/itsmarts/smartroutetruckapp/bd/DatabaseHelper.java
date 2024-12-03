@@ -56,12 +56,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_LATITUDE = "latitude";
     private static final String COLUMN_LONGITUDE = "longitude";
     private static final String COLUMN_LABEL = "label";
+    private static final String COLUMN_VISIBILITY = "visibility";
     private static final String COLUMN_STATUS = "status";
     private static final String COLUMN_TONELADA = "tonelada";
     private static final String COLUMN_ALTURA = "altura";
     private static final String COLUMN_ANCHO = "ancho";
     private static final String COLUMN_LARGO = "largo";
     private static final String COLUMN_IMAGEN = "imagen";
+    private static final String COLUMN_IDESTADO = "id_estado";
+    private static final String COLUMN_IDMUNICIPIO = "id_municipio";
     private static final String COLUMN_ESTADO = "estado";
     private static final String COLUMN_MUNICIPIO = "municipio";
     private static final String COLUMN_TUCKSPEC_IDS = "truckSpecIds";
@@ -89,14 +92,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String createTableQueryPuntos = "CREATE TABLE " + TABLE_PUNTOS + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_ROUTE_ID + " INTEGER, " +
+                COLUMN_ROUTE_ID + " TEXT, " +
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_LATITUDE + " REAL, " +
                 COLUMN_LONGITUDE + " REAL, " +
-                COLUMN_ESTADO + " TEXT, " +
-                COLUMN_MUNICIPIO + " TEXT, " +
+                COLUMN_IDESTADO + " INTEGER, " +
+                COLUMN_IDMUNICIPIO + " INTEGER, " +
                 COLUMN_TUCKSPEC_IDS + " TEXT, " +
                 COLUMN_LABEL + " INTEGER, " +
+                COLUMN_VISIBILITY + " INTEGER, " +
                 COLUMN_STATUS + " INTEGER)";
 
         String createTableQueryZonas = "CREATE TABLE " + TABLE_ZONAS + " (" +
@@ -156,18 +160,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
 
     // Guarda una coordenada en la base de datos
-    public void savePunto(GeoCoordinates coordinate, String name, String estado, String municipio) {
+    public void savePunto(GeoCoordinates coordinate, String name, int id_estado, int id_municipio,int status) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_NAME, name);
-        values.put(COLUMN_ROUTE_ID, 0);
+        values.put(COLUMN_ROUTE_ID, "1");
         values.put(COLUMN_LATITUDE, coordinate.latitude);
         values.put(COLUMN_LONGITUDE, coordinate.longitude);
-        values.put(COLUMN_ESTADO, estado);
-        values.put(COLUMN_MUNICIPIO, municipio);
+        values.put(COLUMN_IDESTADO, id_estado);
+        values.put(COLUMN_IDMUNICIPIO, id_municipio);
         values.put(COLUMN_TUCKSPEC_IDS, "1");
-        values.put(COLUMN_LABEL, 1);
-        values.put(COLUMN_STATUS, 1);
+        values.put(COLUMN_LABEL, 0);
+        values.put(COLUMN_VISIBILITY, 0);
+        values.put(COLUMN_STATUS, status);
         db.insert(TABLE_PUNTOS, null, values);
         db.close();
     }
@@ -195,12 +200,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
-                int routeId = cursor.getInt(cursor.getColumnIndex(COLUMN_ROUTE_ID));
+                String rutasIds = cursor.getString(cursor.getColumnIndex(COLUMN_ROUTE_ID));
+                String[] rutasIdsArray = rutasIds.split(",");
+                int[] idsR = new int[rutasIdsArray.length];
+                for (int i = 0; i < rutasIdsArray.length; i++) {
+                    idsR[i] = Integer.parseInt(rutasIdsArray[i].trim());
+                }
                 String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
                 double latitude = cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE));
                 double longitude = cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE));
-                String estado = cursor.getString(cursor.getColumnIndex(COLUMN_ESTADO));
-                String municipio = cursor.getString(cursor.getColumnIndex(COLUMN_MUNICIPIO));
+                int id_estado = cursor.getInt(cursor.getColumnIndex(COLUMN_IDESTADO));
+                int id_municipio = cursor.getInt(cursor.getColumnIndex(COLUMN_IDMUNICIPIO));
                 String truckSpecIds = cursor.getString(cursor.getColumnIndex(COLUMN_TUCKSPEC_IDS));
                 String[] truckSpecIdsArray = truckSpecIds.split(",");
                 int[] ids = new int[truckSpecIdsArray.length];
@@ -208,15 +218,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     ids[i] = Integer.parseInt(truckSpecIdsArray[i].trim());
                 }
                 Boolean label = cursor.getInt(cursor.getColumnIndex(COLUMN_LABEL)) == 1;
+                Boolean visibility = cursor.getInt(cursor.getColumnIndex(COLUMN_VISIBILITY)) == 1;
                 Boolean status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)) == 1;
                 MapImage mapImage = MapImageFactory.fromResource(context.getResources(), R.drawable.punto_control);
                 MapMarker mapMarker = new MapMarker(new GeoCoordinates(latitude, longitude), mapImage);
-                pointsWithIds.add(new PointWithId(id,routeId,mapMarker,name,estado,municipio,ids,label,status));
+                pointsWithIds.add(new PointWithId(id,idsR,mapMarker,name,id_estado,id_municipio,ids,label,visibility,status));
             } while (cursor.moveToNext());
         }
 
         cursor.close();
-        db.close();
+         db.close();
         return pointsWithIds;
     }
 

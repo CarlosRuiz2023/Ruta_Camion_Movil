@@ -71,7 +71,7 @@ public class ControlPointsExample {
         if(pointsWithIds.size()>0){
             for (PointWithId point : pointsWithIds) {
                 markers.add(point.mapMarker);
-                if(point.status){
+                if(point.visibility){
                     mapView.getMapScene().addMapMarker(point.mapMarker);
                     if(point.label){
                         // Crea un TextView para la etiqueta
@@ -101,7 +101,7 @@ public class ControlPointsExample {
             pointsWithIds = dbHelper.getAllPuntos();
             for (PointWithId point : pointsWithIds) {
                 markers.add(point.mapMarker);
-                if(point.status){
+                if(point.visibility){
                     mapView.getMapScene().addMapMarker(point.mapMarker);
                     if(point.label){
                         // Crea un TextView para la etiqueta
@@ -134,67 +134,6 @@ public class ControlPointsExample {
         MapImage mapImage = MapImageFactory.fromResource(context.getResources(), resourceId);
         mapMarker = new MapMarker(geoCoordinates, mapImage);
         mapView.getMapScene().addMapMarker(mapMarker);
-    }
-
-    /**
-     * Método para agregar un marcador en el mapa en las coordenadas especificadas.
-     *
-     * @param geoCoordinates Las coordenadas donde se agregará el marcador.
-     */
-    public void showSavePointDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        // Infla el layout personalizado
-        View dialogView = layoutInflater.inflate(R.layout.dialog_save_point, null);
-        builder.setView(dialogView);
-
-        // Obtén las referencias a los elementos del layout
-        final EditText input = dialogView.findViewById(R.id.polygon_name_input);
-        MaterialButton cancelButton = dialogView.findViewById(R.id.cancel_button);
-        MaterialButton saveButton = dialogView.findViewById(R.id.save_button);
-
-        // Configura los listeners de los botones
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Cierra el diálogo
-                cleanPoint();
-                dialog.dismiss();
-            }
-        });
-
-        saveButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String pointName = input.getText().toString();
-                if(pointName.isEmpty()){
-                    Toast.makeText(context, "Ingrese un nombre para el punto", Toast.LENGTH_SHORT).show();
-                    input.setError("Ingrese un nombre para el punto");
-                    return;
-                }
-                AddressQuery query = new AddressQuery("",mapMarker.getCoordinates());
-                SearchOptions options = new SearchOptions();
-                SearchEngine searchEngine = null;
-                try {
-                    searchEngine = new SearchEngine();
-                } catch (InstantiationErrorException e) {
-                    //throw new RuntimeException(e);
-                }
-                searchEngine.search(query, options, geocodeAddressSearchCallback);
-                // Guarda el polígono en la base de datos
-                dbHelper.savePunto(mapMarker.getCoordinates(), pointName,estado,municipio);
-                for (PointWithId point : pointsWithIds) {
-                    mapView.getMapScene().removeMapMarker(point.mapMarker);
-                }
-                pointsWithIds = dbHelper.getAllPuntos();
-                cleanPoint();
-                dialog.dismiss(); // Cierra el diálogo
-            }
-        });
-        mapView.getGestures().setTapListener(null);
-
-        // Muestra el diálogo
-        dialog = builder.create();
-        dialog.show();
     }
 
     private final SearchCallback geocodeAddressSearchCallback = new SearchCallback() {
@@ -271,40 +210,44 @@ public class ControlPointsExample {
      * @param geoCoordinates Las coordenadas donde se agregará el marcador.
      */
     public void cleanPoint(){
-        // Eliminar cualquier mapMarker existente en el Adaptador
-        if(mapMarker!=null) mapView.getMapScene().removeMapMarker(mapMarker);
-        mapMarker=null;
-        for (PointWithId point : pointsWithIds) {
-            mapView.getMapScene().removeMapMarker(point.mapMarker);
-        }
-        List<MapView.ViewPin> mapViewPins = mapView.getViewPins();
-        for (MapView.ViewPin viewPin : new ArrayList<>(mapViewPins)) {
+        try {
+            // Eliminar cualquier mapMarker existente en el Adaptador
+            if(mapMarker!=null) mapView.getMapScene().removeMapMarker(mapMarker);
+            mapMarker=null;
             for (PointWithId point : pointsWithIds) {
-                if(point.mapMarker.getCoordinates().latitude==viewPin.getGeoCoordinates().latitude && point.mapMarker.getCoordinates().longitude==viewPin.getGeoCoordinates().longitude){
-                    viewPin.unpin();
+                mapView.getMapScene().removeMapMarker(point.mapMarker);
+            }
+            List<MapView.ViewPin> mapViewPins = mapView.getViewPins();
+            for (MapView.ViewPin viewPin : new ArrayList<>(mapViewPins)) {
+                for (PointWithId point : pointsWithIds) {
+                    if(point.mapMarker.getCoordinates().latitude==viewPin.getGeoCoordinates().latitude && point.mapMarker.getCoordinates().longitude==viewPin.getGeoCoordinates().longitude){
+                        viewPin.unpin();
+                    }
                 }
             }
-        }
-        for (PointWithId point : pointsWithIds) {
-            if(point.status) {
-                mapView.getMapScene().addMapMarker(point.mapMarker);
-            }
-            if(point.label){
-                // Crea un TextView para la etiqueta
-                TextView textView = new TextView(context);
-                textView.setTextColor(Color.parseColor("#7EB8D5"));
-                textView.setText(point.name);
-                textView.setTypeface(Typeface.DEFAULT_BOLD);
+            for (PointWithId point : pointsWithIds) {
+                if(point.visibility) {
+                    mapView.getMapScene().addMapMarker(point.mapMarker);
+                }
+                if(point.label){
+                    // Crea un TextView para la etiqueta
+                    TextView textView = new TextView(context);
+                    textView.setTextColor(Color.parseColor("#7EB8D5"));
+                    textView.setText(point.name);
+                    textView.setTypeface(Typeface.DEFAULT_BOLD);
 
-                // Crea un LinearLayout para contener el TextView y agregar padding
-                LinearLayout linearLayout = new LinearLayout(context);
-                //linearLayout.setBackgroundResource(R.color.colorAccent);
-                linearLayout.setPadding(0, 0, 0, 130);
-                linearLayout.addView(textView);
+                    // Crea un LinearLayout para contener el TextView y agregar padding
+                    LinearLayout linearLayout = new LinearLayout(context);
+                    //linearLayout.setBackgroundResource(R.color.colorAccent);
+                    linearLayout.setPadding(0, 0, 0, 130);
+                    linearLayout.addView(textView);
 
-                // Ancla el LinearLayout al mapa en las coordenadas ajustadas
-                mapView.pinView(linearLayout, point.mapMarker.getCoordinates());
+                    // Ancla el LinearLayout al mapa en las coordenadas ajustadas
+                    mapView.pinView(linearLayout, point.mapMarker.getCoordinates());
+                }
             }
+        }catch (Exception e){
+            Log.e("Error",e.getMessage());
         }
     }
 
@@ -330,31 +273,47 @@ public class ControlPointsExample {
                         String jsonResponse = response.body().string();
                         Log.e("Prueba", jsonResponse);
 
-                        // Parsear el JSON manualmente
-                        JSONArray puntosArray = new JSONArray(jsonResponse);
-                        for (int i = 0; i < puntosArray.length(); i++) {
-                            JSONObject puntoObject = puntosArray.getJSONObject(i);
+                        // Convierte la respuesta en un objeto JSON
+                        JSONObject jsonObject = new JSONObject(jsonResponse);
+                        Log.e("Prueba", jsonObject.toString());
 
-                            // Extraer datos del punto
-                            double latitud = puntoObject.optDouble("latitud", 0.0);
-                            double longitud = puntoObject.optDouble("longitud", 0.0);
-                            String nombre = puntoObject.optString("nombre", "Sin nombre");
-                            String estado = puntoObject.optString("estado", "Sin estado");
-                            String municipio = puntoObject.optString("municipio", "Sin municipio");
+                        // Verifica si la operación fue exitosa
+                        boolean success = jsonObject.getBoolean("success");
+                        Log.e("Prueba", success + "");
+                        if (success) {
+                            // Obtén el arreglo "result"
+                            JSONArray puntosArray = jsonObject.getJSONArray("result");
 
-                            // Guardar el punto en la base de datos
-                            try {
-                                dbHelper.savePunto(
-                                        new GeoCoordinates(latitud, longitud),
-                                        nombre,
-                                        estado,
-                                        municipio
-                                );
-                            } catch (Exception e) {
-                                Log.e("Database", "Error al guardar el punto: " + e.getMessage());
+                            Log.e("Prueba", puntosArray.toString());
+
+                            // Itera sobre cada elemento en el arreglo
+                            for (int i = 0; i < puntosArray.length(); i++) {
+                                JSONObject puntoObject = puntosArray.getJSONObject(i);
+                                Log.e("Prueba", puntoObject.toString());
+
+                                // Extraer datos del punto
+                                double latitud = puntoObject.optDouble("latitud", 0.0);
+                                double longitud = puntoObject.optDouble("longitud", 0.0);
+                                String nombre = puntoObject.optString("nombre", "Sin nombre");
+                                int id_estado = puntoObject.optInt("id_estado", 0);
+                                int id_municipio = puntoObject.optInt("id_municipio", 0);
+                                int status = puntoObject.optInt("estatus", 0);
+
+                                // Guardar el punto en la base de datos
+                                try {
+                                    dbHelper.savePunto(
+                                            new GeoCoordinates(latitud, longitud),
+                                            nombre,
+                                            id_estado,
+                                            id_municipio,
+                                            status
+                                    );
+                                } catch (Exception e) {
+                                    Log.e("Database", "Error al guardar el punto: " + e.getMessage());
+                                }
                             }
-
-                            Log.e("Punto procesado", "Nombre: " + nombre + ", Estado: " + estado + ", Municipio: " + municipio);
+                        } else {
+                            Log.e("Error", "La operación no fue exitosa.");
                         }
 
                         Log.d("Retrofit", "Puntos guardados correctamente.");
@@ -372,5 +331,4 @@ public class ControlPointsExample {
             }
         });
     }
-
 }
