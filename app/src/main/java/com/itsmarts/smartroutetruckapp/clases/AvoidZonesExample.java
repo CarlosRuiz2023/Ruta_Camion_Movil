@@ -34,12 +34,18 @@ import com.here.sdk.search.SearchError;
 import com.here.sdk.search.SearchOptions;
 import com.itsmarts.smartroutetruckapp.R;
 import com.itsmarts.smartroutetruckapp.adaptadores.PolygonAdapter;
+import com.itsmarts.smartroutetruckapp.api.ApiService;
+import com.itsmarts.smartroutetruckapp.api.RetrofitClient;
 import com.itsmarts.smartroutetruckapp.bd.DatabaseHelper;
 import com.itsmarts.smartroutetruckapp.fragments.ModalBottomSheetFullScreenFragmentZonas;
+import com.itsmarts.smartroutetruckapp.modelos.PointWithId;
 import com.itsmarts.smartroutetruckapp.modelos.PolygonWithId;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Response;
 
 public class AvoidZonesExample {
     public List<GeoCoordinates> polygonVertices = new ArrayList<>();
@@ -130,6 +136,7 @@ public class AvoidZonesExample {
             dbHelper.saveZona(mapPolygon,"Zona Prohibida","Guanajuato","Leon",0);
             dbHelper.saveZona(mapPolygon1,"Zona Prohibida2","Guanajuato","Leon",0);
             dbHelper.saveZona(mapPolygon2,"Zona Peligrosa","Guanajuato","Leon",1);
+            //fetchAndStorePuntosDeControl();
             // Recupera la lista de polígonos de la base de datos
             polygonWithIds = dbHelper.getAllZonas();
             for (PolygonWithId polygonWithId : polygonWithIds) {
@@ -326,4 +333,36 @@ public class AvoidZonesExample {
         GeoCoordinates centroid = new GeoCoordinates(cy, cx);
         return centroid;
     }
+
+    /*public void fetchAndStorePuntosDeControl() {
+        ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+        apiService.getPuntosDeControl().enqueue(new retrofit2.Callback<List<PointWithId>>() {
+            @Override
+            public void onResponse(Call<List<PointWithId>> call, Response<List<PointWithId>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<PointWithId> puntosDeControl = response.body();
+                    for (PointWithId punto : puntosDeControl) {
+                        // Crear un MapPolygon
+                        List<GeoCoordinates> vertices = new ArrayList<>();
+                        vertices.add(new GeoCoordinates(punto.getLatitud(), punto.getLongitud()));
+                        try {
+                            MapPolygon polygon = new MapPolygon(new GeoPolygon(vertices),
+                                    punto.isPeligrosa() ? new android.graphics.Color(1f, 0f, 0f, 0.63f) : new android.graphics.Color(0f, 1f, 0f, 0.63f));
+                            dbHelper.saveZona(polygon, punto.getNombre(), "Estado", "Ciudad", punto.isPeligrosa() ? 1 : 0);
+                        } catch (InstantiationErrorException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    Log.d("Retrofit", "Puntos guardados correctamente.");
+                } else {
+                    Log.e("Retrofit", "Error en la respuesta del servidor.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<PointWithId>> call, Throwable t) {
+                Log.e("Retrofit", "Error al obtener datos: " + t.getMessage());
+            }
+        });
+    }*/
 }

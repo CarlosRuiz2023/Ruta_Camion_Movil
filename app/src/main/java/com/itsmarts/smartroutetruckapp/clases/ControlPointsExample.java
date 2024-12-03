@@ -30,12 +30,21 @@ import com.here.sdk.search.SearchError;
 import com.here.sdk.search.SearchOptions;
 import com.itsmarts.smartroutetruckapp.R;
 import com.itsmarts.smartroutetruckapp.adaptadores.PointAdapter;
+import com.itsmarts.smartroutetruckapp.api.ApiService;
+import com.itsmarts.smartroutetruckapp.api.RetrofitClient;
 import com.itsmarts.smartroutetruckapp.bd.DatabaseHelper;
 import com.itsmarts.smartroutetruckapp.fragments.ModalBottomSheetFullScreenFragmentPuntos;
 import com.itsmarts.smartroutetruckapp.modelos.PointWithId;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Response;
 
 public class ControlPointsExample {
     public List<MapMarker> markers = new ArrayList<>();
@@ -83,9 +92,11 @@ public class ControlPointsExample {
                 }
             }
         }else{
-            dbHelper.savePunto(new GeoCoordinates(21.099146716048164,-101.57487163638099),"Mi casa","Guanajuato","Leon");
+            /*dbHelper.savePunto(new GeoCoordinates(21.099146716048164,-101.57487163638099),"Mi casa","Guanajuato","Leon");
             dbHelper.savePunto(new GeoCoordinates(21.144492680543852,-101.69185396141856),"El trabajo","Guanajuato","Leon");
-            dbHelper.savePunto(new GeoCoordinates(21.12990137766593,-101.645661225448),"Sunrise","Guanajuato","Leon");
+            dbHelper.savePunto(new GeoCoordinates(21.12990137766593,-101.645661225448),"Sunrise","Guanajuato","Leon");*/
+
+            fetchAndStorePuntosDeControl();
             // Recupera la lista de polígonos de la base de datos
             pointsWithIds = dbHelper.getAllPuntos();
             for (PointWithId point : pointsWithIds) {
@@ -305,4 +316,61 @@ public class ControlPointsExample {
     public ModalBottomSheetFullScreenFragmentPuntos getModalBottomSheetFullScreenFragment(){
         return bottomSheetFragment;
     }
+
+    public void fetchAndStorePuntosDeControl() {
+        Log.e("Prueba","Paso 1");
+        ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+        apiService.getPuntosDeControl().enqueue(new retrofit2.Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                Log.e("Prueba","Paso 2");
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        // Obtener el JSON como string
+                        String jsonResponse = response.body().string();
+                        Log.e("Prueba", jsonResponse);
+
+                        // Parsear el JSON manualmente
+                        JSONArray puntosArray = new JSONArray(jsonResponse);
+                        for (int i = 0; i < puntosArray.length(); i++) {
+                            JSONObject puntoObject = puntosArray.getJSONObject(i);
+
+                            // Extraer datos del punto
+                            double latitud = puntoObject.optDouble("latitud", 0.0);
+                            double longitud = puntoObject.optDouble("longitud", 0.0);
+                            String nombre = puntoObject.optString("nombre", "Sin nombre");
+                            String estado = puntoObject.optString("estado", "Sin estado");
+                            String municipio = puntoObject.optString("municipio", "Sin municipio");
+
+                            // Guardar el punto en la base de datos
+                            try {
+                                dbHelper.savePunto(
+                                        new GeoCoordinates(latitud, longitud),
+                                        nombre,
+                                        estado,
+                                        municipio
+                                );
+                            } catch (Exception e) {
+                                Log.e("Database", "Error al guardar el punto: " + e.getMessage());
+                            }
+
+                            Log.e("Punto procesado", "Nombre: " + nombre + ", Estado: " + estado + ", Municipio: " + municipio);
+                        }
+
+                        Log.d("Retrofit", "Puntos guardados correctamente.");
+                    } catch (Exception e) {
+                        Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                    }
+                } else {
+                    Log.e("Retrofit", "Error en la respuesta del servidor.");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e("Retrofit", "Error al obtener datos: " + t.getMessage());
+            }
+        });
+    }
+
 }
