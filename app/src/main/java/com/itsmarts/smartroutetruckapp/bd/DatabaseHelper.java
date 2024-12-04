@@ -105,13 +105,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         String createTableQueryZonas = "CREATE TABLE " + TABLE_ZONAS + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_ROUTE_ID + " INTEGER, " +
+                COLUMN_ROUTE_ID + " TEXT, " +
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_VERTICES + " TEXT, " +
-                COLUMN_ESTADO + " TEXT, " +
-                COLUMN_MUNICIPIO + " TEXT, " +
+                COLUMN_IDESTADO + " INTEGER, " +
+                COLUMN_IDMUNICIPIO + " INTEGER, " +
                 COLUMN_TUCKSPEC_IDS + " TEXT, " +
                 COLUMN_LABEL + " INTEGER, " +
+                COLUMN_VISIBILITY + " INTEGER, " +
                 COLUMN_PELIGROSA + " INTEGER, " +
                 COLUMN_STATUS + " INTEGER)";
 
@@ -239,10 +240,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     }
 
     // Actualizar el estatus del poligono de la base de datos por su ID
-    public void updateStatusPunto(int id, Boolean status) {
+    public void updateVisibilityPunto(int id, Boolean visibility) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_STATUS, status ? 1 : 0);
+        values.put(COLUMN_VISIBILITY, visibility ? 1 : 0);
         db.update(TABLE_PUNTOS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
 
         db.close();
@@ -265,18 +266,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
 
     // Guarda un polígono en la base de datos
-    public void saveZona(MapPolygon polygon, String name, String estado, String municipio, int peligrosa) {
+    public void saveZona(MapPolygon polygon, String name, int id_estado, int id_municipio, boolean peligrosa, int status) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_NAME, name);
-        values.put(COLUMN_ROUTE_ID, 0);
+        values.put(COLUMN_ROUTE_ID, "1,2");
         values.put(COLUMN_VERTICES, serializePolygon(polygon));
-        values.put(COLUMN_ESTADO, estado);
-        values.put(COLUMN_MUNICIPIO, municipio);
+        values.put(COLUMN_IDESTADO, id_estado);
+        values.put(COLUMN_IDMUNICIPIO, id_municipio);
         values.put(COLUMN_TUCKSPEC_IDS, "1");
-        values.put(COLUMN_LABEL, 1);
-        values.put(COLUMN_PELIGROSA, peligrosa);
-        values.put(COLUMN_STATUS, 1);
+        values.put(COLUMN_LABEL, 0);
+        values.put(COLUMN_VISIBILITY, 0);
+        values.put(COLUMN_PELIGROSA, peligrosa ? 1 : 0);
+        values.put(COLUMN_STATUS, status);
         db.insert(TABLE_ZONAS, null, values);
         db.close();
     }
@@ -291,11 +293,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
-                int routeId = cursor.getInt(cursor.getColumnIndex(COLUMN_ROUTE_ID));
+                String rutasIds = cursor.getString(cursor.getColumnIndex(COLUMN_ROUTE_ID));
+                String[] rutasIdsArray = rutasIds.split(",");
+                int[] idsR = new int[rutasIdsArray.length];
+                for (int i = 0; i < rutasIdsArray.length; i++) {
+                    idsR[i] = Integer.parseInt(rutasIdsArray[i].trim());
+                }
                 String verticesString = cursor.getString(cursor.getColumnIndex(COLUMN_VERTICES));
                 String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
-                String estado = cursor.getString(cursor.getColumnIndex(COLUMN_ESTADO));
-                String municipio = cursor.getString(cursor.getColumnIndex(COLUMN_MUNICIPIO));
+                int id_estado = cursor.getInt(cursor.getColumnIndex(COLUMN_IDESTADO));
+                int id_municipio = cursor.getInt(cursor.getColumnIndex(COLUMN_IDMUNICIPIO));
                 String truckSpecIds = cursor.getString(cursor.getColumnIndex(COLUMN_TUCKSPEC_IDS));
                 String[] truckSpecIdsArray = truckSpecIds.split(",");
                 int[] ids = new int[truckSpecIdsArray.length];
@@ -303,6 +310,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     ids[i] = Integer.parseInt(truckSpecIdsArray[i].trim());
                 }
                 Boolean label = cursor.getInt(cursor.getColumnIndex(COLUMN_LABEL)) == 1;
+                Boolean visibility = cursor.getInt(cursor.getColumnIndex(COLUMN_VISIBILITY)) == 1;
                 Boolean peligrosa = cursor.getInt(cursor.getColumnIndex(COLUMN_PELIGROSA)) == 1;
                 Boolean status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)) == 1;
                 List<GeoCoordinates> vertices = deserializePolygon(verticesString);
@@ -319,7 +327,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     fillColor = Color.valueOf(1f, 0f, 0f, 0.63f);  // RGBA
                 }
                 MapPolygon polygon = new MapPolygon(geometry,fillColor);
-                polygons.add(new PolygonWithId(id,routeId,polygon,name,estado,municipio,ids,label,peligrosa,status));
+                polygons.add(new PolygonWithId(id,ids,polygon,name,id_estado,id_municipio,ids,label,visibility,peligrosa,status));
             } while (cursor.moveToNext());
         }
 
@@ -381,10 +389,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
     // Actualizar el estatus del poligono de la base de datos por su ID
-    public void updateStatusZona(int id, Boolean status) {
+    public void updateVisibilityZona(int id, Boolean visibility) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put(COLUMN_STATUS, status ? 1 : 0);
+        values.put(COLUMN_VISIBILITY, visibility ? 1 : 0);
         db.update(TABLE_ZONAS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
 
         db.close();

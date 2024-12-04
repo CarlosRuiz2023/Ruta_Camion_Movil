@@ -13,9 +13,9 @@ public interface ApiService {
     Call<ResponseBody> getPuntosDeControl();
 
     @GET("api/zonas/obtener-zonas-peligrosas")
-    Call<List<PointWithId>> getZonasPeligrosas();
+    Call<ResponseBody> getZonasPeligrosas();
 
     @GET("api/zonas/obtener-zonas-prohibidas")
-    Call<List<PointWithId>> getZonasProhibidas();
+    Call<ResponseBody> getZonasProhibidas();
 }
 

@@ -248,11 +248,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 }
                                 List<MapPolygon> poligonos = new ArrayList<>();
                                 for(PolygonWithId polygonWithId:avoidZonesExample.polygonWithIds){
-                                    if(polygonWithId.idRuta==0 || polygonWithId.idRuta==ruta.id){
+                                    //if(polygonWithId.idRuta==0 || polygonWithId.idRuta==ruta.id){
                                         if(polygonWithId.status && !polygonWithId.peligrosa){
                                             poligonos.add(polygonWithId.polygon);
                                         }
-                                    }
+                                    //}
                                 }
                                 mapView.getMapScene().addMapPolyline(ruta.polyline);
                                 geocercas.drawGeofenceAroundPolyline(ruta.polyline, 100);

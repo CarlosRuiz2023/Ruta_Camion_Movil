@@ -61,7 +61,7 @@ public class PolygonAdapter extends RecyclerView.Adapter<PolygonAdapter.PolygonV
     public void onBindViewHolder(PolygonViewHolder holder, int position) {
         // Asigna el nombre del polígono basado en su posición
         holder.polygonNameTextView.setText(avoidZonesExample.polygonWithIds.get(position).name);
-        if(avoidZonesExample.polygonWithIds.get(position).status){
+        if(avoidZonesExample.polygonWithIds.get(position).visibility){
             holder.icon_visibility.setImageDrawable(no_visible);
         }else{
             holder.icon_visibility.setImageDrawable(visible);
@@ -104,14 +104,14 @@ public class PolygonAdapter extends RecyclerView.Adapter<PolygonAdapter.PolygonV
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         PolygonWithId polygon = avoidZonesExample.polygonWithIds.get(position);
-                        avoidZonesExample.dbHelper.updateStatusZona(polygon.id, !polygon.status);
-                        if(!polygon.status){
+                        avoidZonesExample.dbHelper.updateVisibilityZona(polygon.id, !polygon.visibility);
+                        if(!polygon.visibility){
                             avoidZonesExample.mapView.getMapScene().addMapPolygon(polygon.polygon);
-                            polygon.status = true;
+                            polygon.visibility = true;
                             icon_visibility.setImageDrawable(no_visible);
                         }else{
                             avoidZonesExample.mapView.getMapScene().removeMapPolygon(polygon.polygon);
-                            polygon.status = false;
+                            polygon.visibility = false;
                             icon_visibility.setImageDrawable(visible);
                         }
                     }

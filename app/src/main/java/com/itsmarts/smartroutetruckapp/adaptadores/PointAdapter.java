@@ -94,7 +94,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         PointWithId point = controlPointsExample.pointsWithIds.get(position);
-                        controlPointsExample.dbHelper.updateStatusPunto(point.id, !controlPointsExample.pointsWithIds.get(position).visibility);
+                        controlPointsExample.dbHelper.updateVisibilityPunto(point.id, !controlPointsExample.pointsWithIds.get(position).visibility);
                         if(!controlPointsExample.pointsWithIds.get(position).visibility()){
                             controlPointsExample.mapView.getMapScene().addMapMarker(point.mapMarker);
                             controlPointsExample.pointsWithIds.get(position).visibility = true;

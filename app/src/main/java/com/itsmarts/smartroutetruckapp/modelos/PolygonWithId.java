@@ -4,25 +4,27 @@ import com.here.sdk.mapview.MapPolygon;
 
 public class PolygonWithId {
     public int id;
-    public int idRuta;
+    public int[] idRuta;
     public MapPolygon polygon;
     public String name;
-    public String estado;
-    public String municipio;
+    public int id_estado;
+    public int id_municipio;
     public int[] truckSpecIds;
     public Boolean label;
+    public Boolean visibility;
     public Boolean peligrosa;
     public Boolean status;
 
-    public PolygonWithId(int id,int idRuta, MapPolygon polygon,String name,String estado,String municipio,int[] truckSpecIds,Boolean label,Boolean peligrosa,Boolean status) {
+    public PolygonWithId(int id,int[] idRuta, MapPolygon polygon,String name,int id_estado,int id_municipio,int[] truckSpecIds,Boolean label,Boolean visibility,Boolean peligrosa,Boolean status) {
         this.id = id;
         this.idRuta = idRuta;
         this.polygon = polygon;
         this.name = name;
-        this.estado = estado;
-        this.municipio = municipio;
+        this.id_estado = id_estado;
+        this.id_municipio = id_municipio;
         this.truckSpecIds = truckSpecIds;
         this.label = label;
+        this.visibility = visibility;
         this.peligrosa = peligrosa;
         this.status = status;
     }
@@ -65,6 +67,14 @@ public class PolygonWithId {
         this.label = label;
     }
 
+    public Boolean visibility() {
+        return visibility;
+    }
+
+    public void setVisibility(Boolean visibility) {
+        this.visibility = visibility;
+    }
+
     public int[] truckSpecIds() {
         return truckSpecIds;
     }
@@ -73,27 +83,27 @@ public class PolygonWithId {
         this.truckSpecIds = truckSpecIds;
     }
 
-    public String estado() {
-        return estado;
+    public int id_estado() {
+        return id_estado;
     }
 
-    public void setEstado(String estado) {
-        this.estado = estado;
+    public void setIdEstado(int id_estado) {
+        this.id_estado = id_estado;
     }
 
-    public String municipio() {
-        return municipio;
+    public int id_municipio() {
+        return id_municipio;
     }
 
-    public void setMunicipio(String municipio) {
-        this.municipio = municipio;
+    public void setIdMunicipio(int id_municipio) {
+        this.id_municipio = id_municipio;
     }
 
-    public int idRuta() {
+    public int[] idRuta() {
         return idRuta;
     }
 
-    public void setIdRuta(int idRuta) {
+    public void setIdRuta(int[] idRuta) {
         this.idRuta = idRuta;
     }
     public Boolean peligrosa() {
