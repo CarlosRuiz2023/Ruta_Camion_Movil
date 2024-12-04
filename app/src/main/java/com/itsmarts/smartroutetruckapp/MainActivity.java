@@ -53,6 +53,7 @@ import com.here.sdk.core.Anchor2D;
 import com.here.sdk.core.Color;
 import com.here.sdk.core.GeoCircle;
 import com.here.sdk.core.GeoCoordinates;
+import com.here.sdk.core.GeoPolygon;
 import com.here.sdk.core.GeoPolyline;
 import com.here.sdk.core.LanguageCode;
 import com.here.sdk.core.PickedPlace;
@@ -88,6 +89,8 @@ import com.here.sdk.search.SearchOptions;
 import com.here.sdk.search.TextQuery;
 import com.itsmarts.smartroutetruckapp.adaptadores.RouterCanceledAdapter;
 import com.itsmarts.smartroutetruckapp.adaptadores.RouterFinishedAdapter;
+import com.itsmarts.smartroutetruckapp.api.ApiService;
+import com.itsmarts.smartroutetruckapp.api.RetrofitClient;
 import com.itsmarts.smartroutetruckapp.bd.DatabaseHelper;
 import com.itsmarts.smartroutetruckapp.clases.AnimatorNew;
 import com.itsmarts.smartroutetruckapp.clases.AvoidZonesExample;
@@ -106,9 +109,17 @@ import com.itsmarts.smartroutetruckapp.modelos.PointWithId;
 import com.itsmarts.smartroutetruckapp.modelos.PolygonWithId;
 import com.itsmarts.smartroutetruckapp.modelos.RoutesWithId;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, NavigationEventHandler.SpeedUpdateListener, NavigationEventHandler.DestinationDistanceListener, NavigationEventHandler.DestinationReachedListener{
 
@@ -149,7 +160,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public Button btnDescargar, btnBuscarActualizaciones, btnIniciarActualizacion;;
     /** TextView para mosntrar como se descarga y el porcentaje de descarga del mapa*/
     public TextView txtProcesoDescarga,txtDescargaTitulo;
-    public List<GeoCoordinates> waypointsGlobal = new ArrayList<>();
     public FloatingActionButton fbEliminarPoi, fbMapas;
     public int styleCounter=0;
     // INICIALIZACION DE LA VARIABLE TIPO MapScheme PARA EL ESTILO DEL MAPA POR DEFECTO
@@ -157,6 +167,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public TruckConfig truckConfig;
     private LottieAnimationView likeAnimationView;
     private AnimatorNew likeAnimator;
+    List<CompletableFuture<ResponseBody>> futures = new ArrayList<>();
+    private static final String TAG = "MainActivity";
+    public List<PointWithId> puntos= new ArrayList<>();
+    public List<PolygonWithId> poligonos= new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -237,54 +251,60 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             public void run() {
                                 ruta=rutaPre;
                                 alertDialogRuta.dismiss();
-                                List<GeoCoordinates> puntos = new ArrayList<>();
-                                for(PointWithId pointWithId:controlPointsExample.pointsWithIds){
-                                    //if(pointWithId.idRuta==0 || pointWithId.idRuta==ruta.id){
+                                List<GeoCoordinates> puntos_de_control = new ArrayList<>();
+                                List<CompletableFuture<ResponseBody>> futures1 = new ArrayList<>();
+                                futures1.add(obtenerDetallesRuta());
+                                // Espera a que todos los futures terminen
+                                CompletableFuture<Void> allOf = CompletableFuture.allOf(futures1.toArray(new CompletableFuture[0]));
+                                allOf.whenComplete((result, ex) -> {
+                                    if (ex != null) {
+                                        // Manejo de errores, si es necesario
+                                        Log.e(TAG, "Error during downloads", ex);
+                                    }
+                                    for(PointWithId pointWithId:puntos){
                                         if(pointWithId.status){
-                                            puntos.add(pointWithId.mapMarker.getCoordinates());
+                                            puntos_de_control.add(pointWithId.mapMarker.getCoordinates());
                                             geocercas.drawGecocercaControlPoint(pointWithId.mapMarker.getCoordinates(), 100);
                                         }
-                                    //}
-                                }
-                                List<MapPolygon> poligonos = new ArrayList<>();
-                                for(PolygonWithId polygonWithId:avoidZonesExample.polygonWithIds){
-                                    //if(polygonWithId.idRuta==0 || polygonWithId.idRuta==ruta.id){
+                                    }
+                                    List<MapPolygon> zonas = new ArrayList<>();
+                                    for(PolygonWithId polygonWithId:poligonos){
                                         if(polygonWithId.status && !polygonWithId.peligrosa){
-                                            poligonos.add(polygonWithId.polygon);
-                                        }
-                                    //}
-                                }
-                                mapView.getMapScene().addMapPolyline(ruta.polyline);
-                                geocercas.drawGeofenceAroundPolyline(ruta.polyline, 100);
-                                mapView.getMapScene().addMapPolygon(geocercas.geocercas);
-                                routingExample.addRoute(poligonos,puntos,currentGeoCoordinates, ruta.coordinatesFin, null, new ArrayList<>(), new RoutingExample.RouteCallback() {
-                                    @Override
-                                    public void onRouteCalculated(Route route) {
-                                        if (route != null) {
-                                            messageView.startAnimation(cargaAnimacion);
-                                            messageView.setVisibility(View.VISIBLE);
-                                            btnTerminarRuta.setVisibility(VISIBLE);
-                                            txtNavegacion.setVisibility(VISIBLE);
-                                            txtTerminarRuta.setVisibility(VISIBLE);
-                                            detallesRuta.setVisibility(VISIBLE);
-                                            distanceTextView.setVisibility(VISIBLE);
-                                            timeTextView.setVisibility(VISIBLE);
-
-                                            rutaGenerada = true;
-                                            dbHelper.updateStatusRoute(ruta.id,2);
-                                            ruta.setStatus(2);
-                                            rutaPre = null;
-                                            try {
-                                                navigationExample.startNavigation(route, false, true);
-                                                routeSuccessfullyProcessed = true;
-                                            } catch (Exception e) {
-                                                routeSuccessfullyProcessed = false;
-                                            }
-                                        } else {
-                                            messages.showCustomToast("No se pudo calcular la ruta");
-                                            routeSuccessfullyProcessed = false;
+                                            zonas.add(polygonWithId.polygon);
                                         }
                                     }
+                                    mapView.getMapScene().addMapPolyline(ruta.polyline);
+                                    geocercas.drawGeofenceAroundPolyline(ruta.polyline, 100);
+                                    mapView.getMapScene().addMapPolygon(geocercas.geocercas);
+                                    routingExample.addRoute(zonas,puntos_de_control,currentGeoCoordinates, ruta.coordinatesFin, null, new ArrayList<>(), new RoutingExample.RouteCallback() {
+                                        @Override
+                                        public void onRouteCalculated(Route route) {
+                                            if (route != null) {
+                                                messageView.startAnimation(cargaAnimacion);
+                                                messageView.setVisibility(View.VISIBLE);
+                                                btnTerminarRuta.setVisibility(VISIBLE);
+                                                txtNavegacion.setVisibility(VISIBLE);
+                                                txtTerminarRuta.setVisibility(VISIBLE);
+                                                detallesRuta.setVisibility(VISIBLE);
+                                                distanceTextView.setVisibility(VISIBLE);
+                                                timeTextView.setVisibility(VISIBLE);
+
+                                                rutaGenerada = true;
+                                                dbHelper.updateStatusRoute(ruta.id,2);
+                                                ruta.setStatus(2);
+                                                rutaPre = null;
+                                                try {
+                                                    navigationExample.startNavigation(route, false, true);
+                                                    routeSuccessfullyProcessed = true;
+                                                } catch (Exception e) {
+                                                    routeSuccessfullyProcessed = false;
+                                                }
+                                            } else {
+                                                messages.showCustomToast("No se pudo calcular la ruta");
+                                                routeSuccessfullyProcessed = false;
+                                            }
+                                        }
+                                    });
                                 });
                             }
                         }, 400);
@@ -634,7 +654,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         dbHelper = new DatabaseHelper(this);
         rutas = dbHelper.getAllRoutes();
         if(rutas.size() == 0){
-            GeoPolyline geoPolyline = null;
+            /*GeoPolyline geoPolyline = null;
             try {
                 //,new GeoCoordinates(21.097774, -101.579798)
                 geoPolyline = new GeoPolyline(Arrays.asList(new GeoCoordinates(21.14421,-101.6919),new GeoCoordinates(21.14428,-101.6913),new GeoCoordinates(21.14436,-101.69075),new GeoCoordinates(21.14439,-101.69043),new GeoCoordinates(21.14517,-101.69055),new GeoCoordinates(21.14564,-101.6906),new GeoCoordinates(21.14596,-101.69065),new GeoCoordinates(21.14626,-101.69069),new GeoCoordinates(21.14668,-101.69075),new GeoCoordinates(21.14728,-101.6908),new GeoCoordinates(21.14729,-101.69072),new GeoCoordinates(21.14737,-101.69063),new GeoCoordinates(21.14748,-101.69059),new GeoCoordinates(21.14756,-101.69059),new GeoCoordinates(21.14767,-101.69063),new GeoCoordinates(21.14774,-101.6907),new GeoCoordinates(21.14777,-101.69078),new GeoCoordinates(21.14817,-101.69063),new GeoCoordinates(21.14912,-101.69028),new GeoCoordinates(21.1493,-101.69022),new GeoCoordinates(21.14969,-101.69008),new GeoCoordinates(21.15025,-101.68988),new GeoCoordinates(21.1506,-101.68976),new GeoCoordinates(21.1511,-101.68958),new GeoCoordinates(21.1516,-101.6894),new GeoCoordinates(21.1527,-101.68899),new GeoCoordinates(21.15281,-101.68895),new GeoCoordinates(21.15291,-101.6889),new GeoCoordinates(21.15316,-101.68878),new GeoCoordinates(21.15319,-101.68877),new GeoCoordinates(21.15341,-101.68869),new GeoCoordinates(21.15363,-101.68861),new GeoCoordinates(21.15405,-101.68846),new GeoCoordinates(21.15424,-101.68839),new GeoCoordinates(21.15433,-101.68835),new GeoCoordinates(21.15438,-101.68833),new GeoCoordinates(21.1547,-101.68823),new GeoCoordinates(21.15506,-101.68811),new GeoCoordinates(21.15557,-101.68794),new GeoCoordinates(21.15551,-101.68768),new GeoCoordinates(21.15543,-101.68735),new GeoCoordinates(21.1554,-101.68724),new GeoCoordinates(21.1553,-101.68685),new GeoCoordinates(21.15523,-101.68656),new GeoCoordinates(21.15522,-101.68651),new GeoCoordinates(21.15514,-101.68624),new GeoCoordinates(21.15507,-101.68597),new GeoCoordinates(21.15502,-101.68576),new GeoCoordinates(21.155,-101.68567),new GeoCoordinates(21.15493,-101.68536),new GeoCoordinates(21.15481,-101.68482),new GeoCoordinates(21.15475,-101.68465),new GeoCoordinates(21.15459,-101.68417),new GeoCoordinates(21.15454,-101.68397),new GeoCoordinates(21.15447,-101.68371),new GeoCoordinates(21.15435,-101.68329),new GeoCoordinates(21.15434,-101.68324),new GeoCoordinates(21.15433,-101.68315),new GeoCoordinates(21.15431,-101.68298),new GeoCoordinates(21.15429,-101.68265),new GeoCoordinates(21.15421,-101.68222),new GeoCoordinates(21.15412,-101.68187),new GeoCoordinates(21.15404,-101.68158),new GeoCoordinates(21.15402,-101.68145),new GeoCoordinates(21.15386,-101.68082),new GeoCoordinates(21.15316,-101.67813),new GeoCoordinates(21.15303,-101.67769),new GeoCoordinates(21.15279,-101.67678),new GeoCoordinates(21.15268,-101.67636),new GeoCoordinates(21.15237,-101.67522),new GeoCoordinates(21.15233,-101.67508),new GeoCoordinates(21.15229,-101.67488),new GeoCoordinates(21.15213,-101.67428),new GeoCoordinates(21.15177,-101.6729),new GeoCoordinates(21.15146,-101.6717),new GeoCoordinates(21.15131,-101.67113),new GeoCoordinates(21.15107,-101.6705),new GeoCoordinates(21.15098,-101.67003),new GeoCoordinates(21.15087,-101.66958),new GeoCoordinates(21.15078,-101.66911),new GeoCoordinates(21.15071,-101.66882),new GeoCoordinates(21.15066,-101.66861),new GeoCoordinates(21.15042,-101.66765),new GeoCoordinates(21.15021,-101.66683),new GeoCoordinates(21.1501,-101.6664),new GeoCoordinates(21.14993,-101.66575),new GeoCoordinates(21.14984,-101.66537),new GeoCoordinates(21.14981,-101.66525),new GeoCoordinates(21.1497,-101.66488),new GeoCoordinates(21.14956,-101.66434),new GeoCoordinates(21.14952,-101.66416),new GeoCoordinates(21.14948,-101.66399),new GeoCoordinates(21.14943,-101.66378),new GeoCoordinates(21.14939,-101.66363),new GeoCoordinates(21.14936,-101.66353),new GeoCoordinates(21.14925,-101.66312),new GeoCoordinates(21.14919,-101.66293),new GeoCoordinates(21.14913,-101.66274),new GeoCoordinates(21.1491,-101.66261),new GeoCoordinates(21.149,-101.66222),new GeoCoordinates(21.14885,-101.66167),new GeoCoordinates(21.14873,-101.66115),new GeoCoordinates(21.14867,-101.66091),new GeoCoordinates(21.14858,-101.66056),new GeoCoordinates(21.14834,-101.65966),new GeoCoordinates(21.14815,-101.65899),new GeoCoordinates(21.14797,-101.65827),new GeoCoordinates(21.14782,-101.65774),new GeoCoordinates(21.14771,-101.65736),new GeoCoordinates(21.14767,-101.6572),new GeoCoordinates(21.14761,-101.65696),new GeoCoordinates(21.14754,-101.65667),new GeoCoordinates(21.1475,-101.65653),new GeoCoordinates(21.14745,-101.65635),new GeoCoordinates(21.14736,-101.65602),new GeoCoordinates(21.14735,-101.65595),new GeoCoordinates(21.14734,-101.65586),new GeoCoordinates(21.14731,-101.65574),new GeoCoordinates(21.14715,-101.65511),new GeoCoordinates(21.14714,-101.65506),new GeoCoordinates(21.14703,-101.65466),new GeoCoordinates(21.14693,-101.65427),new GeoCoordinates(21.14688,-101.65406),new GeoCoordinates(21.14665,-101.65321),new GeoCoordinates(21.14661,-101.65305),new GeoCoordinates(21.14659,-101.65296),new GeoCoordinates(21.14653,-101.65279),new GeoCoordinates(21.14642,-101.65236),new GeoCoordinates(21.14636,-101.65211),new GeoCoordinates(21.14633,-101.65199),new GeoCoordinates(21.1463,-101.65188),new GeoCoordinates(21.14627,-101.65174),new GeoCoordinates(21.14619,-101.65173),new GeoCoordinates(21.14612,-101.65169),new GeoCoordinates(21.14608,-101.65166),new GeoCoordinates(21.14605,-101.65162),new GeoCoordinates(21.14602,-101.65153),new GeoCoordinates(21.14601,-101.65149),new GeoCoordinates(21.14601,-101.65141),new GeoCoordinates(21.14602,-101.65134),new GeoCoordinates(21.14604,-101.65127),new GeoCoordinates(21.14607,-101.6512),new GeoCoordinates(21.14612,-101.65115),new GeoCoordinates(21.14597,-101.65058),new GeoCoordinates(21.14587,-101.65021),new GeoCoordinates(21.14583,-101.65005),new GeoCoordinates(21.14574,-101.64972),new GeoCoordinates(21.14545,-101.64872),new GeoCoordinates(21.14537,-101.6484),new GeoCoordinates(21.14525,-101.64796),new GeoCoordinates(21.14515,-101.64757),new GeoCoordinates(21.1451,-101.64736),new GeoCoordinates(21.14487,-101.64646),new GeoCoordinates(21.14484,-101.64635),new GeoCoordinates(21.14481,-101.64623),new GeoCoordinates(21.14469,-101.64574),new GeoCoordinates(21.14461,-101.64542),new GeoCoordinates(21.14456,-101.64525),new GeoCoordinates(21.14451,-101.64506),new GeoCoordinates(21.14446,-101.64486),new GeoCoordinates(21.14443,-101.64471),new GeoCoordinates(21.14431,-101.64425),new GeoCoordinates(21.14423,-101.64394),new GeoCoordinates(21.14421,-101.64386),new GeoCoordinates(21.14375,-101.64207),new GeoCoordinates(21.1436,-101.6415),new GeoCoordinates(21.1434,-101.64072),new GeoCoordinates(21.14333,-101.64045),new GeoCoordinates(21.14329,-101.64029),new GeoCoordinates(21.14313,-101.6397),new GeoCoordinates(21.14301,-101.6392),new GeoCoordinates(21.14295,-101.63894),new GeoCoordinates(21.1429,-101.63873),new GeoCoordinates(21.14261,-101.63773),new GeoCoordinates(21.14256,-101.63753),new GeoCoordinates(21.14245,-101.63706),new GeoCoordinates(21.14236,-101.6367),new GeoCoordinates(21.14226,-101.63631),new GeoCoordinates(21.14211,-101.63576),new GeoCoordinates(21.14208,-101.63566),new GeoCoordinates(21.14207,-101.63562),new GeoCoordinates(21.14205,-101.63554),new GeoCoordinates(21.14195,-101.6351),new GeoCoordinates(21.14188,-101.63484),new GeoCoordinates(21.14179,-101.63452),new GeoCoordinates(21.14171,-101.63424),new GeoCoordinates(21.14166,-101.63406),new GeoCoordinates(21.14153,-101.63363),new GeoCoordinates(21.14146,-101.63338),new GeoCoordinates(21.14134,-101.63296),new GeoCoordinates(21.14133,-101.63289),new GeoCoordinates(21.14131,-101.63279),new GeoCoordinates(21.14127,-101.63267),new GeoCoordinates(21.14125,-101.63259),new GeoCoordinates(21.14124,-101.63254),new GeoCoordinates(21.14121,-101.63247),new GeoCoordinates(21.14113,-101.63225),new GeoCoordinates(21.14107,-101.63211),new GeoCoordinates(21.14097,-101.63192),new GeoCoordinates(21.14071,-101.63149),new GeoCoordinates(21.14046,-101.63108),new GeoCoordinates(21.14027,-101.63076),new GeoCoordinates(21.14013,-101.63053),new GeoCoordinates(21.14012,-101.63051),new GeoCoordinates(21.13962,-101.62963),new GeoCoordinates(21.13954,-101.62948),new GeoCoordinates(21.13911,-101.62872),new GeoCoordinates(21.13902,-101.62854),new GeoCoordinates(21.13893,-101.62828),new GeoCoordinates(21.13885,-101.62799),new GeoCoordinates(21.13883,-101.62778),new GeoCoordinates(21.13882,-101.62749),new GeoCoordinates(21.13883,-101.62715),new GeoCoordinates(21.13885,-101.62683),new GeoCoordinates(21.13889,-101.6266),new GeoCoordinates(21.139,-101.62613),new GeoCoordinates(21.13902,-101.626),new GeoCoordinates(21.13903,-101.62588),new GeoCoordinates(21.13904,-101.62571),new GeoCoordinates(21.13905,-101.62559),new GeoCoordinates(21.13905,-101.62551),new GeoCoordinates(21.13904,-101.62546),new GeoCoordinates(21.13902,-101.62511),new GeoCoordinates(21.13897,-101.62484),new GeoCoordinates(21.13893,-101.62464),new GeoCoordinates(21.13889,-101.62452),new GeoCoordinates(21.13886,-101.6244),new GeoCoordinates(21.13879,-101.6242),new GeoCoordinates(21.13874,-101.62407),new GeoCoordinates(21.13865,-101.62387),new GeoCoordinates(21.1386,-101.62375),new GeoCoordinates(21.13847,-101.62347),new GeoCoordinates(21.13828,-101.62314),new GeoCoordinates(21.13817,-101.62292),new GeoCoordinates(21.1381,-101.62279),new GeoCoordinates(21.13797,-101.62254),new GeoCoordinates(21.13786,-101.62232),new GeoCoordinates(21.13777,-101.62213),new GeoCoordinates(21.13753,-101.62161),new GeoCoordinates(21.13747,-101.62149),new GeoCoordinates(21.13734,-101.62121),new GeoCoordinates(21.13711,-101.62067),new GeoCoordinates(21.13668,-101.61966),new GeoCoordinates(21.13654,-101.6193),new GeoCoordinates(21.13608,-101.61829),new GeoCoordinates(21.13589,-101.61783),new GeoCoordinates(21.13569,-101.61742),new GeoCoordinates(21.13556,-101.61711),new GeoCoordinates(21.13538,-101.61673),new GeoCoordinates(21.13431,-101.61432),new GeoCoordinates(21.13422,-101.61412),new GeoCoordinates(21.13392,-101.61349),new GeoCoordinates(21.13358,-101.61275),new GeoCoordinates(21.13342,-101.6124),new GeoCoordinates(21.13317,-101.61188),new GeoCoordinates(21.13295,-101.61142),new GeoCoordinates(21.13284,-101.6112),new GeoCoordinates(21.1328,-101.61113),new GeoCoordinates(21.13262,-101.6108),new GeoCoordinates(21.1324,-101.61043),new GeoCoordinates(21.13231,-101.61028),new GeoCoordinates(21.13217,-101.6101),new GeoCoordinates(21.132,-101.60977),new GeoCoordinates(21.13185,-101.60945),new GeoCoordinates(21.13169,-101.60912),new GeoCoordinates(21.1316,-101.6089),new GeoCoordinates(21.13155,-101.60872),new GeoCoordinates(21.1315,-101.60856),new GeoCoordinates(21.13144,-101.60839),new GeoCoordinates(21.13138,-101.60823),new GeoCoordinates(21.1311,-101.60744),new GeoCoordinates(21.13103,-101.60723),new GeoCoordinates(21.13091,-101.60669),new GeoCoordinates(21.13088,-101.60658),new GeoCoordinates(21.13085,-101.60645),new GeoCoordinates(21.13073,-101.606),new GeoCoordinates(21.13031,-101.60466),new GeoCoordinates(21.13011,-101.60404),new GeoCoordinates(21.12991,-101.6035),new GeoCoordinates(21.12982,-101.60324),new GeoCoordinates(21.12978,-101.60313),new GeoCoordinates(21.12969,-101.60286),new GeoCoordinates(21.12965,-101.60276),new GeoCoordinates(21.12958,-101.60258),new GeoCoordinates(21.12956,-101.6025),new GeoCoordinates(21.12942,-101.60208),new GeoCoordinates(21.12935,-101.60189),new GeoCoordinates(21.12922,-101.60151),new GeoCoordinates(21.1291,-101.60126),new GeoCoordinates(21.12891,-101.60091),new GeoCoordinates(21.12869,-101.60059),new GeoCoordinates(21.12854,-101.60038),new GeoCoordinates(21.12846,-101.60028),new GeoCoordinates(21.12834,-101.60014),new GeoCoordinates(21.12819,-101.60002),new GeoCoordinates(21.12801,-101.59991),new GeoCoordinates(21.12782,-101.59982),new GeoCoordinates(21.12729,-101.59959),new GeoCoordinates(21.12698,-101.59937),new GeoCoordinates(21.12696,-101.59935),new GeoCoordinates(21.12691,-101.59929),new GeoCoordinates(21.12684,-101.59923),new GeoCoordinates(21.1267,-101.59906),new GeoCoordinates(21.12668,-101.59903),new GeoCoordinates(21.12656,-101.59886),new GeoCoordinates(21.12621,-101.59833),new GeoCoordinates(21.12614,-101.59822),new GeoCoordinates(21.12571,-101.59758),new GeoCoordinates(21.12567,-101.59752),new GeoCoordinates(21.1253,-101.59696),new GeoCoordinates(21.12508,-101.59664),new GeoCoordinates(21.1248,-101.59622),new GeoCoordinates(21.12475,-101.59614),new GeoCoordinates(21.12469,-101.59607),new GeoCoordinates(21.12438,-101.59562),new GeoCoordinates(21.12426,-101.59543),new GeoCoordinates(21.124,-101.59507),new GeoCoordinates(21.12385,-101.59486),new GeoCoordinates(21.12369,-101.59466),new GeoCoordinates(21.12323,-101.59412),new GeoCoordinates(21.12286,-101.59375),new GeoCoordinates(21.12224,-101.59322),new GeoCoordinates(21.12198,-101.59303),new GeoCoordinates(21.12168,-101.59283),new GeoCoordinates(21.12112,-101.5925),new GeoCoordinates(21.12026,-101.59209),new GeoCoordinates(21.11974,-101.5919),new GeoCoordinates(21.1196,-101.59185),new GeoCoordinates(21.11935,-101.59175),new GeoCoordinates(21.11902,-101.59161),new GeoCoordinates(21.11858,-101.59145),new GeoCoordinates(21.11808,-101.59127),new GeoCoordinates(21.11735,-101.59098),new GeoCoordinates(21.11713,-101.5909),new GeoCoordinates(21.11691,-101.59081),new GeoCoordinates(21.11637,-101.59061),new GeoCoordinates(21.11597,-101.59045),new GeoCoordinates(21.11541,-101.59019),new GeoCoordinates(21.11534,-101.59016),new GeoCoordinates(21.11512,-101.59004),new GeoCoordinates(21.11494,-101.58994),new GeoCoordinates(21.11482,-101.58985),new GeoCoordinates(21.11479,-101.58983),new GeoCoordinates(21.11466,-101.58973),new GeoCoordinates(21.11429,-101.58949),new GeoCoordinates(21.11406,-101.58933),new GeoCoordinates(21.11387,-101.58918),new GeoCoordinates(21.11378,-101.58911),new GeoCoordinates(21.11345,-101.58882),new GeoCoordinates(21.1131,-101.58846),new GeoCoordinates(21.11267,-101.58799),new GeoCoordinates(21.11258,-101.58788),new GeoCoordinates(21.11236,-101.5876),new GeoCoordinates(21.11187,-101.58703),new GeoCoordinates(21.11107,-101.58608),new GeoCoordinates(21.11068,-101.58562),new GeoCoordinates(21.11025,-101.58512),new GeoCoordinates(21.11019,-101.58504),new GeoCoordinates(21.10993,-101.58474),new GeoCoordinates(21.10985,-101.58464),new GeoCoordinates(21.10976,-101.58453),new GeoCoordinates(21.10943,-101.58415),new GeoCoordinates(21.10823,-101.58274),new GeoCoordinates(21.10806,-101.58255),new GeoCoordinates(21.10787,-101.58232),new GeoCoordinates(21.10779,-101.58222),new GeoCoordinates(21.10755,-101.58194),new GeoCoordinates(21.10743,-101.58176),new GeoCoordinates(21.10739,-101.58171),new GeoCoordinates(21.10727,-101.58156),new GeoCoordinates(21.10721,-101.58149),new GeoCoordinates(21.10715,-101.58141),new GeoCoordinates(21.10711,-101.58136),new GeoCoordinates(21.10697,-101.5812),new GeoCoordinates(21.10694,-101.58116),new GeoCoordinates(21.10679,-101.58101),new GeoCoordinates(21.10655,-101.58072),new GeoCoordinates(21.10638,-101.5805),new GeoCoordinates(21.10615,-101.58025),new GeoCoordinates(21.10609,-101.58015),new GeoCoordinates(21.10601,-101.58008),new GeoCoordinates(21.10564,-101.57972),new GeoCoordinates(21.10506,-101.57913),new GeoCoordinates(21.10477,-101.57881),new GeoCoordinates(21.10465,-101.57868),new GeoCoordinates(21.10421,-101.57818),new GeoCoordinates(21.10346,-101.57734),new GeoCoordinates(21.10343,-101.57731),new GeoCoordinates(21.10221,-101.57595),new GeoCoordinates(21.10195,-101.57565),new GeoCoordinates(21.10049,-101.57401),new GeoCoordinates(21.10026,-101.57375),new GeoCoordinates(21.10008,-101.57402),new GeoCoordinates(21.10014,-101.574),new GeoCoordinates(21.10019,-101.57425),new GeoCoordinates(21.09927,-101.57466),new GeoCoordinates(21.099114,-101.574729)));
@@ -658,8 +678,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             dbHelper.saveRuta("Ruta 2",new GeoCoordinates(21.144573, -101.691865),new GeoCoordinates(21.099128, -101.574836),trafficSpanMapPolyline,truckSpecIds);
             dbHelper.saveRuta("Ruta 3",new GeoCoordinates(21.144573, -101.691865),new GeoCoordinates(21.099128, -101.574836),trafficSpanMapPolyline,truckSpecIds);
             dbHelper.saveRuta("Ruta 4",new GeoCoordinates(21.144573, -101.691865),new GeoCoordinates(21.099128, -101.574836),trafficSpanMapPolyline,truckSpecIds);
-            dbHelper.saveRuta("Ruta 5",new GeoCoordinates(21.144573, -101.691865),new GeoCoordinates(21.099128, -101.574836),trafficSpanMapPolyline,truckSpecIds);
-            rutas = dbHelper.getAllRoutes();
+            dbHelper.saveRuta("Ruta 5",new GeoCoordinates(21.144573, -101.691865),new GeoCoordinates(21.099128, -101.574836),trafficSpanMapPolyline,truckSpecIds);*/
+            // Agrega todas las llamadas a los métodos de descarga
+            futures.add(descargarRutas());
+            // Espera a que todos los futures terminen
+            CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+            allOf.whenComplete((result, ex) -> {
+                if (ex != null) {
+                    // Manejo de errores, si es necesario
+                    Log.e(TAG, "Error during downloads", ex);
+                }
+                // Recupera la lista de polígonos de la base de datos
+                rutas = dbHelper.getAllRoutes();
+            });
         }
     }
 
@@ -1321,5 +1352,182 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         stopLocalVoiceInteraction();
         navigationExample.stopLocating();
         navigationExample.stopRendering();
+    }
+
+    private CompletableFuture<ResponseBody> descargarRutas() {
+        try {
+            CompletableFuture<ResponseBody> future = new CompletableFuture<>();
+            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            apiService.getRutas().enqueue(new retrofit2.Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            // Obtener el JSON como string
+                            String jsonResponse = response.body().string();
+                            Log.e("Prueba", "JSON recibido: " + jsonResponse);
+                            // Convierte la respuesta en un objeto JSON
+                            JSONObject jsonObject = new JSONObject(jsonResponse);
+                            // Verifica si la operación fue exitosa
+                            boolean success = jsonObject.getBoolean("success");
+                            if (success) {
+                                // Obtén el arreglo "result"
+                                JSONArray puntosArray = jsonObject.getJSONArray("result");
+                                // Itera sobre cada elemento en el arreglo
+                                for (int i = 0; i < puntosArray.length(); i++) {
+                                    JSONObject zonaObject = puntosArray.getJSONObject(i);
+                                    // Extraer datos del punto
+                                    String nombre = zonaObject.optString("nombre", "Sin nombre");
+                                    double latitud_inicio = zonaObject.optDouble("latitud_inicio", 0.0);
+                                    double longitud_inicio = zonaObject.optDouble("longitud_inicio", 0.0);
+                                    double latitud_fin = zonaObject.optDouble("latitud_fin", 0.0);
+                                    double longitud_fin = zonaObject.optDouble("longitud_fin", 0.0);
+                                    String fecha_creacion = zonaObject.optString("fecha_creacion", "");
+                                    String fecha_ultima_modificacion = zonaObject.optString("fecha_ultima_modificacion", "");
+                                    String polilineaString = zonaObject.optString("polilinea", "");
+                                    int status = zonaObject.optInt("estatus", 0);
+                                    List<GeoCoordinates> vertices = new ArrayList<>();
+                                    String[] vertexPairs = polilineaString.split("\\],\\[");
+
+                                    for (String vertexPair : vertexPairs) {
+                                        // Remove extra square brackets
+                                        vertexPair = vertexPair.replace("[", "").replace("]", "");
+                                        String[] coords = vertexPair.split(",");
+                                        try {
+                                            double latitude = Double.parseDouble(coords[0].substring(1, coords[0].length() - 1));
+                                            double longitude = Double.parseDouble(coords[1].substring(1, coords[1].length() - 1));
+                                            vertices.add(new GeoCoordinates(latitude, longitude));
+                                        } catch (NumberFormatException e) {
+                                            Log.e("Error", "Invalid coordinate format: " + vertexPair);
+                                        }
+                                    }
+
+                                    GeoPolyline geoPolyline = null;
+                                    try {
+                                        //,new GeoCoordinates(21.097774, -101.579798)
+                                        geoPolyline = new GeoPolyline(vertices);
+                                    } catch (InstantiationErrorException e) {
+                                        //throw new RuntimeException(e);
+                                    }
+                                    float widthInPixels = 10;
+                                    MapPolyline mapPolyline = null;
+                                    try {
+                                        mapPolyline = new MapPolyline(geoPolyline, new MapPolyline.SolidRepresentation(
+                                                new MapMeasureDependentRenderSize(RenderSize.Unit.PIXELS, widthInPixels),
+                                                new Color(1f, 0f, 0f, 1f),
+                                                LineCap.ROUND));
+                                    }  catch (MapPolyline.Representation.InstantiationException e) {
+                                        Log.e("MapPolyline Representation Exception:", e.error.name());
+                                    } catch (MapMeasureDependentRenderSize.InstantiationException e) {
+                                        Log.e("MapMeasureDependentRenderSize Exception:", e.error.name());
+                                    }
+                                    int[] truckSpecIds = {1,2,3};
+                                    // Guardar la zona en la base de datos
+                                    try {
+                                        dbHelper.saveRuta(
+                                                nombre,
+                                                new GeoCoordinates(latitud_inicio, longitud_inicio),
+                                                new GeoCoordinates(latitud_fin, longitud_fin),
+                                                mapPolyline,
+                                                truckSpecIds,
+                                                fecha_creacion,
+                                                fecha_ultima_modificacion,
+                                                status
+                                        );
+                                    } catch (Exception e) {
+                                        Log.e("Database", "Error al guardar el punto: " + e.getMessage());
+                                    }
+                                }
+                            } else {
+                                Log.e("Error", "La operación no fue exitosa.");
+                            }
+                            Log.d("Retrofit", "Puntos guardados correctamente.");
+                            future.complete(response.body());
+                        } catch (Exception e) {
+                            Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                        }
+                    } else {
+                        Log.e("Retrofit", "Error en la respuesta del servidor.");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.e("Retrofit", "Error al obtener datos: " + t.getMessage());
+                    future.completeExceptionally(t);
+                }
+            });
+            return future;
+        } catch (Error e) {
+            Log.e(TAG, "Error en la solicitud de los puntos de control: ", e);
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private CompletableFuture<ResponseBody> obtenerDetallesRuta() {
+        try {
+            CompletableFuture<ResponseBody> future = new CompletableFuture<>();
+            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            apiService.getRuta(ruta.id).enqueue(new retrofit2.Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            // Obtener el JSON como string
+                            String jsonResponse = response.body().string();
+                            Log.e("Prueba", "JSON recibido: " + jsonResponse);
+                            // Convierte la respuesta en un objeto JSON
+                            JSONObject jsonObject = new JSONObject(jsonResponse);
+                            // Verifica si la operación fue exitosa
+                            boolean success = jsonObject.getBoolean("success");
+                            if (success) {
+                                // Obtén el arreglo "result"
+                                JSONObject resultArray = jsonObject.getJSONObject("result");
+                                // Obtén el arreglo "puntos_de_control"
+                                JSONArray puntosArray = resultArray.getJSONArray("puntos_de_control");
+                                for (int i = 0; i < puntosArray.length(); i++) {
+                                    JSONObject puntoObject = puntosArray.getJSONObject(i);
+                                    // Extraer datos del punto
+                                    for (int j = 0; j < controlPointsExample.pointsWithIds.size(); j++) {
+                                        if(controlPointsExample.pointsWithIds.get(j).id == puntoObject.getInt("id")){
+                                            puntos.add(controlPointsExample.pointsWithIds.get(j));
+                                        }
+                                    }
+                                }
+                                // Obtén el arreglo "zonas"
+                                JSONArray zonasArray = resultArray.getJSONArray("zonas");
+                                for (int i = 0; i < zonasArray.length(); i++) {
+                                    JSONObject puntoObject = zonasArray.getJSONObject(i);
+                                    // Extraer datos del punto
+                                    for (int j = 0; j < avoidZonesExample.polygonWithIds.size(); j++) {
+                                        if (avoidZonesExample.polygonWithIds.get(j).id == puntoObject.getInt("id")) {
+                                            poligonos.add(avoidZonesExample.polygonWithIds.get(j));
+                                        }
+                                    }
+                                }
+                            } else {
+                                Log.e("Error", "La operación no fue exitosa.");
+                            }
+                            Log.d("Retrofit", "Detalles guardados localmente.");
+                            future.complete(response.body());
+                        } catch (Exception e) {
+                            Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                        }
+                    } else {
+                        Log.e("Retrofit", "Error en la respuesta del servidor.");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.e("Retrofit", "Error al obtener datos: " + t.getMessage());
+                    future.completeExceptionally(t);
+                }
+            });
+            return future;
+        } catch (Error e) {
+            Log.e(TAG, "Error en la solicitud de los puntos de control: ", e);
+            return CompletableFuture.failedFuture(e);
+        }
     }
 }

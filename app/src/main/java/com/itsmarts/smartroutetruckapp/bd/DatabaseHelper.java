@@ -489,7 +489,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
 
     // Guarda una coordenada en la base de datos
-    public void saveRuta(String name, GeoCoordinates coordinateInicial, GeoCoordinates coordinateFinal, MapPolyline poligoline, int[] truckSpecIds) {
+    public void saveRuta(String name, GeoCoordinates coordinateInicial, GeoCoordinates coordinateFinal, MapPolyline poligoline, int[] truckSpecIds, String fechaCreacion, String fechaUltimaModificacion, int status) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_NAME, name);
@@ -497,15 +497,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_LONGITUDE_INICIO, coordinateInicial.longitude);
         values.put(COLUMN_LATITUDE_FIN, coordinateFinal.latitude);
         values.put(COLUMN_LONGITUDE_FIN, coordinateFinal.longitude);
-        values.put(COLUMN_FECHA_CREACION, System.currentTimeMillis());
-        values.put(COLUMN_FECHA_ULTIMA_MODIFICACION, "");
+        //values.put(COLUMN_FECHA_CREACION, System.currentTimeMillis());
+        values.put(COLUMN_FECHA_CREACION, fechaCreacion);
+        values.put(COLUMN_FECHA_ULTIMA_MODIFICACION, fechaUltimaModificacion);
         values.put(COLUMN_POLIGOLINE, serializePolyline(poligoline));
         String[] truckSpecIdsStringArray = Arrays.stream(truckSpecIds)
                 .mapToObj(String::valueOf)
                 .toArray(String[]::new);
         String truckSpecIdsString = TextUtils.join(",", truckSpecIdsStringArray);
         values.put(COLUMN_TUCKSPEC_IDS, truckSpecIdsString);
-        values.put(COLUMN_STATUS, 1);
+        values.put(COLUMN_STATUS, status);
         db.insert(TABLE_ROUTES, null, values);
         db.close();
     }

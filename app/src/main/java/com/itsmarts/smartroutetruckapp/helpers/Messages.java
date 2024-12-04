@@ -85,7 +85,7 @@ public class Messages {
                                 poligonos.add(polygonWithId.polygon);
                             }
                         }
-                        mainActivity.routingExample.addRoute(poligonos,puntos,mainActivity.currentGeoCoordinates, mainActivity.destinationGeoCoordinates, mainActivity.geoCoordinatesPOI, mainActivity.waypointsGlobal, new RoutingExample.RouteCallback() {
+                        mainActivity.routingExample.addRoute(poligonos,puntos,mainActivity.currentGeoCoordinates, mainActivity.destinationGeoCoordinates, mainActivity.geoCoordinatesPOI, new ArrayList<>(), new RoutingExample.RouteCallback() {
                             @Override
                             public void onRouteCalculated(Route route) {
                                 if (route != null) {
