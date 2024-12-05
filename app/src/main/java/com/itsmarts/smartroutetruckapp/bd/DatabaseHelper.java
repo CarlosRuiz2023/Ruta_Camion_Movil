@@ -161,9 +161,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
 
     // Guarda una coordenada en la base de datos
-    public void savePunto(GeoCoordinates coordinate, String name, int id_estado, int id_municipio,int status) {
+    public void savePunto(int id,GeoCoordinates coordinate, String name, int id_estado, int id_municipio,int status) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
+        values.put(COLUMN_ID, id);
         values.put(COLUMN_NAME, name);
         values.put(COLUMN_ROUTE_ID, "1");
         values.put(COLUMN_LATITUDE, coordinate.latitude);
@@ -266,9 +267,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
 
     // Guarda un polígono en la base de datos
-    public void saveZona(MapPolygon polygon, String name, int id_estado, int id_municipio, boolean peligrosa, int status) {
+    public void saveZona(int id,MapPolygon polygon, String name, int id_estado, int id_municipio, boolean peligrosa, int status) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
+        values.put(COLUMN_ID, id);
         values.put(COLUMN_NAME, name);
         values.put(COLUMN_ROUTE_ID, "1,2");
         values.put(COLUMN_VERTICES, serializePolygon(polygon));
@@ -489,9 +491,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
 
     // Guarda una coordenada en la base de datos
-    public void saveRuta(String name, GeoCoordinates coordinateInicial, GeoCoordinates coordinateFinal, MapPolyline poligoline, int[] truckSpecIds, String fechaCreacion, String fechaUltimaModificacion, int status) {
+    public void saveRuta(int id,String name, GeoCoordinates coordinateInicial, GeoCoordinates coordinateFinal, MapPolyline poligoline, int[] truckSpecIds, String fechaCreacion, String fechaUltimaModificacion, int status) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
+        values.put(COLUMN_ID, id);
         values.put(COLUMN_NAME, name);
         values.put(COLUMN_LATITUDE_INICIO, coordinateInicial.latitude);
         values.put(COLUMN_LONGITUDE_INICIO, coordinateInicial.longitude);

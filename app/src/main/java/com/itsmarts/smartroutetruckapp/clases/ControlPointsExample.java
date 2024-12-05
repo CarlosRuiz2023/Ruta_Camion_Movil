@@ -297,6 +297,7 @@ public class ControlPointsExample {
                                 for (int i = 0; i < puntosArray.length(); i++) {
                                     JSONObject puntoObject = puntosArray.getJSONObject(i);
                                     // Extraer datos del punto
+                                    int id = puntoObject.optInt("id_punto_de_control", 0);
                                     double latitud = puntoObject.optDouble("latitud", 0.0);
                                     double longitud = puntoObject.optDouble("longitud", 0.0);
                                     String nombre = puntoObject.optString("nombre", "Sin nombre");
@@ -306,6 +307,7 @@ public class ControlPointsExample {
                                     // Guardar el punto en la base de datos
                                     try {
                                         dbHelper.savePunto(
+                                                id,
                                                 new GeoCoordinates(latitud, longitud),
                                                 nombre,
                                                 id_estado,

@@ -374,6 +374,7 @@ public class AvoidZonesExample {
                                 for (int i = 0; i < puntosArray.length(); i++) {
                                     JSONObject zonaObject = puntosArray.getJSONObject(i);
                                     // Extraer datos del punto
+                                    int id = zonaObject.optInt("id_zona", 0);
                                     String nombre = zonaObject.optString("nombre", "Sin nombre");
                                     int id_estado = zonaObject.optInt("id_estado", 0);
                                     int id_municipio = zonaObject.optInt("id_municipio", 0);
@@ -408,6 +409,7 @@ public class AvoidZonesExample {
                                     // Guardar la zona en la base de datos
                                     try {
                                         dbHelper.saveZona(
+                                                id,
                                                 mapPolygon,
                                                 nombre,
                                                 id_estado,
@@ -467,6 +469,7 @@ public class AvoidZonesExample {
                                 for (int i = 0; i < puntosArray.length(); i++) {
                                     JSONObject zonaObject = puntosArray.getJSONObject(i);
                                     // Extraer datos del punto
+                                    int id = zonaObject.optInt("id_zona", 0);
                                     String nombre = zonaObject.optString("nombre", "Sin nombre");
                                     int id_estado = zonaObject.optInt("id_estado", 0);
                                     int id_municipio = zonaObject.optInt("id_municipio", 0);
@@ -501,6 +504,7 @@ public class AvoidZonesExample {
                                     // Guardar la zona en la base de datos
                                     try {
                                         dbHelper.saveZona(
+                                                id,
                                                 mapPolygon,
                                                 nombre,
                                                 id_estado,

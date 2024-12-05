@@ -124,11 +124,6 @@ public class RoutingExample {
     }
 
     public void addRoute(List<MapPolygon> poligonos, List<GeoCoordinates> puntos,GeoCoordinates startCoordinates, GeoCoordinates destinationCoordinates, GeoCoordinates geoCoordinatesPOI, List<GeoCoordinates> waypoints, RouteCallback callback) {
-        Log.e("Prueba",""+puntos.size());
-        Log.e("Prueba",""+waypoints.size());
-        Log.e("Prueba",""+poligonos.size());
-        Log.e("Prueba",""+startCoordinates.latitude+","+startCoordinates.longitude);
-        Log.e("Prueba",""+destinationCoordinates.latitude+","+destinationCoordinates.longitude);
 
         clearMap();
         TruckSpecifications truckSpecifications = new TruckSpecifications();
