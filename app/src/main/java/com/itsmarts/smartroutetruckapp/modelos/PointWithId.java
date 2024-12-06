@@ -4,7 +4,6 @@ import com.here.sdk.mapview.MapMarker;
 
 public class PointWithId {
     public int id;
-    public int[] rutasIds;
     public MapMarker mapMarker;
     public String name;
     public int id_estado;
@@ -14,9 +13,8 @@ public class PointWithId {
     public Boolean visibility;
     public Boolean status;
 
-    public PointWithId(int id, int[] rutasIds, MapMarker mapMarker, String name, int id_estado, int id_municipio, int[] truckSpecIds,Boolean label,Boolean visibility, Boolean status) {
+    public PointWithId(int id, MapMarker mapMarker, String name, int id_estado, int id_municipio, int[] truckSpecIds,Boolean label,Boolean visibility, Boolean status) {
         this.id = id;
-        this.rutasIds = rutasIds;
         this.mapMarker = mapMarker;
         this.name = name;
         this.id_estado = id_estado;
@@ -95,13 +93,5 @@ public class PointWithId {
 
     public void setTruckSpecIds(int[] truckSpecIds) {
         this.truckSpecIds = truckSpecIds;
-    }
-
-    public int[] rutasIds() {
-        return rutasIds;
-    }
-
-    public void setRutasIds(int[] rutasIds) {
-        this.rutasIds = rutasIds;
     }
 }

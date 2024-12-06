@@ -2,8 +2,6 @@ package com.itsmarts.smartroutetruckapp;
 
 import static android.view.View.VISIBLE;
 
-import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
-
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
@@ -53,7 +51,6 @@ import com.here.sdk.core.Anchor2D;
 import com.here.sdk.core.Color;
 import com.here.sdk.core.GeoCircle;
 import com.here.sdk.core.GeoCoordinates;
-import com.here.sdk.core.GeoPolygon;
 import com.here.sdk.core.GeoPolyline;
 import com.here.sdk.core.LanguageCode;
 import com.here.sdk.core.PickedPlace;
@@ -1392,21 +1389,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             boolean success = jsonObject.getBoolean("success");
                             if (success) {
                                 // Obtén el arreglo "result"
-                                JSONArray puntosArray = jsonObject.getJSONArray("result");
+                                JSONArray rutasArray = jsonObject.getJSONArray("result");
                                 // Itera sobre cada elemento en el arreglo
-                                for (int i = 0; i < puntosArray.length(); i++) {
-                                    JSONObject zonaObject = puntosArray.getJSONObject(i);
+                                for (int i = 0; i < rutasArray.length(); i++) {
+                                    JSONObject rutaObject = rutasArray.getJSONObject(i);
                                     // Extraer datos del punto
-                                    int id = zonaObject.optInt("id_ruta", 0);
-                                    String nombre = zonaObject.optString("nombre", "Sin nombre");
-                                    double latitud_inicio = zonaObject.optDouble("latitud_inicio", 0.0);
-                                    double longitud_inicio = zonaObject.optDouble("longitud_inicio", 0.0);
-                                    double latitud_fin = zonaObject.optDouble("latitud_fin", 0.0);
-                                    double longitud_fin = zonaObject.optDouble("longitud_fin", 0.0);
-                                    String fecha_creacion = zonaObject.optString("fecha_creacion", "");
-                                    String fecha_ultima_modificacion = zonaObject.optString("fecha_ultima_modificacion", "");
-                                    String polilineaString = zonaObject.optString("polilinea", "");
-                                    int status = zonaObject.optInt("estatus", 0);
+                                    int id = rutaObject.optInt("id_ruta", 0);
+                                    String nombre = rutaObject.optString("nombre", "Sin nombre");
+                                    double latitud_inicio = rutaObject.optDouble("latitud_inicio", 0.0);
+                                    double longitud_inicio = rutaObject.optDouble("longitud_inicio", 0.0);
+                                    double latitud_fin = rutaObject.optDouble("latitud_fin", 0.0);
+                                    double longitud_fin = rutaObject.optDouble("longitud_fin", 0.0);
+                                    String fecha_creacion = rutaObject.optString("fecha_creacion", "");
+                                    String fecha_ultima_modificacion = rutaObject.optString("fecha_ultima_modificacion", "");
+                                    String polilineaString = rutaObject.optString("polilinea", "");
+                                    int status = rutaObject.optInt("estatus", 0);
                                     List<GeoCoordinates> vertices = new ArrayList<>();
                                     String[] vertexPairs = polilineaString.split("\\],\\[");
 
@@ -1442,6 +1439,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     } catch (MapMeasureDependentRenderSize.InstantiationException e) {
                                         Log.e("MapMeasureDependentRenderSize Exception:", e.error.name());
                                     }
+                                    JSONArray puntosArray = rutaObject.getJSONArray("puntos_de_control");
+                                    // Calcular el tamaño del array de enteros de antemano
+                                    int[] puntos = new int[puntosArray.length()];
+
+                                    for (int j = 0; j < puntosArray.length(); j++) {
+                                        puntos[j] = puntosArray.getInt(j);
+                                    }
+
+                                    Log.e("Prueba", "Puntos de control: " + Arrays.toString(puntos));
+
                                     int[] truckSpecIds = {1,2,3};
                                     // Guardar la zona en la base de datos
                                     try {

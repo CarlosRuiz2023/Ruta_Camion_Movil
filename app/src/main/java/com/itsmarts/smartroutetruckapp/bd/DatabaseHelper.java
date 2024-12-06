@@ -69,6 +69,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_MUNICIPIO = "municipio";
     private static final String COLUMN_TUCKSPEC_IDS = "truckSpecIds";
     private static final String COLUMN_ROUTE_ID = "routeId";
+    private static final String COLUMN_PUNTOS_IDS = "puntosIds";
+    private static final String COLUMN_ZONAS_IDS = "zonasIds";
     private static final String COLUMN_LATITUDE_INICIO = "latitudeInicio";
     private static final String COLUMN_LONGITUDE_INICIO = "longitudeInicio";
     private static final String COLUMN_LATITUDE_FIN = "latitudeFin";
@@ -91,8 +93,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         String createTableQueryPuntos = "CREATE TABLE " + TABLE_PUNTOS + " (" +
-                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_ROUTE_ID + " TEXT, " +
+                COLUMN_ID + " INTEGER PRIMARY KEY, " +
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_LATITUDE + " REAL, " +
                 COLUMN_LONGITUDE + " REAL, " +
@@ -104,8 +105,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_STATUS + " INTEGER)";
 
         String createTableQueryZonas = "CREATE TABLE " + TABLE_ZONAS + " (" +
-                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                COLUMN_ROUTE_ID + " TEXT, " +
+                COLUMN_ID + " INTEGER PRIMARY KEY, " +
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_VERTICES + " TEXT, " +
                 COLUMN_IDESTADO + " INTEGER, " +
@@ -126,7 +126,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_IMAGEN + " TEXT)";
 
         String createTableQueryRoutes = "CREATE TABLE " + TABLE_ROUTES + " (" +
-                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_ID + " INTEGER PRIMARY KEY, " +
                 COLUMN_NAME + " TEXT, " +
                 COLUMN_LATITUDE_INICIO + " REAL, " +
                 COLUMN_LONGITUDE_INICIO + " REAL, " +
@@ -136,6 +136,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_FECHA_ULTIMA_MODIFICACION + " TEXT, " +
                 COLUMN_POLIGOLINE + " TEXT, " +
                 COLUMN_TUCKSPEC_IDS + " TEXT, " +
+                COLUMN_PUNTOS_IDS + " TEXT, " +
+                COLUMN_ZONAS_IDS + " TEXT, " +
                 COLUMN_STATUS + " INTEGER)";
 
         db.execSQL(createTableQueryPuntos);
@@ -166,7 +168,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(COLUMN_ID, id);
         values.put(COLUMN_NAME, name);
-        values.put(COLUMN_ROUTE_ID, "1");
         values.put(COLUMN_LATITUDE, coordinate.latitude);
         values.put(COLUMN_LONGITUDE, coordinate.longitude);
         values.put(COLUMN_IDESTADO, id_estado);
@@ -202,12 +203,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
-                String rutasIds = cursor.getString(cursor.getColumnIndex(COLUMN_ROUTE_ID));
-                String[] rutasIdsArray = rutasIds.split(",");
-                int[] idsR = new int[rutasIdsArray.length];
-                for (int i = 0; i < rutasIdsArray.length; i++) {
-                    idsR[i] = Integer.parseInt(rutasIdsArray[i].trim());
-                }
                 String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
                 double latitude = cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE));
                 double longitude = cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE));
@@ -224,20 +219,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 Boolean status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)) == 1;
                 MapImage mapImage = MapImageFactory.fromResource(context.getResources(), R.drawable.punto_control);
                 MapMarker mapMarker = new MapMarker(new GeoCoordinates(latitude, longitude), mapImage);
-                pointsWithIds.add(new PointWithId(id,idsR,mapMarker,name,id_estado,id_municipio,ids,label,visibility,status));
+                pointsWithIds.add(new PointWithId(id,mapMarker,name,id_estado,id_municipio,ids,label,visibility,status));
             } while (cursor.moveToNext());
         }
 
         cursor.close();
          db.close();
         return pointsWithIds;
-    }
-
-    // Elimina una coordenada de la base de datos por su ID
-    public void deletePunto(int id) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_PUNTOS, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
-        db.close();
     }
 
     // Actualizar el estatus del poligono de la base de datos por su ID
@@ -272,7 +260,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         ContentValues values = new ContentValues();
         values.put(COLUMN_ID, id);
         values.put(COLUMN_NAME, name);
-        values.put(COLUMN_ROUTE_ID, "1,2");
         values.put(COLUMN_VERTICES, serializePolygon(polygon));
         values.put(COLUMN_IDESTADO, id_estado);
         values.put(COLUMN_IDMUNICIPIO, id_municipio);
@@ -295,12 +282,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
-                String rutasIds = cursor.getString(cursor.getColumnIndex(COLUMN_ROUTE_ID));
-                String[] rutasIdsArray = rutasIds.split(",");
-                int[] idsR = new int[rutasIdsArray.length];
-                for (int i = 0; i < rutasIdsArray.length; i++) {
-                    idsR[i] = Integer.parseInt(rutasIdsArray[i].trim());
-                }
                 String verticesString = cursor.getString(cursor.getColumnIndex(COLUMN_VERTICES));
                 String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
                 int id_estado = cursor.getInt(cursor.getColumnIndex(COLUMN_IDESTADO));
@@ -329,7 +310,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     fillColor = Color.valueOf(1f, 0f, 0f, 0.63f);  // RGBA
                 }
                 MapPolygon polygon = new MapPolygon(geometry,fillColor);
-                polygons.add(new PolygonWithId(id,ids,polygon,name,id_estado,id_municipio,ids,label,visibility,peligrosa,status));
+                polygons.add(new PolygonWithId(id,polygon,name,id_estado,id_municipio,ids,label,visibility,peligrosa,status));
             } while (cursor.moveToNext());
         }
 
@@ -381,13 +362,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_ESTADO, "Jalisco");
         values.put(COLUMN_MUNICIPIO, "Guadalajara");
         db.update(TABLE_ZONAS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
-        db.close();
-    }
-
-    // Elimina un polígono de la base de datos por su ID
-    public void deleteZona(int id) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_ZONAS, COLUMN_ID + " = ?",new String[]{String.valueOf(id)});
         db.close();
     }
     // Actualizar el estatus del poligono de la base de datos por su ID

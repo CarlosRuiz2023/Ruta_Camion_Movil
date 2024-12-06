@@ -4,7 +4,6 @@ import com.here.sdk.mapview.MapPolygon;
 
 public class PolygonWithId {
     public int id;
-    public int[] idRuta;
     public MapPolygon polygon;
     public String name;
     public int id_estado;
@@ -15,9 +14,8 @@ public class PolygonWithId {
     public Boolean peligrosa;
     public Boolean status;
 
-    public PolygonWithId(int id,int[] idRuta, MapPolygon polygon,String name,int id_estado,int id_municipio,int[] truckSpecIds,Boolean label,Boolean visibility,Boolean peligrosa,Boolean status) {
+    public PolygonWithId(int id, MapPolygon polygon,String name,int id_estado,int id_municipio,int[] truckSpecIds,Boolean label,Boolean visibility,Boolean peligrosa,Boolean status) {
         this.id = id;
-        this.idRuta = idRuta;
         this.polygon = polygon;
         this.name = name;
         this.id_estado = id_estado;
@@ -99,13 +97,6 @@ public class PolygonWithId {
         this.id_municipio = id_municipio;
     }
 
-    public int[] idRuta() {
-        return idRuta;
-    }
-
-    public void setIdRuta(int[] idRuta) {
-        this.idRuta = idRuta;
-    }
     public Boolean peligrosa() {
         return peligrosa;
     }
