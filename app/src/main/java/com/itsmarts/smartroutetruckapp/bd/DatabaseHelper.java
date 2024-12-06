@@ -451,13 +451,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return camiones;
     }
 
-    // Elimina una coordenada de la base de datos por su ID
-    public void deleteCamion(int id) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_CAMIONES, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
-        db.close();
-    }
-
     /*
      * Descripcion: FUNCIONES PARA LA BASE DE DATOS DE RUTAS
      * Autor: CHARLY
@@ -465,7 +458,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
 
     // Guarda una coordenada en la base de datos
-    public void saveRuta(int id,String name, GeoCoordinates coordinateInicial, GeoCoordinates coordinateFinal, MapPolyline poligoline, int[] truckSpecIds, String fechaCreacion, String fechaUltimaModificacion, int status) {
+    public void saveRuta(int id,String name, GeoCoordinates coordinateInicial, GeoCoordinates coordinateFinal, MapPolyline poligoline, int[] truckSpecIds, int[] puntosIds, int[] zonasIds, String fechaCreacion, String fechaUltimaModificacion, int status) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_ID, id);
@@ -483,6 +476,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 .toArray(String[]::new);
         String truckSpecIdsString = TextUtils.join(",", truckSpecIdsStringArray);
         values.put(COLUMN_TUCKSPEC_IDS, truckSpecIdsString);
+        String[] puntosIdsStringArray = Arrays.stream(puntosIds)
+                .mapToObj(String::valueOf)
+                .toArray(String[]::new);
+        String puntosIdsString = TextUtils.join(",", puntosIdsStringArray);
+        values.put(COLUMN_PUNTOS_IDS, puntosIdsString);
+        String[] zonasIdsStringArray = Arrays.stream(zonasIds)
+                .mapToObj(String::valueOf)
+                .toArray(String[]::new);
+        String zonasIdsString = TextUtils.join(",", zonasIdsStringArray);
+        values.put(COLUMN_ZONAS_IDS, zonasIdsString);
         values.put(COLUMN_STATUS, status);
         db.insert(TABLE_ROUTES, null, values);
         db.close();
@@ -555,14 +558,34 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 } catch (MapMeasureDependentRenderSize.InstantiationException e) {
                     Log.e("MapMeasureDependentRenderSize Exception:", e.error.name());
                 }
-                String truckSpecIds = cursor.getString(cursor.getColumnIndex(COLUMN_TUCKSPEC_IDS));
-                String[] truckSpecIdsArray = truckSpecIds.split(",");
-                int[] ids = new int[truckSpecIdsArray.length];
+                String truckSpecIdsString = cursor.getString(cursor.getColumnIndex(COLUMN_TUCKSPEC_IDS));
+                String[] truckSpecIdsArray = truckSpecIdsString.split(",");
+                int[] truckSpectIds = new int[truckSpecIdsArray.length];
                 for (int i = 0; i < truckSpecIdsArray.length; i++) {
-                    ids[i] = Integer.parseInt(truckSpecIdsArray[i].trim());
+                    truckSpectIds[i] = Integer.parseInt(truckSpecIdsArray[i].trim());
+                }
+                String puntosIdsString = cursor.getString(cursor.getColumnIndex(COLUMN_PUNTOS_IDS));
+                int[] puntosIds = null;
+                if(puntosIdsString.length()!=0){
+                    String[] puntosIdsArray = puntosIdsString.split(",");
+                    puntosIds = new int[puntosIdsArray.length];
+                    for (int i = 0; i < puntosIdsArray.length; i++) {
+                        puntosIdsArray[i] = puntosIdsArray[i].replace("[", "").replace("]", "");
+                        puntosIds[i] = Integer.parseInt(puntosIdsArray[i].trim());
+                    }
+                }
+                String zonasIdsString = cursor.getString(cursor.getColumnIndex(COLUMN_ZONAS_IDS));
+                int[] zonasIds = null;
+                if(zonasIdsString.length()!=0){
+                    String[] zonasIdsArray = zonasIdsString.split(",");
+                    zonasIds = new int[zonasIdsArray.length];
+                    for (int i = 0; i < zonasIdsArray.length; i++) {
+                        zonasIdsArray[i] = zonasIdsArray[i].replace("[", "").replace("]", "");
+                        zonasIds[i] = Integer.parseInt(zonasIdsArray[i].trim());
+                    }
                 }
                 int status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS));
-                routesWithIds.add(new RoutesWithId(id,name,new GeoCoordinates(latitude_inicial,longitude_inicial),new GeoCoordinates(latitude_fin,longitude_fin),fechaCreacion,fechaUltimaModificacion,trafficSpanMapPolyline,ids,status));
+                routesWithIds.add(new RoutesWithId(id,name,new GeoCoordinates(latitude_inicial,longitude_inicial),new GeoCoordinates(latitude_fin,longitude_fin),fechaCreacion,fechaUltimaModificacion,trafficSpanMapPolyline,truckSpectIds,puntosIds,zonasIds,status));
             } while (cursor.moveToNext());
         }
 

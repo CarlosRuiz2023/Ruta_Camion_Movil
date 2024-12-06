@@ -24,7 +24,7 @@ public class NotificationHelper {
 
         // Construir la notificación
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(R.drawable.icono1)
+                .setSmallIcon(R.drawable.logo1)
                 .setContentTitle(title)
                 .setContentText(message)
                 .setPriority(NotificationCompat.PRIORITY_DEFAULT)

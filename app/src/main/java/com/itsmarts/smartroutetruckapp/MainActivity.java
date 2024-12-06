@@ -249,7 +249,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 ruta=rutaPre;
                                 alertDialogRuta.dismiss();
                                 List<GeoCoordinates> puntos_de_control = new ArrayList<>();
-                                List<CompletableFuture<ResponseBody>> futures1 = new ArrayList<>();
+                                List<MapPolygon> zonas = new ArrayList<>();
+                                /*List<CompletableFuture<ResponseBody>> futures1 = new ArrayList<>();
                                 futures1.add(obtenerDetallesRuta());
                                 // Espera a que todos los futures terminen
                                 CompletableFuture<Void> allOf = CompletableFuture.allOf(futures1.toArray(new CompletableFuture[0]));
@@ -310,6 +311,84 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                             }
                                         }
                                     });
+                                });*/
+                                Log.e("Prueba", "Puntos"+Arrays.toString(ruta.puntosIds));
+                                if(ruta.puntosIds!=null){
+                                    for (int i = 0; i < controlPointsExample.pointsWithIds.size(); i++) {
+                                        boolean foundPuntoDeControl = false;
+                                        for (int id : ruta.puntosIds) {
+                                            if (id == controlPointsExample.pointsWithIds.get(i).id) {
+                                                foundPuntoDeControl = true;
+                                                break;
+                                            }
+                                        }
+                                        if (foundPuntoDeControl) {
+                                            if (controlPointsExample.pointsWithIds.get(i).status) {
+                                                controlPointsExample.pointsWithIds.get(i).visibility=true;
+                                                controlPointsExample.pointsWithIds.get(i).label=true;
+                                                puntos_de_control.add(controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
+                                                puntos.add(controlPointsExample.pointsWithIds.get(i));
+                                                geocercas.drawGecocercaControlPoint(controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
+                                            }
+                                        }
+                                    }
+                                }
+                                Log.e("Prueba", "Zonas"+Arrays.toString(ruta.zonasIds));
+                                if(ruta.zonasIds!=null){
+                                    for (int i = 0; i < avoidZonesExample.polygonWithIds.size(); i++) {
+                                        boolean foundZona = false;
+                                        for (int id : ruta.zonasIds) {
+                                            if (id == avoidZonesExample.polygonWithIds.get(i).id) {
+                                                foundZona = true;
+                                                break;
+                                            }
+                                        }
+
+                                        if (foundZona) {
+                                            if (avoidZonesExample.polygonWithIds.get(i).status) {
+                                                avoidZonesExample.polygonWithIds.get(i).visibility=true;
+                                                avoidZonesExample.polygonWithIds.get(i).label=true;
+                                                if(!avoidZonesExample.polygonWithIds.get(i).peligrosa){
+                                                    zonas.add(avoidZonesExample.polygonWithIds.get(i).polygon);
+                                                    poligonos.add(avoidZonesExample.polygonWithIds.get(i));
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                mapView.getMapScene().addMapPolyline(ruta.polyline);
+                                geocercas.drawGeofenceAroundPolyline(ruta.polyline, 100);
+                                mapView.getMapScene().addMapPolygon(geocercas.geocercas);
+                                controlPointsExample.cleanPoint();
+                                avoidZonesExample.cleanPolygon();
+                                routingExample.addRoute(zonas,puntos_de_control,currentGeoCoordinates, ruta.coordinatesFin, null, new ArrayList<>(), new RoutingExample.RouteCallback() {
+                                    @Override
+                                    public void onRouteCalculated(Route route) {
+                                        if (route != null) {
+                                            messageView.startAnimation(cargaAnimacion);
+                                            messageView.setVisibility(View.VISIBLE);
+                                            btnTerminarRuta.setVisibility(VISIBLE);
+                                            txtNavegacion.setVisibility(VISIBLE);
+                                            txtTerminarRuta.setVisibility(VISIBLE);
+                                            detallesRuta.setVisibility(VISIBLE);
+                                            distanceTextView.setVisibility(VISIBLE);
+                                            timeTextView.setVisibility(VISIBLE);
+
+                                            rutaGenerada = true;
+                                            dbHelper.updateStatusRoute(ruta.id,2);
+                                            ruta.setStatus(2);
+                                            rutaPre = null;
+                                            try {
+                                                navigationExample.startNavigation(route, false, true);
+                                                routeSuccessfullyProcessed = true;
+                                            } catch (Exception e) {
+                                                routeSuccessfullyProcessed = false;
+                                            }
+                                        } else {
+                                            messages.showCustomToast("No se pudo calcular la ruta");
+                                            routeSuccessfullyProcessed = false;
+                                        }
+                                    }
                                 });
                             }
                         }, 400);
@@ -1068,15 +1147,23 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mapView.getMapScene().removeMapPolygon(mapPolygon);
             }
         }
-        for (PointWithId pointWithId : puntos) {
-            controlPointsExample.pointsWithIds.get(pointWithId.id).visibility=false;
-            controlPointsExample.pointsWithIds.get(pointWithId.id).label=false;
+        for (int i = 0; i < controlPointsExample.pointsWithIds.size(); i++) {
+            for (PointWithId pointWithId : puntos) {
+                if(pointWithId.id==controlPointsExample.pointsWithIds.get(i).id){
+                    controlPointsExample.pointsWithIds.get(i).visibility=false;
+                    controlPointsExample.pointsWithIds.get(i).label=false;
+                }
+            }
         }
         puntos.clear();
         controlPointsExample.cleanPoint();
-        for (PolygonWithId polygonWithId : poligonos) {
-            avoidZonesExample.polygonWithIds.get(polygonWithId.id).visibility=false;
-            avoidZonesExample.polygonWithIds.get(polygonWithId.id).label=false;
+        for (int i = 0; i < avoidZonesExample.polygonWithIds.size(); i++) {
+            for (PolygonWithId polygonWithId : poligonos) {
+                if(polygonWithId.id==avoidZonesExample.polygonWithIds.get(i).id) {
+                    avoidZonesExample.polygonWithIds.get(i).visibility = false;
+                    avoidZonesExample.polygonWithIds.get(i).label = false;
+                }
+            }
         }
         poligonos.clear();
         avoidZonesExample.cleanPolygon();
@@ -1284,7 +1371,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         for (Place place : list) {
                             // Obtener las coordenadas de cada POI
                             GeoCoordinates poiCoordinates = place.getGeoCoordinates();
-                            //Log.d("Prueba", "POI encontrado: " + poiCoordinates.latitude + ", " + poiCoordinates.longitude);
 
                             // Mostrar el POI en el mapa o realizar cualquier acción necesaria
                             showPoiOnMap(poiCoordinates,place);
@@ -1302,7 +1388,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         for (Place place : list) {
                             // Obtener las coordenadas de cada POI
                             GeoCoordinates poiCoordinates = place.getGeoCoordinates();
-                            //Log.d("Prueba", "POI encontrado: " + poiCoordinates.latitude + ", " + poiCoordinates.longitude);
 
                             // Mostrar el POI en el mapa o realizar cualquier acción necesaria
                             showPoiOnMap(poiCoordinates,place);
@@ -1382,7 +1467,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         try {
                             // Obtener el JSON como string
                             String jsonResponse = response.body().string();
-                            Log.e("Prueba", "JSON recibido: " + jsonResponse);
                             // Convierte la respuesta en un objeto JSON
                             JSONObject jsonObject = new JSONObject(jsonResponse);
                             // Verifica si la operación fue exitosa
@@ -1406,7 +1490,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     int status = rutaObject.optInt("estatus", 0);
                                     List<GeoCoordinates> vertices = new ArrayList<>();
                                     String[] vertexPairs = polilineaString.split("\\],\\[");
-
                                     for (String vertexPair : vertexPairs) {
                                         // Remove extra square brackets
                                         vertexPair = vertexPair.replace("[", "").replace("]", "");
@@ -1419,7 +1502,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                             Log.e("Error", "Invalid coordinate format: " + vertexPair);
                                         }
                                     }
-
                                     GeoPolyline geoPolyline = null;
                                     try {
                                         //,new GeoCoordinates(21.097774, -101.579798)
@@ -1446,9 +1528,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     for (int j = 0; j < puntosArray.length(); j++) {
                                         puntos[j] = puntosArray.getInt(j);
                                     }
-
-                                    Log.e("Prueba", "Puntos de control: " + Arrays.toString(puntos));
-
+                                    JSONArray zonasArray = rutaObject.getJSONArray("zonas");
+                                    // Calcular el tamaño del array de enteros de antemano
+                                    int[] zonas = new int[zonasArray.length()];
+                                    for (int j = 0; j < zonasArray.length(); j++) {
+                                        zonas[j] = zonasArray.getInt(j);
+                                    }
                                     int[] truckSpecIds = {1,2,3};
                                     // Guardar la zona en la base de datos
                                     try {
@@ -1459,6 +1544,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                                 new GeoCoordinates(latitud_fin, longitud_fin),
                                                 mapPolyline,
                                                 truckSpecIds,
+                                                puntos,
+                                                zonas,
                                                 fecha_creacion,
                                                 fecha_ultima_modificacion,
                                                 status
@@ -1504,7 +1591,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         try {
                             // Obtener el JSON como string
                             String jsonResponse = response.body().string();
-                            Log.e("Prueba", "JSON recibido: " + jsonResponse);
                             // Convierte la respuesta en un objeto JSON
                             JSONObject jsonObject = new JSONObject(jsonResponse);
                             // Verifica si la operación fue exitosa
@@ -1514,7 +1600,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 JSONObject resultArray = jsonObject.getJSONObject("result");
                                 // Obtén el arreglo "puntos_de_control"
                                 JSONArray puntosArray = resultArray.getJSONArray("puntos_de_control");
-                                Log.e("Prueba","Puntos de control:"+puntosArray.toString());
                                 for (int i = 0; i < puntosArray.length(); i++) {
                                     JSONObject puntoDetalleObject = puntosArray.getJSONObject(i);
                                     JSONObject puntoObject = puntoDetalleObject.getJSONObject("puntoDeControlDetalle");
@@ -1527,7 +1612,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 }
                                 // Obtén el arreglo "zonas"
                                 JSONArray zonasArray = resultArray.getJSONArray("zonas");
-                                Log.e("Prueba","Zonas :"+zonasArray.toString());
                                 for (int i = 0; i < zonasArray.length(); i++) {
                                     JSONObject zonaDetalleObject = zonasArray.getJSONObject(i);
                                     JSONObject zonaObject = zonaDetalleObject.getJSONObject("zonaDetalle");

@@ -13,9 +13,11 @@ public class RoutesWithId implements Serializable{
     public Date fecha_creacion,fecha_ultima_modificacion;
     public MapPolyline polyline;
     public int[] truckSpectIds;
+    public int[] puntosIds;
+    public int[] zonasIds;
     public int status;
 
-    public RoutesWithId(int id, String name, GeoCoordinates coordinatesInicio, GeoCoordinates coordinatesFin, Date fecha_creacion, Date fecha_ultima_modificacion, MapPolyline polyline, int[] truckSpectIds, int status) {
+    public RoutesWithId(int id, String name, GeoCoordinates coordinatesInicio, GeoCoordinates coordinatesFin, Date fecha_creacion, Date fecha_ultima_modificacion, MapPolyline polyline, int[] truckSpectIds,int[] puntosIds,int[] zonasIds, int status) {
         this.id = id;
         this.name = name;
         this.coordinatesInicio = coordinatesInicio;
@@ -24,6 +26,8 @@ public class RoutesWithId implements Serializable{
         this.fecha_ultima_modificacion = fecha_ultima_modificacion;
         this.polyline = polyline;
         this.truckSpectIds = truckSpectIds;
+        this.puntosIds = puntosIds;
+        this.zonasIds = zonasIds;
         this.status = status;
     }
 
@@ -98,38 +102,20 @@ public class RoutesWithId implements Serializable{
     public void setTruckSpectIds(int[] truckSpectIds) {
         this.truckSpectIds = truckSpectIds;
     }
-    /*
-     // Your existing class fields and constructor
 
-    @Override
-    public int describeContents() {
-        return 0;
+    public int[] puntosIds() {
+        return puntosIds;
     }
 
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(id);
-        dest.writeString(name);
-        // Write each field value to the parcel using appropriate methods
-        // (e.g., dest.writeDouble(coordinatesInicio.latitude), etc.)
+    public void setPuntosIds(int[] puntosIds) {
+        this.puntosIds = puntosIds;
     }
 
-    public static final Creator<RoutesWithId> CREATOR = new Creator<RoutesWithId>() {
-        @Override
-        public RoutesWithId createFromParcel(Parcel in) {
-            return new RoutesWithId(in);
-        }
-
-        @Override
-        public RoutesWithId[] newArray(int size) {
-            return new RoutesWithId[size];
-        }
-    };
-
-    private RoutesWithId(Parcel in) {
-        this.id = in.readInt();
-        this.name = in.readString();
-        // Read each field value from the parcel (e.g., coordinatesInicio)
+    public int[] zonasIds() {
+        return zonasIds;
     }
-     */
+
+    public void setZonasIds(int[] zonasIds) {
+        this.zonasIds = zonasIds;
+    }
 }
