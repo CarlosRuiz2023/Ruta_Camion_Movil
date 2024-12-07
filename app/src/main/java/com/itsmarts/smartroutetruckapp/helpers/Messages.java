@@ -58,7 +58,6 @@ public class Messages {
         mainActivity.isDialogShowing = true;
 
         Dialog dialog = new Dialog(mainActivity);
-        Log.e("Prueba",""+geoCoordinatesPOI);
         if(geoCoordinatesPOI != null){
             dialog.setContentView(R.layout.ventana_poi_ruta);
             Button goButton = dialog.findViewById(R.id.dialog_go_button);
@@ -73,19 +72,51 @@ public class Messages {
                         if (mainActivity.coordenadasDestino != null){
                             mainActivity.destinationGeoCoordinates = mainActivity.coordenadasDestino;
                         }
-                        List<GeoCoordinates> puntos = new ArrayList<>();
-                        for(PointWithId pointWithId:mainActivity.controlPointsExample.pointsWithIds){
-                            if(pointWithId.status){
-                                puntos.add(pointWithId.mapMarker.getCoordinates());
+                        List<GeoCoordinates> puntos_de_control = new ArrayList<>();
+                        List<MapPolygon> zonas = new ArrayList<>();
+                        if(mainActivity.ruta.puntosIds!=null){
+                            for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
+                                boolean foundPuntoDeControl = false;
+                                for (int id : mainActivity.ruta.puntosIds) {
+                                    if (id == mainActivity.controlPointsExample.pointsWithIds.get(i).id) {
+                                        foundPuntoDeControl = true;
+                                        break;
+                                    }
+                                }
+                                if (foundPuntoDeControl) {
+                                    if (mainActivity.controlPointsExample.pointsWithIds.get(i).status) {
+                                        mainActivity.controlPointsExample.pointsWithIds.get(i).visibility=true;
+                                        mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
+                                        puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
+                                        mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
+                                        mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
+                                    }
+                                }
                             }
                         }
-                        List<MapPolygon> poligonos = new ArrayList<>();
-                        for(PolygonWithId polygonWithId:mainActivity.avoidZonesExample.polygonWithIds){
-                            if(polygonWithId.status && !polygonWithId.peligrosa){
-                                poligonos.add(polygonWithId.polygon);
+                        if(mainActivity.ruta.zonasIds!=null){
+                            for (int i = 0; i < mainActivity.avoidZonesExample.polygonWithIds.size(); i++) {
+                                boolean foundZona = false;
+                                for (int id : mainActivity.ruta.zonasIds) {
+                                    if (id == mainActivity.avoidZonesExample.polygonWithIds.get(i).id) {
+                                        foundZona = true;
+                                        break;
+                                    }
+                                }
+
+                                if (foundZona) {
+                                    if (mainActivity.avoidZonesExample.polygonWithIds.get(i).status) {
+                                        mainActivity.avoidZonesExample.polygonWithIds.get(i).visibility=true;
+                                        mainActivity.avoidZonesExample.polygonWithIds.get(i).label=true;
+                                        if(!mainActivity.avoidZonesExample.polygonWithIds.get(i).peligrosa){
+                                            zonas.add(mainActivity.avoidZonesExample.polygonWithIds.get(i).polygon);
+                                            mainActivity.poligonos.add(mainActivity.avoidZonesExample.polygonWithIds.get(i));
+                                        }
+                                    }
+                                }
                             }
                         }
-                        mainActivity.routingExample.addRoute(poligonos,puntos,mainActivity.currentGeoCoordinates, mainActivity.destinationGeoCoordinates, mainActivity.geoCoordinatesPOI, new ArrayList<>(), new RoutingExample.RouteCallback() {
+                        mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, geoCoordinatesPOI, mainActivity.ruta.coordinatesInicio, new RoutingExample.RouteCallback() {
                             @Override
                             public void onRouteCalculated(Route route) {
                                 if (route != null) {
@@ -119,21 +150,11 @@ public class Messages {
                         mainActivity.detallesRuta.setVisibility(VISIBLE);
                         mainActivity.distanceTextView.setVisibility(VISIBLE);
                         mainActivity.timeTextView.setVisibility(VISIBLE);
-                        mainActivity.destinationGeoCoordinates =mainActivity.geoCoordinatesPOI;
+                        mainActivity.destinationGeoCoordinates =geoCoordinatesPOI;
                         mainActivity.clearMapMarkersPOIsAndCircle(true);
                         List<GeoCoordinates> puntos = new ArrayList<>();
-                        for(PointWithId pointWithId:mainActivity.controlPointsExample.pointsWithIds){
-                            if(pointWithId.status){
-                                puntos.add(pointWithId.mapMarker.getCoordinates());
-                            }
-                        }
                         List<MapPolygon> poligonos = new ArrayList<>();
-                        for(PolygonWithId polygonWithId:mainActivity.avoidZonesExample.polygonWithIds){
-                            if(polygonWithId.status && !polygonWithId.peligrosa){
-                                poligonos.add(polygonWithId.polygon);
-                            }
-                        }
-                        mainActivity.routingExample.addRoute(poligonos,puntos,mainActivity.currentGeoCoordinates,mainActivity.geoCoordinatesPOI, null, new ArrayList<>(), new RoutingExample.RouteCallback() {
+                        mainActivity.routingExample.addRoute(poligonos,puntos,mainActivity.currentGeoCoordinates,geoCoordinatesPOI, null, null, new RoutingExample.RouteCallback() {
                             @Override
                             public void onRouteCalculated(Route route) {
                                 if (route != null) {
@@ -158,7 +179,6 @@ public class Messages {
             }
         } else {
             dialog.setContentView(R.layout.ventana_poi_normal);
-            Log.e("Prueba","POI sin coordenadas");
         }
         TextView titleView = dialog.findViewById(R.id.dialog_title);
         TextView addressView = dialog.findViewById(R.id.dialog_address);
@@ -168,7 +188,6 @@ public class Messages {
 
         titleView.setText(title);
         addressView.setText(mainInfo);
-        Log.e("Prueba",mainInfo);
 
         if (!additionalInfo.isEmpty()) {
             categoriesView.setText(additionalInfo);
@@ -177,7 +196,6 @@ public class Messages {
             categoriesView.setVisibility(View.GONE);
             typeView.setVisibility(View.GONE);
         }
-        Log.e("Prueba",type);
 
         if (!type.isEmpty()) {
             typeView.setText(type);
@@ -194,7 +212,6 @@ public class Messages {
             mainActivity.isDialogShowing = false;
         });
 
-        Log.e("Prueba","show");
         dialog.show();
 
         Window window = dialog.getWindow();

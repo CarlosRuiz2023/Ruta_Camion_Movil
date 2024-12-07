@@ -248,8 +248,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             public void run() {
                                 ruta=rutaPre;
                                 alertDialogRuta.dismiss();
-                                List<GeoCoordinates> puntos_de_control = new ArrayList<>();
-                                List<MapPolygon> zonas = new ArrayList<>();
                                 /*List<CompletableFuture<ResponseBody>> futures1 = new ArrayList<>();
                                 futures1.add(obtenerDetallesRuta());
                                 // Espera a que todos los futures terminen
@@ -312,7 +310,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         }
                                     });
                                 });*/
-                                Log.e("Prueba", "Puntos"+Arrays.toString(ruta.puntosIds));
+                                List<GeoCoordinates> puntos_de_control = new ArrayList<>();
+                                List<MapPolygon> zonas = new ArrayList<>();
                                 if(ruta.puntosIds!=null){
                                     for (int i = 0; i < controlPointsExample.pointsWithIds.size(); i++) {
                                         boolean foundPuntoDeControl = false;
@@ -333,10 +332,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         }
                                     }
                                 }
-                                Log.e("Prueba", "Zonas"+Arrays.toString(ruta.zonasIds));
                                 if(ruta.zonasIds!=null){
                                     for (int i = 0; i < avoidZonesExample.polygonWithIds.size(); i++) {
-                                        boolean foundZona = false;
+                                         boolean foundZona = false;
                                         for (int id : ruta.zonasIds) {
                                             if (id == avoidZonesExample.polygonWithIds.get(i).id) {
                                                 foundZona = true;
@@ -361,7 +359,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 mapView.getMapScene().addMapPolygon(geocercas.geocercas);
                                 controlPointsExample.cleanPoint();
                                 avoidZonesExample.cleanPolygon();
-                                routingExample.addRoute(zonas,puntos_de_control,currentGeoCoordinates, ruta.coordinatesFin, null, new ArrayList<>(), new RoutingExample.RouteCallback() {
+                                routingExample.addRoute(zonas,puntos_de_control,currentGeoCoordinates, ruta.coordinatesFin, null, ruta.coordinatesInicio, new RoutingExample.RouteCallback() {
                                     @Override
                                     public void onRouteCalculated(Route route) {
                                         if (route != null) {
@@ -1217,6 +1215,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(geocercas.mapPolygon!=null){
             mapView.getMapScene().removeMapPolygon(geocercas.mapPolygon);
         }
+        llPois.setVisibility(View.GONE);
     }
 
     private void setTapGestureHandler() {

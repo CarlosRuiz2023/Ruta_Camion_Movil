@@ -123,7 +123,12 @@ public class RoutingExample {
         this.largoIngresado = largo;
     }
 
-    public void addRoute(List<MapPolygon> poligonos, List<GeoCoordinates> puntos,GeoCoordinates startCoordinates, GeoCoordinates destinationCoordinates, GeoCoordinates geoCoordinatesPOI, List<GeoCoordinates> waypoints, RouteCallback callback) {
+    public void addRoute(List<MapPolygon> poligonos, List<GeoCoordinates> puntos,GeoCoordinates startCoordinates, GeoCoordinates destinationCoordinates, GeoCoordinates geoCoordinatesPOI, GeoCoordinates geoCoordinatesInicioRuta, RouteCallback callback) {
+        Log.e("Prueba","startGeoCoordinates:"+startCoordinates.toString());
+        Log.e("Prueba","destinationGeoCoordinates:"+destinationCoordinates.toString());
+        Log.e("Prueba","poligonos:"+poligonos.size());
+        Log.e("Prueba","puntos:"+puntos.size());
+        //Log.e("Prueba","geoCoordinatesPOI:"+geoCoordinatesPOI.toString());
 
         clearMap();
         TruckSpecifications truckSpecifications = new TruckSpecifications();
@@ -151,9 +156,6 @@ public class RoutingExample {
         if(geoCoordinatesPOI!=null){
             mainActivity.geoCoordinatesPOI=geoCoordinatesPOI;
             waypointsList.add(new Waypoint(geoCoordinatesPOI));
-        }
-        for (GeoCoordinates waypoint : waypoints) {
-            waypointsList.add(new Waypoint(waypoint));
         }
         waypointsList.add(new Waypoint(destinationGeoCoordinates));
 
@@ -186,7 +188,7 @@ public class RoutingExample {
                             waypointsFinales.add(new Waypoint(startGeoCoordinates));
                             // Get the first route from the list
                             Route route = routes.get(0);
-                            if (puntos.size() > 0 || waypoints.size()>0 || geoCoordinatesPOI != null) {
+                            if (puntos.size() > 0 || geoCoordinatesPOI != null) {
                                 double routeLength = route.getLengthInMeters();
                                 GeoPolyline polyline = route.getGeometry();
                                 double threshold = routeLength * 0.5; // 50% de la longitud de la ruta
@@ -196,33 +198,41 @@ public class RoutingExample {
                                 // Crea una lista de pares (waypoint, distancia)
                                 List<Pair<Waypoint, Double>> waypointDistances = new ArrayList<>();
                                 for (GeoCoordinates punto : puntos) {
-                                    double distanceToStart = punto.distanceTo(startGeoCoordinates);
-                                    double distanceToDestination = punto.distanceTo(destinationGeoCoordinates);
+                                    double distanceToStart = 0.0;
+                                    if(geoCoordinatesInicioRuta!=null){
+                                        distanceToStart = punto.distanceTo(geoCoordinatesInicioRuta);
+                                    }else{
+                                        distanceToStart = punto.distanceTo(startGeoCoordinates);
+                                    }
+                                    /*double distanceToDestination = punto.distanceTo(destinationGeoCoordinates);
                                     double distanceToPolyne = Distances.distanceToPolyline(punto,polyline);
                                     if (distanceToPolyne <= threshold || distanceToStart <= threshold || distanceToDestination <= threshold) {
                                         //addCircleMapMarker(punto, R.drawable.red_dot);
                                         waypointDistances.add(new Pair<>(new Waypoint(punto), distanceToStart));
-                                    }
+                                    }*/
+                                    waypointDistances.add(new Pair<>(new Waypoint(punto), distanceToStart));
                                 }
                                 if(geoCoordinatesPOI!=null){
                                     double distanceToStartPoi = geoCoordinatesPOI.distanceTo(startGeoCoordinates);
                                     waypointDistances.add(new Pair<>(new Waypoint(geoCoordinatesPOI), distanceToStartPoi));
                                 }
-                                for (GeoCoordinates waypoint : waypoints) {
-                                    double distanceToStartWaypoint = waypoint.distanceTo(startGeoCoordinates);
-                                    waypointDistances.add(new Pair<>(new Waypoint(waypoint), distanceToStartWaypoint));
-                                }
                                 // Ordena la lista de pares por distancia al punto intermedio
                                 waypointDistances.sort((p1, p2) -> Double.compare(p1.second, p2.second));
-
+                                if(geoCoordinatesInicioRuta != null){
+                                    waypointsFinales.add(new Waypoint(geoCoordinatesInicioRuta));
+                                }
                                 // Agrega los waypoints ordenados a la lista final
                                 for (Pair<Waypoint, Double> pair : waypointDistances) {
                                     waypointsFinales.add(pair.first);
                                 }
                                 waypointsFinales.add(new Waypoint(destinationGeoCoordinates));
                             } else {
-                                // Create a list of Waypoints
-                                waypointsFinales = new ArrayList<>(Arrays.asList(new Waypoint(startGeoCoordinates), new Waypoint(destinationGeoCoordinates)));
+                                if(geoCoordinatesInicioRuta != null){
+                                    waypointsFinales = new ArrayList<>(Arrays.asList(new Waypoint(startGeoCoordinates), new Waypoint(geoCoordinatesInicioRuta), new Waypoint(destinationGeoCoordinates)));
+                                }else{
+                                    // Create a list of Waypoints
+                                    waypointsFinales = new ArrayList<>(Arrays.asList(new Waypoint(startGeoCoordinates), new Waypoint(destinationGeoCoordinates)));
+                                }
                             }
                             // Calculate the route
                             routingInterface.calculateRoute(
