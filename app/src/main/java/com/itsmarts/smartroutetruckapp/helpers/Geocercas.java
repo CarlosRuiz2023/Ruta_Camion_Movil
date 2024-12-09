@@ -74,70 +74,70 @@ public class Geocercas {
                 boolean validacion_erronea = false;
                 if(i<=30){
                     for (int j = i; j < i+30; j++) {
-                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=100)validacion_erronea=true;
+                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
                     }
                     for (int j = 0; j < i; j++) {
-                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=100)validacion_erronea=true;
+                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
                     }
                     if(!validacion_erronea){
                         bufferCoordinates.add(leftPoint);
                     }
                     validacion_erronea=false;
                     for (int j = i; j < i+30; j++) {
-                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=100)validacion_erronea=true;
+                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
                     }
                     for (int j = 0; j < i; j++) {
-                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=100)validacion_erronea=true;
+                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
                     }
                     if(!validacion_erronea){
                         bufferCoordinates.add(0,rightPoint);
                     }
                 }else if(i>=denseCoordinates.size()-31){
                     for (int j = i; j < denseCoordinates.size(); j++) {
-                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=100)validacion_erronea=true;
+                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
                     }
                     for (int j = i; j > i-30; j--) {
-                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=100)validacion_erronea=true;
+                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
                     }
                     if(!validacion_erronea){
                         bufferCoordinates.add(leftPoint);
                     }
                     validacion_erronea=false;
                     for (int j = i; j < denseCoordinates.size(); j++) {
-                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=100)validacion_erronea=true;
+                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
                     }
                     for (int j = i; j > i-30; j--) {
-                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=100)validacion_erronea=true;
+                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
                     }
                     if(!validacion_erronea){
                         bufferCoordinates.add(0,rightPoint);
                     }
                 }else{
                     for (int j = i; j < i+30; j++) {
-                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=100)validacion_erronea=true;
+                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
                     }
                     for (int j = i; j > i-30; j--) {
-                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=100)validacion_erronea=true;
+                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
                     }
                     if(!validacion_erronea){
                         bufferCoordinates.add(leftPoint);
                     }
                     validacion_erronea=false;
                     for (int j = i; j < i+30; j++) {
-                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=100)validacion_erronea=true;
+                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
                     }
                     for (int j = i; j > i-30; j--) {
-                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=100)validacion_erronea=true;
+                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
                     }
                     if(!validacion_erronea){
                         bufferCoordinates.add(0,rightPoint);
                     }
                 }
             }else{
-                if(Distances.distanceToPolyline(leftPoint,polyline.getGeometry())>=100.0){
+                if(Distances.distanceToPolyline(leftPoint,polyline.getGeometry())>=bufferDistanceInMeters){
                     bufferCoordinates.add(leftPoint);
                 }
-                if(Distances.distanceToPolyline(rightPoint,polyline.getGeometry())>=100.0){
+                if(Distances.distanceToPolyline(rightPoint,polyline.getGeometry())>=bufferDistanceInMeters){
                     bufferCoordinates.add(0, rightPoint);
                 }
             }
@@ -160,6 +160,7 @@ public class Geocercas {
             Log.e("Geofence", "Error al crear el polígono: " + e.getMessage());
         }
     }
+
     public void drawCircle(GeoCoordinates center, double radiusInMeters) {
         GeoCircle geoCircle = new GeoCircle(center, radiusInMeters);
         GeoPolygon geoPolygon = new GeoPolygon(geoCircle);

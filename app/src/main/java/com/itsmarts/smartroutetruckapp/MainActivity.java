@@ -84,6 +84,7 @@ import com.here.sdk.search.SearchEngine;
 import com.here.sdk.search.SearchError;
 import com.here.sdk.search.SearchOptions;
 import com.here.sdk.search.TextQuery;
+import com.itsmarts.smartroutetruckapp.adaptadores.RouterAsignedAdapter;
 import com.itsmarts.smartroutetruckapp.adaptadores.RouterCanceledAdapter;
 import com.itsmarts.smartroutetruckapp.adaptadores.RouterFinishedAdapter;
 import com.itsmarts.smartroutetruckapp.api.ApiService;
@@ -132,7 +133,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public GeoCoordinates currentGeoCoordinates, coordenadasDestino, coordenada1, coordenada2, geoCoordinatesPOI = null, destinationGeoCoordinates;
     public AvoidZonesExample avoidZonesExample;
     public ControlPointsExample controlPointsExample;
-    public List<RoutesWithId> rutas;
+    public List<RoutesWithId> rutas, rutasActivas;
     public Animation rotateAnimation, cargaAnimacion, animSalida, animacionClick, animEntrada;
     public boolean animacionEjecutada = false, isFirstClick = true, isMenuOpen = false, rutaGenerada = false, isTrackingCamera = true, isExactRouteEnabled = false, isSimularRutaVisible = false, isRutaVisible = false, isDialogShowing = false, routeSuccessfullyProcessed = false, activarGeocercas = true, mapOfflineMexDownload = false;
     public RoutesWithId ruta,rutaPre;
@@ -143,9 +144,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public Geocercas geocercas;
     public RoutingExample routingExample;
     public DatabaseHelper dbHelper;
-    private Handler handler = new Handler();
-    public RouterFinishedAdapter adapterFinishedRoutes;
-    public RouterCanceledAdapter adapterCanceledRoutes;
+    public Handler handler = new Handler();
+    public RouterAsignedAdapter adapterAsignedRoutes;
     private List<MapMarker> mapMarkersPOIs = new ArrayList<>();
     private List<Place> placesList = new ArrayList<>();
     private MapPolygon mapPolygon;
@@ -203,211 +203,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 builder.setView(dialogView);
                 final AlertDialog alertDialogRuta = builder.create();
 
-                TextView routeNameTextView = dialogView.findViewById(R.id.routeNameTextView);
+                adapterAsignedRoutes = new RouterAsignedAdapter(this,alertDialogRuta,rutasActivas);
+
                 TextView textView10 = dialogView.findViewById(R.id.textView10);
-                ImageButton btnStartRoute = dialogView.findViewById(R.id.btnStartRoute);
-                ImageButton btnCancelRoute = dialogView.findViewById(R.id.btnCancelRoute);
                 final Button btnCancelarRuta = dialogView.findViewById(R.id.btnCancelar);
-                TextView sinRutas = dialogView.findViewById(R.id.sinRutasTextView);
-                MaterialButton btnActive = dialogView.findViewById(R.id.activeButton);
-                MaterialButton btnFinished = dialogView.findViewById(R.id.finishedButton);
-                MaterialButton btnCanceled = dialogView.findViewById(R.id.canceledButton);
                 LinearLayout linearLayout = dialogView.findViewById(R.id.linearLayout);
-                CardView cardView = dialogView.findViewById(R.id.cardView);
                 RecyclerView recyclerView = dialogView.findViewById(R.id.routesRecyclerView);
                 ScrollView scrollView = dialogView.findViewById(R.id.scrollView);
 
-                if(rutas.size() > 0){
-                    for (RoutesWithId rutaFor : rutas) {
-                        if(rutaFor.status == 1) {
-                            rutaPre = rutaFor;
-                            break;
-                        }
-                    }
-                }
-
-                if(rutaPre != null){
-                    routeNameTextView.setText(rutaPre.name);
+                if (adapterAsignedRoutes.getItemCount() == 0) {
+                    scrollView.setVisibility(View.GONE);
                 }else{
-                    routeNameTextView.setVisibility(View.GONE);
-                    btnStartRoute.setVisibility(View.GONE);
-                    btnCancelRoute.setVisibility(View.GONE);
-                    sinRutas.setVisibility(View.VISIBLE);
+                    recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
+                    recyclerView.setAdapter(adapterAsignedRoutes);
+                    scrollView.setVisibility(View.VISIBLE);
                 }
-
-                btnStartRoute.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if(ruta != null){
-                            limpiezaTotal();
-                        }
-                        llGeocerca.setVisibility(VISIBLE);
-                        btnStartRoute.startAnimation(animacionClick);
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                ruta=rutaPre;
-                                alertDialogRuta.dismiss();
-                                /*List<CompletableFuture<ResponseBody>> futures1 = new ArrayList<>();
-                                futures1.add(obtenerDetallesRuta());
-                                // Espera a que todos los futures terminen
-                                CompletableFuture<Void> allOf = CompletableFuture.allOf(futures1.toArray(new CompletableFuture[0]));
-                                allOf.whenComplete((result, ex) -> {
-                                    if (ex != null) {
-                                        // Manejo de errores, si es necesario
-                                        Log.e(TAG, "Error during downloads", ex);
-                                    }
-                                    for(PointWithId pointWithId:puntos){
-                                        if(pointWithId.status){
-                                            controlPointsExample.pointsWithIds.get(pointWithId.id).visibility=true;
-                                            controlPointsExample.pointsWithIds.get(pointWithId.id).label=true;
-                                            puntos_de_control.add(pointWithId.mapMarker.getCoordinates());
-                                            geocercas.drawGecocercaControlPoint(pointWithId.mapMarker.getCoordinates(), 100);
-                                        }
-                                    }
-                                    List<MapPolygon> zonas = new ArrayList<>();
-                                    for(PolygonWithId polygonWithId:poligonos){
-                                        if(polygonWithId.status){
-                                            avoidZonesExample.polygonWithIds.get(polygonWithId.id).visibility=true;
-                                            avoidZonesExample.polygonWithIds.get(polygonWithId.id).label=true;
-                                            if(!polygonWithId.peligrosa){
-                                                zonas.add(polygonWithId.polygon);
-                                            }
-                                        }
-                                    }
-                                    mapView.getMapScene().addMapPolyline(ruta.polyline);
-                                    geocercas.drawGeofenceAroundPolyline(ruta.polyline, 100);
-                                    mapView.getMapScene().addMapPolygon(geocercas.geocercas);
-                                    controlPointsExample.cleanPoint();
-                                    avoidZonesExample.cleanPolygon();
-                                    routingExample.addRoute(zonas,puntos_de_control,currentGeoCoordinates, ruta.coordinatesFin, null, new ArrayList<>(), new RoutingExample.RouteCallback() {
-                                        @Override
-                                        public void onRouteCalculated(Route route) {
-                                            if (route != null) {
-                                                messageView.startAnimation(cargaAnimacion);
-                                                messageView.setVisibility(View.VISIBLE);
-                                                btnTerminarRuta.setVisibility(VISIBLE);
-                                                txtNavegacion.setVisibility(VISIBLE);
-                                                txtTerminarRuta.setVisibility(VISIBLE);
-                                                detallesRuta.setVisibility(VISIBLE);
-                                                distanceTextView.setVisibility(VISIBLE);
-                                                timeTextView.setVisibility(VISIBLE);
-
-                                                rutaGenerada = true;
-                                                dbHelper.updateStatusRoute(ruta.id,2);
-                                                ruta.setStatus(2);
-                                                rutaPre = null;
-                                                try {
-                                                    navigationExample.startNavigation(route, false, true);
-                                                    routeSuccessfullyProcessed = true;
-                                                } catch (Exception e) {
-                                                    routeSuccessfullyProcessed = false;
-                                                }
-                                            } else {
-                                                messages.showCustomToast("No se pudo calcular la ruta");
-                                                routeSuccessfullyProcessed = false;
-                                            }
-                                        }
-                                    });
-                                });*/
-                                List<GeoCoordinates> puntos_de_control = new ArrayList<>();
-                                List<MapPolygon> zonas = new ArrayList<>();
-                                if(ruta.puntosIds!=null){
-                                    for (int i = 0; i < controlPointsExample.pointsWithIds.size(); i++) {
-                                        boolean foundPuntoDeControl = false;
-                                        for (int id : ruta.puntosIds) {
-                                            if (id == controlPointsExample.pointsWithIds.get(i).id) {
-                                                foundPuntoDeControl = true;
-                                                break;
-                                            }
-                                        }
-                                        if (foundPuntoDeControl) {
-                                            if (controlPointsExample.pointsWithIds.get(i).status) {
-                                                controlPointsExample.pointsWithIds.get(i).visibility=true;
-                                                controlPointsExample.pointsWithIds.get(i).label=true;
-                                                puntos_de_control.add(controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
-                                                puntos.add(controlPointsExample.pointsWithIds.get(i));
-                                                geocercas.drawGecocercaControlPoint(controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
-                                            }
-                                        }
-                                    }
-                                }
-                                if(ruta.zonasIds!=null){
-                                    for (int i = 0; i < avoidZonesExample.polygonWithIds.size(); i++) {
-                                         boolean foundZona = false;
-                                        for (int id : ruta.zonasIds) {
-                                            if (id == avoidZonesExample.polygonWithIds.get(i).id) {
-                                                foundZona = true;
-                                                break;
-                                            }
-                                        }
-
-                                        if (foundZona) {
-                                            if (avoidZonesExample.polygonWithIds.get(i).status) {
-                                                avoidZonesExample.polygonWithIds.get(i).visibility=true;
-                                                avoidZonesExample.polygonWithIds.get(i).label=true;
-                                                if(!avoidZonesExample.polygonWithIds.get(i).peligrosa){
-                                                    zonas.add(avoidZonesExample.polygonWithIds.get(i).polygon);
-                                                    poligonos.add(avoidZonesExample.polygonWithIds.get(i));
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                mapView.getMapScene().addMapPolyline(ruta.polyline);
-                                geocercas.drawGeofenceAroundPolyline(ruta.polyline, 100);
-                                mapView.getMapScene().addMapPolygon(geocercas.geocercas);
-                                controlPointsExample.cleanPoint();
-                                avoidZonesExample.cleanPolygon();
-                                routingExample.addRoute(zonas,puntos_de_control,currentGeoCoordinates, ruta.coordinatesFin, null, ruta.coordinatesInicio, new RoutingExample.RouteCallback() {
-                                    @Override
-                                    public void onRouteCalculated(Route route) {
-                                        if (route != null) {
-                                            messageView.startAnimation(cargaAnimacion);
-                                            messageView.setVisibility(View.VISIBLE);
-                                            btnTerminarRuta.setVisibility(VISIBLE);
-                                            txtNavegacion.setVisibility(VISIBLE);
-                                            txtTerminarRuta.setVisibility(VISIBLE);
-                                            detallesRuta.setVisibility(VISIBLE);
-                                            distanceTextView.setVisibility(VISIBLE);
-                                            timeTextView.setVisibility(VISIBLE);
-
-                                            rutaGenerada = true;
-                                            dbHelper.updateStatusRoute(ruta.id,2);
-                                            ruta.setStatus(2);
-                                            rutaPre = null;
-                                            try {
-                                                navigationExample.startNavigation(route, false, true);
-                                                routeSuccessfullyProcessed = true;
-                                            } catch (Exception e) {
-                                                routeSuccessfullyProcessed = false;
-                                            }
-                                        } else {
-                                            messages.showCustomToast("No se pudo calcular la ruta");
-                                            routeSuccessfullyProcessed = false;
-                                        }
-                                    }
-                                });
-                            }
-                        }, 400);
-                    }
-                });
-
-                btnCancelRoute.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        btnCancelarRuta.startAnimation(animacionClick);
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                dbHelper.updateStatusRoute(rutaPre.id,3);
-                                rutaPre.setStatus(3);
-                                rutaPre = null;
-                                alertDialogRuta.dismiss();
-                            }
-                        }, 400);
-                    }
-                });
 
                 btnCancelarRuta.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -417,97 +227,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             @Override
                             public void run() {
                                 alertDialogRuta.dismiss();
-                            }
-                        }, 400);
-                    }
-                });
-
-                btnFinished.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        btnFinished.startAnimation(animacionClick);
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                int count = 0;
-                                for (RoutesWithId ruta : rutas) {
-                                    if (ruta.status == 2) {
-                                        count++;
-                                    }
-                                }
-                                if (count == 0) {
-                                    cardView.setVisibility(View.VISIBLE);
-                                    scrollView.setVisibility(View.GONE);
-                                    routeNameTextView.setVisibility(View.GONE);
-                                    btnStartRoute.setVisibility(View.GONE);
-                                    btnCancelRoute.setVisibility(View.GONE);
-                                    sinRutas.setVisibility(View.VISIBLE);
-                                    sinRutas.setText("No hay rutas finalizadas");
-                                }else{
-                                    recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
-                                    recyclerView.setAdapter(adapterFinishedRoutes);
-                                    cardView.setVisibility(View.GONE);
-                                    scrollView.setVisibility(View.VISIBLE);
-                                }
-                            }
-                        }, 400);
-                    }
-                });
-
-                btnCanceled.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        btnCanceled.startAnimation(animacionClick);
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                int count = 0;
-                                for (RoutesWithId ruta : rutas) {
-                                    if (ruta.status == 3) {
-                                        count++;
-                                    }
-                                }
-                                if (count == 0) {
-                                    cardView.setVisibility(View.VISIBLE);
-                                    scrollView.setVisibility(View.GONE);
-                                    routeNameTextView.setVisibility(View.GONE);
-                                    btnStartRoute.setVisibility(View.GONE);
-                                    btnCancelRoute.setVisibility(View.GONE);
-                                    sinRutas.setVisibility(View.VISIBLE);
-                                    sinRutas.setText("No hay rutas canceladas");
-                                }else {
-                                    recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
-                                    recyclerView.setAdapter(adapterCanceledRoutes);
-                                    cardView.setVisibility(View.GONE);
-                                    scrollView.setVisibility(View.VISIBLE);
-                                }
-                            }
-                        }, 400);
-                    }
-                });
-
-                btnActive.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        btnActive.startAnimation(animacionClick);
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                scrollView.setVisibility(View.GONE);
-                                cardView.setVisibility(View.VISIBLE);
-                                if(rutaPre == null){
-                                    routeNameTextView.setVisibility(View.GONE);
-                                    btnStartRoute.setVisibility(View.GONE);
-                                    btnCancelRoute.setVisibility(View.GONE);
-                                    sinRutas.setVisibility(View.VISIBLE);
-                                    sinRutas.setText("No hay rutas asignadas");
-                                }else{
-                                    routeNameTextView.setVisibility(View.VISIBLE);
-                                    btnStartRoute.setVisibility(View.VISIBLE);
-                                    btnCancelRoute.setVisibility(View.VISIBLE);
-                                    sinRutas.setVisibility(View.GONE);
-                                    routeNameTextView.setText(rutaPre.name);
-                                }
                             }
                         }, 400);
                     }
@@ -710,8 +429,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mMapHelper = new mapHelper(this);
         messages = new Messages(this);
         geocercas = new Geocercas(this);
-        adapterFinishedRoutes = new RouterFinishedAdapter(this);
-        adapterCanceledRoutes = new RouterCanceledAdapter(this);
         likeAnimator = new AnimatorNew();
     }
     private void initializeSecondClass(){
@@ -735,6 +452,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void initializeBD(){
         dbHelper = new DatabaseHelper(this);
         rutas = dbHelper.getAllRoutes();
+        rutasActivas = dbHelper.getAllRoutesActive();
         if(rutas.size() == 0){
             /*GeoPolyline geoPolyline = null;
             try {
@@ -772,6 +490,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
                 // Recupera la lista de polígonos de la base de datos
                 rutas = dbHelper.getAllRoutes();
+                rutasActivas = dbHelper.getAllRoutesActive();
             });
         }
     }
@@ -1078,7 +797,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             timeTextView.setText(timeString);
         });
     }
-    private void limpiezaTotal() {
+    public void limpiezaTotal() {
         List<MapMarker> startEndMarkers = new ArrayList<>();
         for (MapMarker marker : routingExample.mapMarkerList) {
             if (marker.getCoordinates().equals(coordenada1) || marker.getCoordinates().equals(coordenada2)) {

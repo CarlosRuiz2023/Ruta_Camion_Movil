@@ -594,6 +594,91 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return routesWithIds;
     }
 
+    // Recupera todas las coordenadas de la base de datos
+    public List<RoutesWithId> getAllRoutesActive() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        List<RoutesWithId> routesWithIds = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT * FROM " + TABLE_ROUTES + " WHERE " + COLUMN_STATUS + " = 1";
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+                String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+                double latitude_inicial = cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE_INICIO));
+                double longitude_inicial = cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE_INICIO));
+                double latitude_fin = cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE_FIN));
+                double longitude_fin = cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE_FIN));
+                String fechaCreacionString = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_CREACION));
+                Date fechaCreacion = null;
+                try {
+                    fechaCreacion = dateFormat.parse(fechaCreacionString);
+                } catch (ParseException e) {
+                    //throw new RuntimeException(e);
+                }
+                String fechaUltimaModificacionString = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_ULTIMA_MODIFICACION));
+                Date fechaUltimaModificacion = null;
+                try {
+                    fechaUltimaModificacion = dateFormat.parse(fechaUltimaModificacionString);
+                } catch (ParseException e) {
+                    //throw new RuntimeException(e);
+                }
+                String poligolineString = cursor.getString(cursor.getColumnIndex(COLUMN_POLIGOLINE));
+                GeoPolyline geoPolyline = null;
+                try {
+                    geoPolyline = new GeoPolyline(deserializePolygon(poligolineString));
+                } catch (InstantiationErrorException e) {
+                    //throw new RuntimeException(e);
+                }
+                float widthInPixels = 10;
+                MapPolyline trafficSpanMapPolyline = null;
+                try {
+                    trafficSpanMapPolyline = new MapPolyline(geoPolyline, new MapPolyline.SolidRepresentation(
+                            new MapMeasureDependentRenderSize(RenderSize.Unit.PIXELS, widthInPixels),
+                            new Color(1f, 0f, 0f, 1f),
+                            LineCap.ROUND));
+                }  catch (MapPolyline.Representation.InstantiationException e) {
+                    Log.e("MapPolyline Representation Exception:", e.error.name());
+                } catch (MapMeasureDependentRenderSize.InstantiationException e) {
+                    Log.e("MapMeasureDependentRenderSize Exception:", e.error.name());
+                }
+                String truckSpecIdsString = cursor.getString(cursor.getColumnIndex(COLUMN_TUCKSPEC_IDS));
+                String[] truckSpecIdsArray = truckSpecIdsString.split(",");
+                int[] truckSpectIds = new int[truckSpecIdsArray.length];
+                for (int i = 0; i < truckSpecIdsArray.length; i++) {
+                    truckSpectIds[i] = Integer.parseInt(truckSpecIdsArray[i].trim());
+                }
+                String puntosIdsString = cursor.getString(cursor.getColumnIndex(COLUMN_PUNTOS_IDS));
+                int[] puntosIds = null;
+                if(puntosIdsString.length()!=0){
+                    String[] puntosIdsArray = puntosIdsString.split(",");
+                    puntosIds = new int[puntosIdsArray.length];
+                    for (int i = 0; i < puntosIdsArray.length; i++) {
+                        puntosIdsArray[i] = puntosIdsArray[i].replace("[", "").replace("]", "");
+                        puntosIds[i] = Integer.parseInt(puntosIdsArray[i].trim());
+                    }
+                }
+                String zonasIdsString = cursor.getString(cursor.getColumnIndex(COLUMN_ZONAS_IDS));
+                int[] zonasIds = null;
+                if(zonasIdsString.length()!=0){
+                    String[] zonasIdsArray = zonasIdsString.split(",");
+                    zonasIds = new int[zonasIdsArray.length];
+                    for (int i = 0; i < zonasIdsArray.length; i++) {
+                        zonasIdsArray[i] = zonasIdsArray[i].replace("[", "").replace("]", "");
+                        zonasIds[i] = Integer.parseInt(zonasIdsArray[i].trim());
+                    }
+                }
+                int status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS));
+                routesWithIds.add(new RoutesWithId(id,name,new GeoCoordinates(latitude_inicial,longitude_inicial),new GeoCoordinates(latitude_fin,longitude_fin),fechaCreacion,fechaUltimaModificacion,trafficSpanMapPolyline,truckSpectIds,puntosIds,zonasIds,status));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return routesWithIds;
+    }
+
     // Elimina una coordenada de la base de datos por su ID
     public void deleteRoute(int id) {
         SQLiteDatabase db = this.getWritableDatabase();

@@ -94,7 +94,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         PointWithId point = controlPointsExample.pointsWithIds.get(position);
-                        controlPointsExample.dbHelper.updateVisibilityPunto(point.id, !controlPointsExample.pointsWithIds.get(position).visibility);
+                        //controlPointsExample.dbHelper.updateVisibilityPunto(point.id, !controlPointsExample.pointsWithIds.get(position).visibility);
                         if(!controlPointsExample.pointsWithIds.get(position).visibility()){
                             controlPointsExample.mapView.getMapScene().addMapMarker(point.mapMarker);
                             controlPointsExample.pointsWithIds.get(position).visibility = true;
@@ -114,7 +114,7 @@ public class PointAdapter extends RecyclerView.Adapter<PointAdapter.PointViewHol
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         PointWithId point = controlPointsExample.pointsWithIds.get(position);
-                        controlPointsExample.dbHelper.updateLabelPunto(point.id, !controlPointsExample.pointsWithIds.get(position).label);
+                        //controlPointsExample.dbHelper.updateLabelPunto(point.id, !controlPointsExample.pointsWithIds.get(position).label);
                         if(!controlPointsExample.pointsWithIds.get(position).label){
                             // Crea un TextView para la etiqueta
                             TextView textView = new TextView(controlPointsExample.context);

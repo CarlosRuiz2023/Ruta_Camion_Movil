@@ -104,7 +104,7 @@ public class PolygonAdapter extends RecyclerView.Adapter<PolygonAdapter.PolygonV
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         PolygonWithId polygon = avoidZonesExample.polygonWithIds.get(position);
-                        avoidZonesExample.dbHelper.updateVisibilityZona(polygon.id, !polygon.visibility);
+                        //avoidZonesExample.dbHelper.updateVisibilityZona(polygon.id, !polygon.visibility);
                         if(!polygon.visibility){
                             avoidZonesExample.mapView.getMapScene().addMapPolygon(polygon.polygon);
                             polygon.visibility = true;
@@ -124,7 +124,7 @@ public class PolygonAdapter extends RecyclerView.Adapter<PolygonAdapter.PolygonV
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         PolygonWithId polygon = avoidZonesExample.polygonWithIds.get(position);
-                        avoidZonesExample.dbHelper.updateLabelZona(polygon.id, !polygon.label);
+                        //avoidZonesExample.dbHelper.updateLabelZona(polygon.id, !polygon.label);
                         if(!polygon.label){
                             // Crea un TextView para la etiqueta
                             TextView textView = new TextView(avoidZonesExample.context);

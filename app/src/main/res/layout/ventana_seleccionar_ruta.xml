@@ -10,7 +10,8 @@
         android:id="@+id/textView10"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="16dp"
+        android:fontFamily="casual"
         android:text="Rutas"
         android:textAlignment="center"
         android:textColor="#000000"
@@ -20,123 +21,23 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.google.android.material.button.MaterialButtonToggleGroup
-        android:id="@+id/toggleGroup"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@android:color/darker_gray"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textView10"
-        app:selectionRequired="true"
-        app:checkedButton="@+id/activeButton"
-        app:singleSelection="true">
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/activeButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="9sp"
-            android:text="Asignadas" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/finishedButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="9sp"
-            android:text="Terminadas" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/canceledButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="9sp"
-            android:text="Canceladas" />
-    </com.google.android.material.button.MaterialButtonToggleGroup>
-
-    <LinearLayout
-        android:id="@+id/linearLayoutMaster"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:orientation="vertical"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toggleGroup">
-
-    </LinearLayout>
-
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/cardView"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        app:cardBackgroundColor="@android:color/darker_gray"
-        app:strokeWidth="2dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toggleGroup">
-
-        <LinearLayout
-            android:id="@+id/linearLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="16dp">
-
-            <TextView
-                android:id="@+id/routeNameTextView"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="Nombre ruta"
-                android:gravity="center|center_vertical"
-                android:textColor="#000000"
-                android:textSize="18sp" />
-
-            <TextView
-                android:id="@+id/sinRutasTextView"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_weight="1"
-                android:text="Sin rutas asignadas"
-                android:gravity="center|center_vertical"
-                android:textColor="#000000"
-                android:textSize="18sp"
-                android:visibility="gone"/>
-
-            <ImageButton
-                android:id="@+id/btnStartRoute"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:src="@drawable/start" />
-
-            <ImageButton
-                android:id="@+id/btnCancelRoute"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:src="@drawable/cancelar" />
-        </LinearLayout>
-
-    </com.google.android.material.card.MaterialCardView>
+        app:layout_constraintTop_toBottomOf="@+id/textView10" />
 
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="0dp"
-        android:layout_height="150dp"
-        android:layout_marginTop="20dp"
+        android:layout_height="250dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/cardView"
-        android:visibility="gone">
+        app:layout_constraintTop_toBottomOf="@+id/divider">
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/routesRecyclerView"
@@ -150,7 +51,7 @@
         android:id="@+id/btnCancelar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="16dp"
         android:text="Cancelar"
         android:textColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
