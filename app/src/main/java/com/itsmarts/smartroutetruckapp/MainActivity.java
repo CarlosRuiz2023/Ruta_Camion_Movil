@@ -34,7 +34,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
@@ -44,7 +43,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.here.sdk.core.Anchor2D;
@@ -85,8 +83,6 @@ import com.here.sdk.search.SearchError;
 import com.here.sdk.search.SearchOptions;
 import com.here.sdk.search.TextQuery;
 import com.itsmarts.smartroutetruckapp.adaptadores.RouterAsignedAdapter;
-import com.itsmarts.smartroutetruckapp.adaptadores.RouterCanceledAdapter;
-import com.itsmarts.smartroutetruckapp.adaptadores.RouterFinishedAdapter;
 import com.itsmarts.smartroutetruckapp.api.ApiService;
 import com.itsmarts.smartroutetruckapp.api.RetrofitClient;
 import com.itsmarts.smartroutetruckapp.bd.DatabaseHelper;
@@ -111,7 +107,6 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -154,7 +149,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /** Clase para funciones de descarga de mapa*/
     public OfflineMap offlineMap;
     /**Botton para comenzar la descarga de mapa*/
-    public Button btnDescargar, btnBuscarActualizaciones, btnIniciarActualizacion;;
+    public Button btnDescargar, btnBuscarActualizaciones, btnIniciarActualizacion, recalculateRouteButton;
     /** TextView para mosntrar como se descarga y el porcentaje de descarga del mapa*/
     public TextView txtProcesoDescarga,txtDescargaTitulo;
     public FloatingActionButton fbEliminarPoi, fbMapas;
@@ -528,6 +523,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         fbMapas = findViewById(R.id.fbMapas);
         truck_config_content = findViewById(R.id.truck_config_content);
         likeAnimationView = findViewById(R.id.likeImageView);
+        recalculateRouteButton = findViewById(R.id.recalculateRouteButton);
 
         //Animacion de cargando
         //cohete
@@ -724,6 +720,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                     });
                 }
+            }
+        });
+        recalculateRouteButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                recalculateRouteButton.setVisibility(View.GONE);
+                recalculateRoute();
             }
         });
     }
@@ -1365,4 +1368,78 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             return CompletableFuture.failedFuture(e);
         }
     }
+
+    public void recalculateRoute() {
+        recalculateRouteButton.setVisibility(View.GONE);
+        try {
+            if (currentGeoCoordinates != null && destinationGeoCoordinates != null) {
+                List<GeoCoordinates> puntos_de_control = new ArrayList<>();
+                List<MapPolygon> zonas = new ArrayList<>();
+                if(ruta.puntosIds!=null){
+                    for (int i = 0; i < controlPointsExample.pointsWithIds.size(); i++) {
+                        boolean foundPuntoDeControl = false;
+                        for (int id : ruta.puntosIds) {
+                            if (id == controlPointsExample.pointsWithIds.get(i).id) {
+                                foundPuntoDeControl = true;
+                                break;
+                            }
+                        }
+                        if (foundPuntoDeControl) {
+                            if (controlPointsExample.pointsWithIds.get(i).status) {
+                                controlPointsExample.pointsWithIds.get(i).visibility=true;
+                                controlPointsExample.pointsWithIds.get(i).label=true;
+                                puntos_de_control.add(controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
+                                puntos.add(controlPointsExample.pointsWithIds.get(i));
+                            }
+                        }
+                    }
+                }
+                if(ruta.zonasIds!=null){
+                    for (int i = 0; i < avoidZonesExample.polygonWithIds.size(); i++) {
+                        boolean foundZona = false;
+                        for (int id : ruta.zonasIds) {
+                            if (id == avoidZonesExample.polygonWithIds.get(i).id) {
+                                foundZona = true;
+                                break;
+                            }
+                        }
+
+                        if (foundZona) {
+                            if (avoidZonesExample.polygonWithIds.get(i).status) {
+                                avoidZonesExample.polygonWithIds.get(i).visibility=true;
+                                avoidZonesExample.polygonWithIds.get(i).label=true;
+                                if(!avoidZonesExample.polygonWithIds.get(i).peligrosa){
+                                    zonas.add(avoidZonesExample.polygonWithIds.get(i).polygon);
+                                    poligonos.add(avoidZonesExample.polygonWithIds.get(i));
+                                }
+                            }
+                        }
+                    }
+                }
+                routingExample.addRoute(zonas,puntos_de_control,currentGeoCoordinates, destinationGeoCoordinates, null,ruta.coordinatesInicio, new RoutingExample.RouteCallback() {
+                    @Override
+                    public void onRouteCalculated(Route route) {
+                        if (route != null) {
+                            runOnUiThread(() -> {
+                                try {
+                                    navigationExample.startNavigation(route, false, true);
+                                    recalculateRouteButton.setVisibility(View.GONE);
+                                } catch (Exception e) {
+                                    Log.e("MainActivity", "Error starting navigation: ", e);
+                                }
+                            });
+                        } else {
+                            runOnUiThread(() -> {
+                                Toast.makeText(MainActivity.this, "No se pudo recalcular la ruta", Toast.LENGTH_SHORT).show();
+                            });
+                        }
+                    }
+                });
+            }
+        } catch (Exception e) {
+            Log.e("MainActivity", "Error recalculating route: ", e);
+            Toast.makeText(this, "Error al recalcular la ruta", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 }

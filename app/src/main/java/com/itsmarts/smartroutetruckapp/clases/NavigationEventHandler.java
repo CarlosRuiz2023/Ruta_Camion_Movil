@@ -361,27 +361,6 @@ public class NavigationEventHandler {
                     Log.d(TAG,"User is driving in the wrong direction of the route.");
                 }
 
-                if (!mainActivity.rutaGenerada && mainActivity.coordenadasDestino != null) {
-                    List<GeoCoordinates> puntos = new ArrayList<>();
-                    for(PointWithId pointWithId: mainActivity.controlPointsExample.pointsWithIds){
-                        if(pointWithId.status){
-                            puntos.add(pointWithId.mapMarker.getCoordinates());
-                        }
-                    }
-                    List<MapPolygon> poligonos = new ArrayList<>();
-                    for(PolygonWithId polygonWithId:mainActivity.avoidZonesExample.polygonWithIds){
-                        if(polygonWithId.status){
-                            poligonos.add(polygonWithId.polygon);
-                        }
-                    }
-                    //mainActivity.mMapHelper.generarRuta(poligonos,puntos,mainActivity, mainActivity.mapView, mainActivity.coordenadasDestino, mainActivity.mMapHelper.createTruckSpecifications(), mainActivity.navigationExample);
-                    mainActivity.messageView.setVisibility(View.VISIBLE);
-                    mainActivity.messageView.startAnimation(mainActivity.cargaAnimacion);
-                    mainActivity.rutaGenerada = true;
-                } else {
-                    Log.d("MainActivity", "No se recibieron coordenadas de destino, no se generará la ruta.");
-                }
-
                 if (mainActivity.ruta != null) {
                     if(!hasNotifiedDeviation){
                         double distanceToPolyline = Distances.distanceToPolyline(lastMapMatchedLocation.coordinates, mainActivity.ruta.polyline.getGeometry());
@@ -398,78 +377,90 @@ public class NavigationEventHandler {
                     }
                     if(!hasNotifiedCheckpoint){
                         for (PointWithId pointWithId : mainActivity.controlPointsExample.pointsWithIds) {
-                            if (lastMapMatchedLocation.coordinates.distanceTo(pointWithId.mapMarker.getCoordinates())<100 && id_punto_control!=pointWithId.id) {
-                                NotificationHelper.showNotification(
-                                        context,
-                                        "Punto de Control",
-                                        "Has pasado por el punto de control "+pointWithId.name+"."
-                                );
-                                Log.e("Prueba","Punto de control: "+pointWithId.name);
-                                hasNotifiedCheckpoint=true;
-                                id_punto_control=pointWithId.id;
-                                // Iniciar el temporizador al comienzo
-                                handler.postDelayed(resetFlagsRunnable, 120000);
-                                break;
+                            for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
+                                if(pointWithId.visibility && pointWithId.status){
+                                    if (lastMapMatchedLocation.coordinates.distanceTo(pointWithId.mapMarker.getCoordinates())<100 && id_punto_control!=pointWithId.id) {
+                                        NotificationHelper.showNotification(
+                                                context,
+                                                "Punto de Control",
+                                                "Has pasado por el punto de control "+pointWithId.name+"."
+                                        );
+                                        hasNotifiedCheckpoint=true;
+                                        id_punto_control=pointWithId.id;
+                                        // Iniciar el temporizador al comienzo
+                                        handler.postDelayed(resetFlagsRunnable, 120000);
+                                        break;
+                                    }
+                                }
                             }
                         }
                     }
                     boolean validacionZona = false;
                     for (PolygonWithId polygonWithId : mainActivity.avoidZonesExample.polygonWithIds) {
-                        if (!polygonWithId.peligrosa) {
-                            double minLat = 0;
-                            double maxLat = 0;
-                            double minLng = 0;
-                            double maxLng = 0;
-                            for (GeoCoordinates vertex : polygonWithId.polygon.getGeometry().vertices) {
-                                minLat = Math.min(minLat, vertex.latitude);
-                                maxLat = Math.max(maxLat, vertex.latitude);
-                                minLng = Math.min(minLng, vertex.longitude);
-                                maxLng = Math.max(maxLng, vertex.longitude);
-                            }
-                            // Check if user's location is within the bounding box
-                            if (lastMapMatchedLocation.coordinates.latitude >= minLat && lastMapMatchedLocation.coordinates.latitude <= maxLat &&
-                                    lastMapMatchedLocation.coordinates.longitude >= minLng && lastMapMatchedLocation.coordinates.longitude <= maxLng) {
-                                /*NotificationHelper.showNotification(
-                                        context,
-                                        "Zona Prohibida",
-                                        "Has entrado en la zona prohibida "+polygonWithId.name+"."
-                                );*/
-                                //mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
-                                //mainActivity.recalculateRouteButton.setText("Has entrado en la zona prohibida "+polygonWithId.name+".");
-                                validacionZona = true;
-                                break;
+                        for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
+                            if(polygonWithId.visibility && polygonWithId.status && !polygonWithId.peligrosa){
+                                double minLat = 0;
+                                double maxLat = 0;
+                                double minLng = 0;
+                                double maxLng = 0;
+                                for (GeoCoordinates vertex : polygonWithId.polygon.getGeometry().vertices) {
+                                    minLat = Math.min(minLat, vertex.latitude);
+                                    maxLat = Math.max(maxLat, vertex.latitude);
+                                    minLng = Math.min(minLng, vertex.longitude);
+                                    maxLng = Math.max(maxLng, vertex.longitude);
+                                }
+                                // Check if user's location is within the bounding box
+                                if (lastMapMatchedLocation.coordinates.latitude >= minLat && lastMapMatchedLocation.coordinates.latitude <= maxLat &&
+                                        lastMapMatchedLocation.coordinates.longitude >= minLng && lastMapMatchedLocation.coordinates.longitude <= maxLng) {
+                                    NotificationHelper.showNotification(
+                                            context,
+                                            "Zona Prohibida",
+                                            "Has entrado en la zona prohibida "+polygonWithId.name+"."
+                                    );
+                                    mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
+                                    mainActivity.recalculateRouteButton.setEnabled(false);
+                                    mainActivity.recalculateRouteButton.setText("Has entrado en la zona prohibida "+polygonWithId.name+".");
+                                    validacionZona = true;
+                                    break;
+                                }
                             }
                         }
                     }
                     for (PolygonWithId polygonWithId : mainActivity.avoidZonesExample.polygonWithIds) {
-                        if (polygonWithId.peligrosa) {
-                            double minLat = 0;
-                            double maxLat = 0;
-                            double minLng = 0;
-                            double maxLng = 0;
-                            for (GeoCoordinates vertex : polygonWithId.polygon.getGeometry().vertices) {
-                                minLat = Math.min(minLat, vertex.latitude);
-                                maxLat = Math.max(maxLat, vertex.latitude);
-                                minLng = Math.min(minLng, vertex.longitude);
-                                maxLng = Math.max(maxLng, vertex.longitude);
-                            }
-                            // Check if user's location is within the bounding box
-                            if (lastMapMatchedLocation.coordinates.latitude >= minLat && lastMapMatchedLocation.coordinates.latitude <= maxLat &&
-                                    lastMapMatchedLocation.coordinates.longitude >= minLng && lastMapMatchedLocation.coordinates.longitude <= maxLng) {
-                                /*NotificationHelper.showNotification(
-                                        context,
-                                        "Zona Prohibida",
-                                        "Has entrado en la zona prohibida "+polygonWithId.name+"."
-                                );*/
-                                //mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
-                                //mainActivity.recalculateRouteButton.setText("Has entrado en la zona peligrosa "+polygonWithId.name+".");
-                                validacionZona = true;
-                                break;
+                        for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
+                            if(polygonWithId.visibility && polygonWithId.status && polygonWithId.peligrosa){
+                                double minLat = 0;
+                                double maxLat = 0;
+                                double minLng = 0;
+                                double maxLng = 0;
+                                for (GeoCoordinates vertex : polygonWithId.polygon.getGeometry().vertices) {
+                                    minLat = Math.min(minLat, vertex.latitude);
+                                    maxLat = Math.max(maxLat, vertex.latitude);
+                                    minLng = Math.min(minLng, vertex.longitude);
+                                    maxLng = Math.max(maxLng, vertex.longitude);
+                                }
+                                // Check if user's location is within the bounding box
+                                if (lastMapMatchedLocation.coordinates.latitude >= minLat && lastMapMatchedLocation.coordinates.latitude <= maxLat &&
+                                        lastMapMatchedLocation.coordinates.longitude >= minLng && lastMapMatchedLocation.coordinates.longitude <= maxLng) {
+                                    NotificationHelper.showNotification(
+                                            context,
+                                            "Zona Peligrosa",
+                                            "Has entrado en la zona peligrosa "+polygonWithId.name+"."
+                                    );
+                                    mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
+                                    mainActivity.recalculateRouteButton.setEnabled(false);
+                                    mainActivity.recalculateRouteButton.setText("Has entrado en la zona peligrosa "+polygonWithId.name+".");
+                                    validacionZona = true;
+                                    break;
+                                }
                             }
                         }
                     }
                     if (!validacionZona) {
-                        //mainActivity.recalculateRouteButton.setVisibility(View.GONE);
+                        mainActivity.recalculateRouteButton.setVisibility(View.GONE);
+                    }else{
+                        // Iniciar el temporizador al comienzo
+                        handler.postDelayed(resetFlagsRunnable, 120000);
                     }
                 }
 
@@ -509,8 +500,20 @@ public class NavigationEventHandler {
                 int distanceInMeters = (int) currentGeoCoordinates.distanceTo(lastGeoCoordinatesOnRoute);
                 Log.d(TAG, "RouteDeviation in meters is " + distanceInMeters);
 
-                if (mainActivity != null) {
-                    //mainActivity.onRouteDeviationUpdated(distanceInMeters, currentGeoCoordinates, lastGeoCoordinatesOnRoute);
+                if (distanceInMeters > 50) {
+                    mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
+                    mainActivity.recalculateRouteButton.setEnabled(true);
+                    mainActivity.recalculateRouteButton.setText("Desviación de: " + distanceInMeters + "m. Recalcular ruta");
+                    if (mainActivity.destinationGeoCoordinates == null) {
+                        mainActivity.destinationGeoCoordinates = mainActivity.navigationExample.getVisualNavigator().getRoute().getSections().get(0).getArrivalPlace().mapMatchedCoordinates;
+                    }
+
+                    if (distanceInMeters >= 250) {
+                        mainActivity.recalculateRouteButton.setVisibility(View.GONE);
+                        mainActivity.recalculateRoute();
+                    }
+                } else {
+                    mainActivity.recalculateRouteButton.setVisibility(View.GONE);
                 }
             }
         });
