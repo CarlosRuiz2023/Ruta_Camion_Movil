@@ -128,7 +128,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public GeoCoordinates currentGeoCoordinates, coordenadasDestino, coordenada1, coordenada2, geoCoordinatesPOI = null, destinationGeoCoordinates;
     public AvoidZonesExample avoidZonesExample;
     public ControlPointsExample controlPointsExample;
-    public List<RoutesWithId> rutas, rutasActivas;
+    public List<RoutesWithId> rutas = new ArrayList<>(), rutasAsignadas = new ArrayList<>();
     public Animation rotateAnimation, cargaAnimacion, animSalida, animacionClick, animEntrada;
     public boolean animacionEjecutada = false, isFirstClick = true, isMenuOpen = false, rutaGenerada = false, isTrackingCamera = true, isExactRouteEnabled = false, isSimularRutaVisible = false, isRutaVisible = false, isDialogShowing = false, routeSuccessfullyProcessed = false, activarGeocercas = true, mapOfflineMexDownload = false;
     public RoutesWithId ruta,rutaPre;
@@ -161,8 +161,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private AnimatorNew likeAnimator;
     List<CompletableFuture<ResponseBody>> futures = new ArrayList<>();
     private static final String TAG = "MainActivity";
-    public List<PointWithId> puntos= new ArrayList<>();
-    public List<PolygonWithId> poligonos= new ArrayList<>();
+    public List<PolygonWithId> poligonos = new ArrayList<>();
+    public List<PointWithId> puntos = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -198,35 +198,49 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 builder.setView(dialogView);
                 final AlertDialog alertDialogRuta = builder.create();
 
-                adapterAsignedRoutes = new RouterAsignedAdapter(this,alertDialogRuta,rutasActivas);
-
                 TextView textView10 = dialogView.findViewById(R.id.textView10);
                 final Button btnCancelarRuta = dialogView.findViewById(R.id.btnCancelar);
                 LinearLayout linearLayout = dialogView.findViewById(R.id.linearLayout);
                 RecyclerView recyclerView = dialogView.findViewById(R.id.routesRecyclerView);
+                TextView sinRutasTextView = dialogView.findViewById(R.id.sinRutasTextView);
                 ScrollView scrollView = dialogView.findViewById(R.id.scrollView);
 
-                if (adapterAsignedRoutes.getItemCount() == 0) {
-                    scrollView.setVisibility(View.GONE);
-                }else{
-                    recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
-                    recyclerView.setAdapter(adapterAsignedRoutes);
-                    scrollView.setVisibility(View.VISIBLE);
-                }
-
-                btnCancelarRuta.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        btnCancelarRuta.startAnimation(animacionClick);
-                        handler.postDelayed(new Runnable() {
-                            @Override
-                            public void run() {
-                                alertDialogRuta.dismiss();
-                            }
-                        }, 400);
+                List<CompletableFuture<ResponseBody>> futures1 = new ArrayList<>();
+                futures1.add(obtenerAsignaciones());
+                // Espera a que todos los futures terminen
+                CompletableFuture<Void> allOf = CompletableFuture.allOf(futures1.toArray(new CompletableFuture[0]));
+                allOf.whenComplete((result, ex) -> {
+                    if (ex != null) {
+                        // Manejo de errores, si es necesario
+                        Log.e(TAG, "Error during downloads", ex);
                     }
+
+                    adapterAsignedRoutes = new RouterAsignedAdapter(this,alertDialogRuta,rutasAsignadas);
+
+                    if (adapterAsignedRoutes.getItemCount() == 0) {
+                        scrollView.setVisibility(View.GONE);
+                        sinRutasTextView.setVisibility(View.VISIBLE);
+                    }else{
+                        recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
+                        recyclerView.setAdapter(adapterAsignedRoutes);
+                        scrollView.setVisibility(View.VISIBLE);
+                        sinRutasTextView.setVisibility(View.GONE);
+                    }
+
+                    btnCancelarRuta.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            btnCancelarRuta.startAnimation(animacionClick);
+                            handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    alertDialogRuta.dismiss();
+                                }
+                            }, 400);
+                        }
+                    });
+                    alertDialogRuta.show();
                 });
-                alertDialogRuta.show();
                 break;
             case "Puntos cercanos":
                 avoidZonesExample.cleanPolygon();
@@ -447,7 +461,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void initializeBD(){
         dbHelper = new DatabaseHelper(this);
         rutas = dbHelper.getAllRoutes();
-        rutasActivas = dbHelper.getAllRoutesActive();
+//        rutasActivas = dbHelper.getAllRoutesActive();
         if(rutas.size() == 0){
             /*GeoPolyline geoPolyline = null;
             try {
@@ -485,7 +499,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
                 // Recupera la lista de polígonos de la base de datos
                 rutas = dbHelper.getAllRoutes();
-                rutasActivas = dbHelper.getAllRoutesActive();
+//                rutasActivas = dbHelper.getAllRoutesActive();
             });
         }
     }
@@ -887,6 +901,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         poligonos.clear();
         avoidZonesExample.cleanPolygon();
+        rutasAsignadas.clear();
     }
 
     public void clearMapPolylines() {
@@ -1301,74 +1316,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    private CompletableFuture<ResponseBody> obtenerDetallesRuta() {
-        try {
-            CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
-            apiService.getRuta(ruta.id).enqueue(new retrofit2.Callback<ResponseBody>() {
-                @Override
-                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                    if (response.isSuccessful() && response.body() != null) {
-                        try {
-                            // Obtener el JSON como string
-                            String jsonResponse = response.body().string();
-                            // Convierte la respuesta en un objeto JSON
-                            JSONObject jsonObject = new JSONObject(jsonResponse);
-                            // Verifica si la operación fue exitosa
-                            boolean success = jsonObject.getBoolean("success");
-                            if (success) {
-                                // Obtén el arreglo "result"
-                                JSONObject resultArray = jsonObject.getJSONObject("result");
-                                // Obtén el arreglo "puntos_de_control"
-                                JSONArray puntosArray = resultArray.getJSONArray("puntos_de_control");
-                                for (int i = 0; i < puntosArray.length(); i++) {
-                                    JSONObject puntoDetalleObject = puntosArray.getJSONObject(i);
-                                    JSONObject puntoObject = puntoDetalleObject.getJSONObject("puntoDeControlDetalle");
-                                    // Extraer datos del punto
-                                    for (int j = 0; j < controlPointsExample.pointsWithIds.size(); j++) {
-                                        if(controlPointsExample.pointsWithIds.get(j).id == puntoObject.getInt("id_punto_de_control")){
-                                            puntos.add(controlPointsExample.pointsWithIds.get(j));
-                                        }
-                                    }
-                                }
-                                // Obtén el arreglo "zonas"
-                                JSONArray zonasArray = resultArray.getJSONArray("zonas");
-                                for (int i = 0; i < zonasArray.length(); i++) {
-                                    JSONObject zonaDetalleObject = zonasArray.getJSONObject(i);
-                                    JSONObject zonaObject = zonaDetalleObject.getJSONObject("zonaDetalle");
-                                    // Extraer datos del punto
-                                    for (int j = 0; j < avoidZonesExample.polygonWithIds.size(); j++) {
-                                        if (avoidZonesExample.polygonWithIds.get(j).id == zonaObject.getInt("id_zona")) {
-                                            poligonos.add(avoidZonesExample.polygonWithIds.get(j));
-                                        }
-                                    }
-                                }
-                            } else {
-                                Log.e("Error", "La operación no fue exitosa.");
-                            }
-                            Log.d("Retrofit", "Detalles guardados localmente.");
-                            future.complete(response.body());
-                        } catch (Exception e) {
-                            Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
-                        }
-                    } else {
-                        Log.e("Retrofit", "Error en la respuesta del servidor.");
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<ResponseBody> call, Throwable t) {
-                    Log.e("Retrofit", "Error al obtener datos: " + t.getMessage());
-                    future.completeExceptionally(t);
-                }
-            });
-            return future;
-        } catch (Error e) {
-            Log.e(TAG, "Error en la solicitud de los puntos de control: ", e);
-            return CompletableFuture.failedFuture(e);
-        }
-    }
-
     public void recalculateRoute() {
         recalculateRouteButton.setVisibility(View.GONE);
         try {
@@ -1439,6 +1386,127 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         } catch (Exception e) {
             Log.e("MainActivity", "Error recalculating route: ", e);
             Toast.makeText(this, "Error al recalcular la ruta", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    /*private CompletableFuture<ResponseBody> obtenerDetallesRuta() {
+        try {
+            CompletableFuture<ResponseBody> future = new CompletableFuture<>();
+            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            apiService.getRuta(ruta.id).enqueue(new retrofit2.Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            // Obtener el JSON como string
+                            String jsonResponse = response.body().string();
+                            // Convierte la respuesta en un objeto JSON
+                            JSONObject jsonObject = new JSONObject(jsonResponse);
+                            // Verifica si la operación fue exitosa
+                            boolean success = jsonObject.getBoolean("success");
+                            if (success) {
+                                // Obtén el arreglo "result"
+                                JSONObject resultArray = jsonObject.getJSONObject("result");
+                                // Obtén el arreglo "puntos_de_control"
+                                JSONArray puntosArray = resultArray.getJSONArray("puntos_de_control");
+                                for (int i = 0; i < puntosArray.length(); i++) {
+                                    JSONObject puntoDetalleObject = puntosArray.getJSONObject(i);
+                                    JSONObject puntoObject = puntoDetalleObject.getJSONObject("puntoDeControlDetalle");
+                                    // Extraer datos del punto
+                                    for (int j = 0; j < controlPointsExample.pointsWithIds.size(); j++) {
+                                        if(controlPointsExample.pointsWithIds.get(j).id == puntoObject.getInt("id_punto_de_control")){
+                                            puntos.add(controlPointsExample.pointsWithIds.get(j));
+                                        }
+                                    }
+                                }
+                                // Obtén el arreglo "zonas"
+                                JSONArray zonasArray = resultArray.getJSONArray("zonas");
+                                for (int i = 0; i < zonasArray.length(); i++) {
+                                    JSONObject zonaDetalleObject = zonasArray.getJSONObject(i);
+                                    JSONObject zonaObject = zonaDetalleObject.getJSONObject("zonaDetalle");
+                                    // Extraer datos del punto
+                                    for (int j = 0; j < avoidZonesExample.polygonWithIds.size(); j++) {
+                                        if (avoidZonesExample.polygonWithIds.get(j).id == zonaObject.getInt("id_zona")) {
+                                            poligonos.add(avoidZonesExample.polygonWithIds.get(j));
+                                        }
+                                    }
+                                }
+                            } else {
+                                Log.e("Error", "La operación no fue exitosa.");
+                            }
+                            Log.d("Retrofit", "Detalles guardados localmente.");
+                            future.complete(response.body());
+                        } catch (Exception e) {
+                            Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                        }
+                    } else {
+                        Log.e("Retrofit", "Error en la respuesta del servidor.");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.e("Retrofit", "Error al obtener datos: " + t.getMessage());
+                    future.completeExceptionally(t);
+                }
+            });
+            return future;
+        } catch (Error e) {
+            Log.e(TAG, "Error en la solicitud de los puntos de control: ", e);
+            return CompletableFuture.failedFuture(e);
+        }
+    }*/
+
+    private CompletableFuture<ResponseBody> obtenerAsignaciones() {
+        try {
+            CompletableFuture<ResponseBody> future = new CompletableFuture<>();
+            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            apiService.getAsignaciones().enqueue(new retrofit2.Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            // Obtener el JSON como string
+                            String jsonResponse = response.body().string();
+                            // Convierte la respuesta en un objeto JSON
+                            JSONObject jsonObject = new JSONObject(jsonResponse);
+                            // Verifica si la operación fue exitosa
+                            boolean success = jsonObject.getBoolean("success");
+                            if (success) {
+                                // Obtén el arreglo "result"
+                                JSONArray resultArray = jsonObject.getJSONArray("result");
+                                for (int i = 0; i < resultArray.length(); i++) {
+                                    JSONObject asignacionObject = resultArray.getJSONObject(i);
+                                    // Extraer rutas asignadas
+                                    for (int j = 0; j < rutas.size(); j++) {
+                                        if (rutas.get(j).id == asignacionObject.getInt("id_ruta")) {
+                                            rutasAsignadas.add(rutas.get(j));
+                                        }
+                                    }
+                                }
+                            } else {
+                                Log.e("Error", "La operación no fue exitosa.");
+                            }
+                            Log.d("Retrofit", "Detalles guardados localmente.");
+                            future.complete(response.body());
+                        } catch (Exception e) {
+                            Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                        }
+                    } else {
+                        Log.e("Retrofit", "Error en la respuesta del servidor.");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.e("Retrofit", "Error al obtener datos: " + t.getMessage());
+                    future.completeExceptionally(t);
+                }
+            });
+            return future;
+        } catch (Error e) {
+            Log.e(TAG, "Error en la solicitud de los puntos de control: ", e);
+            return CompletableFuture.failedFuture(e);
         }
     }
 

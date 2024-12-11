@@ -19,10 +19,13 @@ public interface ApiService {
     @GET("api/zonas/obtener-zonas-prohibidas")
     Call<ResponseBody> getZonasProhibidas();
 
-    @GET("api/rutas/obtener")
+    @GET("api/rutas/obtener/true")
     Call<ResponseBody> getRutas();
 
-    @GET("api/rutas/obtener/{id}")
-    Call<ResponseBody> getRuta(@Path("id") int id);
+    /*@GET("api/asignaciones/asignadas/{id}")
+    Call<ResponseBody> getAsignaciones(@Path("id") int id);*/
+
+    @GET("api/asignaciones/asignadas/2")
+    Call<ResponseBody> getAsignaciones();
 }
 

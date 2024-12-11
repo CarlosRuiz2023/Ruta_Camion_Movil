@@ -593,7 +593,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return routesWithIds;
     }
-
+/*
     // Recupera todas las coordenadas de la base de datos
     public List<RoutesWithId> getAllRoutesActive() {
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
@@ -677,7 +677,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return routesWithIds;
-    }
+    }*/
 
     // Elimina una coordenada de la base de datos por su ID
     public void deleteRoute(int id) {

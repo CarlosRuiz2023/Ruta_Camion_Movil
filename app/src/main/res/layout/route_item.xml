@@ -7,14 +7,29 @@
     app:strokeWidth="2dp"
     app:cardElevation="4dp">
 
-    <TextView
-        android:id="@+id/routeNameTextView"
+    <LinearLayout
+        android:id="@+id/linearLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:text="Nombre de la ruta"
-        android:textColor="#000000"
-        android:textSize="18sp"
-        android:gravity="center|center_vertical"/>
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/routeNameTextView"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="Nombre ruta"
+            android:gravity="center_vertical"
+            android:textColor="#000000"
+            android:textSize="18sp" />
+
+        <ImageButton
+            android:id="@+id/btnStartRoute"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:src="@drawable/start" />
+    </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

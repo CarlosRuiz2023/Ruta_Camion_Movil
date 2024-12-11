@@ -2,7 +2,6 @@ package com.itsmarts.smartroutetruckapp.adaptadores;
 
 import static android.view.View.VISIBLE;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,6 +27,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
     private static MainActivity mainActivity;
     private static AlertDialog alertDialogRuta;
     private static List<RoutesWithId> rutas;
+    private static final String TAG = "RouterAsignedAdapter";
 
     // Constructor para el adaptador
     public RouterAsignedAdapter(MainActivity mainActivity, AlertDialog alertDialogRuta, List<RoutesWithId> rutas) {
@@ -39,7 +39,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
     @Override
     public RouteViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         // Inflar la vista del elemento de la lista
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.route_item1, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.route_item, parent, false);
         return new RouteViewHolder(view,this);
     }
 
@@ -48,12 +48,8 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
         if(rutas.size() == 0){
             holder.btnStartRoute.setVisibility(View.GONE);
             holder.btnStartRoute.setEnabled(false);
-            holder.sinRutasTextView.setVisibility(View.VISIBLE);
-            holder.sinRutasTextView.setText("Sin rutas asignadas");
         }else{
             holder.btnStartRoute.setVisibility(View.VISIBLE);
-            holder.btnStartRoute.setEnabled(true);
-            holder.sinRutasTextView.setVisibility(View.GONE);
             // Asigna el nombre del polígono basado en su posición
             holder.routeNameTextView.setText(rutas.get(position).name);
         }
@@ -67,14 +63,12 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
     // Clase interna para el ViewHolder
     public static class RouteViewHolder extends RecyclerView.ViewHolder {
         public TextView routeNameTextView;
-        public TextView sinRutasTextView;
         public ImageButton btnStartRoute;
 
         public RouteViewHolder(View itemView, RouterAsignedAdapter adapter) {
             super(itemView);
             // Enlaza el TextView con el layout
             routeNameTextView = itemView.findViewById(R.id.routeNameTextView);
-            sinRutasTextView = itemView.findViewById(R.id.sinRutasTextView);
             btnStartRoute = itemView.findViewById(R.id.btnStartRoute);
             btnStartRoute.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -89,68 +83,6 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                         public void run() {
                             mainActivity.ruta=rutas.get(getAdapterPosition());
                             alertDialogRuta.dismiss();
-                                /*List<CompletableFuture<ResponseBody>> futures1 = new ArrayList<>();
-                                futures1.add(obtenerDetallesRuta());
-                                // Espera a que todos los futures terminen
-                                CompletableFuture<Void> allOf = CompletableFuture.allOf(futures1.toArray(new CompletableFuture[0]));
-                                allOf.whenComplete((result, ex) -> {
-                                    if (ex != null) {
-                                        // Manejo de errores, si es necesario
-                                        Log.e(TAG, "Error during downloads", ex);
-                                    }
-                                    for(PointWithId pointWithId:puntos){
-                                        if(pointWithId.status){
-                                            controlPointsExample.pointsWithIds.get(pointWithId.id).visibility=true;
-                                            controlPointsExample.pointsWithIds.get(pointWithId.id).label=true;
-                                            puntos_de_control.add(pointWithId.mapMarker.getCoordinates());
-                                            geocercas.drawGecocercaControlPoint(pointWithId.mapMarker.getCoordinates(), 100);
-                                        }
-                                    }
-                                    List<MapPolygon> zonas = new ArrayList<>();
-                                    for(PolygonWithId polygonWithId:poligonos){
-                                        if(polygonWithId.status){
-                                            avoidZonesExample.polygonWithIds.get(polygonWithId.id).visibility=true;
-                                            avoidZonesExample.polygonWithIds.get(polygonWithId.id).label=true;
-                                            if(!polygonWithId.peligrosa){
-                                                zonas.add(polygonWithId.polygon);
-                                            }
-                                        }
-                                    }
-                                    mapView.getMapScene().addMapPolyline(ruta.polyline);
-                                    geocercas.drawGeofenceAroundPolyline(ruta.polyline, 100);
-                                    mapView.getMapScene().addMapPolygon(geocercas.geocercas);
-                                    controlPointsExample.cleanPoint();
-                                    avoidZonesExample.cleanPolygon();
-                                    routingExample.addRoute(zonas,puntos_de_control,currentGeoCoordinates, ruta.coordinatesFin, null, new ArrayList<>(), new RoutingExample.RouteCallback() {
-                                        @Override
-                                        public void onRouteCalculated(Route route) {
-                                            if (route != null) {
-                                                messageView.startAnimation(cargaAnimacion);
-                                                messageView.setVisibility(View.VISIBLE);
-                                                btnTerminarRuta.setVisibility(VISIBLE);
-                                                txtNavegacion.setVisibility(VISIBLE);
-                                                txtTerminarRuta.setVisibility(VISIBLE);
-                                                detallesRuta.setVisibility(VISIBLE);
-                                                distanceTextView.setVisibility(VISIBLE);
-                                                timeTextView.setVisibility(VISIBLE);
-
-                                                rutaGenerada = true;
-                                                dbHelper.updateStatusRoute(ruta.id,2);
-                                                ruta.setStatus(2);
-                                                rutaPre = null;
-                                                try {
-                                                    navigationExample.startNavigation(route, false, true);
-                                                    routeSuccessfullyProcessed = true;
-                                                } catch (Exception e) {
-                                                    routeSuccessfullyProcessed = false;
-                                                }
-                                            } else {
-                                                messages.showCustomToast("No se pudo calcular la ruta");
-                                                routeSuccessfullyProcessed = false;
-                                            }
-                                        }
-                                    });
-                                });*/
                             List<GeoCoordinates> puntos_de_control = new ArrayList<>();
                             List<MapPolygon> zonas = new ArrayList<>();
                             if(mainActivity.ruta.puntosIds!=null){
@@ -232,6 +164,5 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
             });
         }
     }
-
 }
 
