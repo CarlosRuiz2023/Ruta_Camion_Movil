@@ -902,6 +902,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         poligonos.clear();
         avoidZonesExample.cleanPolygon();
         rutasAsignadas.clear();
+        recalculateRouteButton.setVisibility(View.GONE);
     }
 
     public void clearMapPolylines() {

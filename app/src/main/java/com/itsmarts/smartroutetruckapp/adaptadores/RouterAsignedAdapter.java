@@ -119,9 +119,9 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                         if (mainActivity.avoidZonesExample.polygonWithIds.get(i).status) {
                                             mainActivity.avoidZonesExample.polygonWithIds.get(i).visibility=true;
                                             mainActivity.avoidZonesExample.polygonWithIds.get(i).label=true;
+                                            mainActivity.poligonos.add(mainActivity.avoidZonesExample.polygonWithIds.get(i));
                                             if(!mainActivity.avoidZonesExample.polygonWithIds.get(i).peligrosa){
                                                 zonas.add(mainActivity.avoidZonesExample.polygonWithIds.get(i).polygon);
-                                                mainActivity.poligonos.add(mainActivity.avoidZonesExample.polygonWithIds.get(i));
                                             }
                                         }
                                     }
