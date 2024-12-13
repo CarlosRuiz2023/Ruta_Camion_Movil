@@ -193,6 +193,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         View dialogView = null;      AlertDialog.Builder builder = null;
         switch (title) {
             case "Obtener Ruta":
+                rutasAsignadas = new ArrayList<>();
                 dialogView = getLayoutInflater().inflate(R.layout.ventana_seleccionar_ruta, null);
                 builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setView(dialogView);
@@ -1217,14 +1218,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     // Extraer datos del punto
                                     int id = rutaObject.optInt("id_ruta", 0);
                                     String nombre = rutaObject.optString("nombre", "Sin nombre");
+                                    String direccion_inicio = rutaObject.optString("direccion_inicio", "Sin direccion");
                                     double latitud_inicio = rutaObject.optDouble("latitud_inicio", 0.0);
                                     double longitud_inicio = rutaObject.optDouble("longitud_inicio", 0.0);
+                                    String direccion_fin = rutaObject.optString("direccion_fin", "Sin direccion");
                                     double latitud_fin = rutaObject.optDouble("latitud_fin", 0.0);
                                     double longitud_fin = rutaObject.optDouble("longitud_fin", 0.0);
-                                    String fecha_creacion = rutaObject.optString("fecha_creacion", "");
-                                    String fecha_ultima_modificacion = rutaObject.optString("fecha_ultima_modificacion", "");
                                     String polilineaString = rutaObject.optString("polilinea", "");
-                                    int status = rutaObject.optInt("estatus", 0);
                                     List<GeoCoordinates> vertices = new ArrayList<>();
                                     String[] vertexPairs = polilineaString.split("\\],\\[");
                                     for (String vertexPair : vertexPairs) {
@@ -1258,6 +1258,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     } catch (MapMeasureDependentRenderSize.InstantiationException e) {
                                         Log.e("MapMeasureDependentRenderSize Exception:", e.error.name());
                                     }
+                                    int distancia = rutaObject.optInt("distancia", 0);
+                                    int tiempo = rutaObject.optInt("tiempo", 0);
+                                    String fecha_creacion = rutaObject.optString("fecha_creacion", "");
+                                    String fecha_ultima_modificacion = rutaObject.optString("fecha_ultima_modificacion", "");
+                                    int status = rutaObject.optInt("estatus", 0);
                                     JSONArray puntosArray = rutaObject.getJSONArray("puntos_de_control");
                                     // Calcular el tamaño del array de enteros de antemano
                                     int[] puntos = new int[puntosArray.length()];
@@ -1277,14 +1282,18 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         dbHelper.saveRuta(
                                                 id,
                                                 nombre,
+                                                direccion_inicio,
                                                 new GeoCoordinates(latitud_inicio, longitud_inicio),
+                                                direccion_fin,
                                                 new GeoCoordinates(latitud_fin, longitud_fin),
                                                 mapPolyline,
+                                                distancia,
+                                                tiempo,
+                                                fecha_creacion,
+                                                fecha_ultima_modificacion,
                                                 truckSpecIds,
                                                 puntos,
                                                 zonas,
-                                                fecha_creacion,
-                                                fecha_ultima_modificacion,
                                                 status
                                         );
                                     } catch (Exception e) {

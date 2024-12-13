@@ -8,23 +8,27 @@ import java.util.Date;
 
 public class RoutesWithId implements Serializable{
     public int id;
-    public String name;
+    public String name, direccion_inicio, direccion_fin;
     public GeoCoordinates coordinatesInicio,coordinatesFin;
     public Date fecha_creacion,fecha_ultima_modificacion;
     public MapPolyline polyline;
     public int[] truckSpectIds;
     public int[] puntosIds;
     public int[] zonasIds;
-    public int status;
+    public int status, distancia, tiempo;
 
-    public RoutesWithId(int id, String name, GeoCoordinates coordinatesInicio, GeoCoordinates coordinatesFin, Date fecha_creacion, Date fecha_ultima_modificacion, MapPolyline polyline, int[] truckSpectIds,int[] puntosIds,int[] zonasIds, int status) {
+    public RoutesWithId(int id, String name, String direccion_inicio, GeoCoordinates coordinatesInicio, String direccion_fin, GeoCoordinates coordinatesFin, MapPolyline polyline, int distancia, int tiempo, Date fecha_creacion, Date fecha_ultima_modificacion, int[] truckSpectIds,int[] puntosIds,int[] zonasIds, int status) {
         this.id = id;
         this.name = name;
+        this.direccion_inicio = direccion_inicio;
         this.coordinatesInicio = coordinatesInicio;
+        this.direccion_fin = direccion_fin;
         this.coordinatesFin = coordinatesFin;
+        this.polyline = polyline;
+        this.distancia = distancia;
+        this.tiempo = tiempo;
         this.fecha_creacion = fecha_creacion;
         this.fecha_ultima_modificacion = fecha_ultima_modificacion;
-        this.polyline = polyline;
         this.truckSpectIds = truckSpectIds;
         this.puntosIds = puntosIds;
         this.zonasIds = zonasIds;
@@ -117,5 +121,37 @@ public class RoutesWithId implements Serializable{
 
     public void setZonasIds(int[] zonasIds) {
         this.zonasIds = zonasIds;
+    }
+
+    public String direccion_fin() {
+        return direccion_fin;
+    }
+
+    public void setDireccion_fin(String direccion_fin) {
+        this.direccion_fin = direccion_fin;
+    }
+
+    public String direccion_inicio() {
+        return direccion_inicio;
+    }
+
+    public void setDireccion_inicio(String direccion_inicio) {
+        this.direccion_inicio = direccion_inicio;
+    }
+
+    public int distancia() {
+        return distancia;
+    }
+
+    public void setDistancia(int distancia) {
+        this.distancia = distancia;
+    }
+
+    public int tiempo() {
+        return tiempo;
+    }
+
+    public void setTiempo(int tiempo) {
+        this.tiempo = tiempo;
     }
 }

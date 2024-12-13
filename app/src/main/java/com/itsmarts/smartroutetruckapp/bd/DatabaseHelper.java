@@ -79,9 +79,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_FECHA_ULTIMA_MODIFICACION = "fechaUltimaModificacion";
     private static final String COLUMN_POLIGOLINE = "poligoline";
     private static final String COLUMN_PELIGROSA = "peligrosa";
-
-
-
+    private static final String COLUMN_DIRECCION_INICIO = "direccion_inicio";
+    private static final String COLUMN_DIRECCION_FIN = "direccion_fin";
+    private static final String COLUMN_DISTANCIA = "distancia";
+    private static final String COLUMN_TIEMPO = "tiempo";
 
     private static Context context;
 
@@ -128,13 +129,17 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String createTableQueryRoutes = "CREATE TABLE " + TABLE_ROUTES + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY, " +
                 COLUMN_NAME + " TEXT, " +
+                COLUMN_DIRECCION_INICIO + " TEXT, " +
                 COLUMN_LATITUDE_INICIO + " REAL, " +
                 COLUMN_LONGITUDE_INICIO + " REAL, " +
+                COLUMN_DIRECCION_FIN + " TEXT, " +
                 COLUMN_LATITUDE_FIN + " REAL, " +
                 COLUMN_LONGITUDE_FIN + " REAL, " +
+                COLUMN_POLIGOLINE + " TEXT, " +
+                COLUMN_DISTANCIA + " INTEGER, " +
+                COLUMN_TIEMPO + " INTEGER, " +
                 COLUMN_FECHA_CREACION + " TEXT, " +
                 COLUMN_FECHA_ULTIMA_MODIFICACION + " TEXT, " +
-                COLUMN_POLIGOLINE + " TEXT, " +
                 COLUMN_TUCKSPEC_IDS + " TEXT, " +
                 COLUMN_PUNTOS_IDS + " TEXT, " +
                 COLUMN_ZONAS_IDS + " TEXT, " +
@@ -458,22 +463,26 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
 
     // Guarda una coordenada en la base de datos
-    public void saveRuta(int id,String name, GeoCoordinates coordinateInicial, GeoCoordinates coordinateFinal, MapPolyline poligoline, int[] truckSpecIds, int[] puntosIds, int[] zonasIds, String fechaCreacion, String fechaUltimaModificacion, int status) {
+    public void saveRuta(int id,String name, String direccion_inicio, GeoCoordinates coordinateInicial , String direccion_fin , GeoCoordinates coordinateFinal, MapPolyline poligoline, int distancia, int tiempo, String fechaCreacion, String fechaUltimaModificacion, int[] truckSpecIds, int[] puntosIds, int[] zonasIds, int status) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_ID, id);
         values.put(COLUMN_NAME, name);
+        values.put(COLUMN_DIRECCION_INICIO, direccion_inicio);
         values.put(COLUMN_LATITUDE_INICIO, coordinateInicial.latitude);
         values.put(COLUMN_LONGITUDE_INICIO, coordinateInicial.longitude);
+        values.put(COLUMN_DIRECCION_FIN, direccion_fin);
         values.put(COLUMN_LATITUDE_FIN, coordinateFinal.latitude);
         values.put(COLUMN_LONGITUDE_FIN, coordinateFinal.longitude);
         //values.put(COLUMN_FECHA_CREACION, System.currentTimeMillis());
-        values.put(COLUMN_FECHA_CREACION, fechaCreacion);
-        values.put(COLUMN_FECHA_ULTIMA_MODIFICACION, fechaUltimaModificacion);
         values.put(COLUMN_POLIGOLINE, serializePolyline(poligoline));
         String[] truckSpecIdsStringArray = Arrays.stream(truckSpecIds)
                 .mapToObj(String::valueOf)
                 .toArray(String[]::new);
+        values.put(COLUMN_DISTANCIA, distancia);
+        values.put(COLUMN_TIEMPO, tiempo);
+        values.put(COLUMN_FECHA_CREACION, fechaCreacion);
+        values.put(COLUMN_FECHA_ULTIMA_MODIFICACION, fechaUltimaModificacion);
         String truckSpecIdsString = TextUtils.join(",", truckSpecIdsStringArray);
         values.put(COLUMN_TUCKSPEC_IDS, truckSpecIdsString);
         String[] puntosIdsStringArray = Arrays.stream(puntosIds)
@@ -521,24 +530,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             do {
                 int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
                 String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+                String direccion_inicio = cursor.getString(cursor.getColumnIndex(COLUMN_DIRECCION_INICIO));
                 double latitude_inicial = cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE_INICIO));
                 double longitude_inicial = cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE_INICIO));
+                String direccion_fin = cursor.getString(cursor.getColumnIndex(COLUMN_DIRECCION_FIN));
                 double latitude_fin = cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE_FIN));
                 double longitude_fin = cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE_FIN));
-                String fechaCreacionString = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_CREACION));
-                Date fechaCreacion = null;
-                try {
-                    fechaCreacion = dateFormat.parse(fechaCreacionString);
-                } catch (ParseException e) {
-                    //throw new RuntimeException(e);
-                }
-                String fechaUltimaModificacionString = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_ULTIMA_MODIFICACION));
-                Date fechaUltimaModificacion = null;
-                try {
-                    fechaUltimaModificacion = dateFormat.parse(fechaUltimaModificacionString);
-                } catch (ParseException e) {
-                    //throw new RuntimeException(e);
-                }
                 String poligolineString = cursor.getString(cursor.getColumnIndex(COLUMN_POLIGOLINE));
                 GeoPolyline geoPolyline = null;
                 try {
@@ -557,6 +554,22 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     Log.e("MapPolyline Representation Exception:", e.error.name());
                 } catch (MapMeasureDependentRenderSize.InstantiationException e) {
                     Log.e("MapMeasureDependentRenderSize Exception:", e.error.name());
+                }
+                int distancia = cursor.getInt(cursor.getColumnIndex(COLUMN_DISTANCIA));
+                int tiempo = cursor.getInt(cursor.getColumnIndex(COLUMN_TIEMPO));
+                String fechaCreacionString = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_CREACION));
+                Date fechaCreacion = null;
+                try {
+                    fechaCreacion = dateFormat.parse(fechaCreacionString);
+                } catch (ParseException e) {
+                    //throw new RuntimeException(e);
+                }
+                String fechaUltimaModificacionString = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_ULTIMA_MODIFICACION));
+                Date fechaUltimaModificacion = null;
+                try {
+                    fechaUltimaModificacion = dateFormat.parse(fechaUltimaModificacionString);
+                } catch (ParseException e) {
+                    //throw new RuntimeException(e);
                 }
                 String truckSpecIdsString = cursor.getString(cursor.getColumnIndex(COLUMN_TUCKSPEC_IDS));
                 String[] truckSpecIdsArray = truckSpecIdsString.split(",");
@@ -585,7 +598,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     }
                 }
                 int status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS));
-                routesWithIds.add(new RoutesWithId(id,name,new GeoCoordinates(latitude_inicial,longitude_inicial),new GeoCoordinates(latitude_fin,longitude_fin),fechaCreacion,fechaUltimaModificacion,trafficSpanMapPolyline,truckSpectIds,puntosIds,zonasIds,status));
+                routesWithIds.add(new RoutesWithId(id,name,direccion_inicio,new GeoCoordinates(latitude_inicial,longitude_inicial),direccion_fin,new GeoCoordinates(latitude_fin,longitude_fin),trafficSpanMapPolyline,distancia,tiempo,fechaCreacion,fechaUltimaModificacion,truckSpectIds,puntosIds,zonasIds,status));
             } while (cursor.moveToNext());
         }
 
