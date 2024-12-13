@@ -14,12 +14,13 @@
         android:fontFamily="casual"
         android:text="Rutas"
         android:textAlignment="center"
-        android:textColor="#000000"
+        android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="24sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+    <!--android:textColor="#000000"-->
 
     <View
         android:id="@+id/divider"
@@ -33,7 +34,7 @@
     <ScrollView
         android:id="@+id/scrollView"
         android:layout_width="0dp"
-        android:layout_height="250dp"
+        android:layout_height="400dp"
         android:layout_marginTop="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

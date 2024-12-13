@@ -15,12 +15,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center">
+        android:gravity="center"
+        tools:ignore="MissingConstraints">
         <ImageView
             android:id="@+id/imageView10"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
+            android:textAppearance="?android:attr/textAppearanceSmall"
             app:srcCompat="@drawable/imagen_poi" />
 
         <TextView
@@ -28,7 +30,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Buscar POI cercano"
-            android:textColor="#000000"
+            android:textAppearance="?android:attr/textAppearanceLarge"
             android:textStyle="bold"
             android:textSize="24sp" />
     </LinearLayout>
@@ -39,6 +41,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="25dp"
         android:text="Seleccione el tipo de POI"
+        android:textAppearance="?android:attr/textAppearanceSmall"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/llTituloPois" />
 
@@ -62,6 +65,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="25dp"
         android:text="Ingrese el radio (en metros)"
+        android:textAppearance="?android:attr/textAppearanceSmall"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/spinnerPoiType" />
 

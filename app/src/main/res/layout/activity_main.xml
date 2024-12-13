@@ -45,9 +45,8 @@
                     android:padding="8dp"
                     android:background="@color/blue"
                     app:title="@string/navigation_drawer_modal"
-                    app:titleTextColor="@color/white"
+                    android:textAppearance="?android:attr/textAppearanceLarge"
                     app:navigationIcon="@drawable/ic_menu_white"
-                    app:navigationIconTint="@color/white"
                     app:titleCentered="true"
                     android:visibility="gone"
                     tools:visibility="visible"/>

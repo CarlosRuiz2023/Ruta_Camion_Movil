@@ -4,7 +4,7 @@
     <string name="menu_salir">Salir</string>
     <string name="menu_download_map">Descargar Mapa</string>
     <string name="menu_control_points">Puntos de Control</string>
-    <string name="menu_early_points">Puntos cercanos</string>
+    <string name="menu_early_points">Puntos Cercanos</string>
     <string name="menu_prohibited_areas">Zonas Prohibidas</string>
     <string name="menu_route">Obtener Ruta</string>
     <string name="menu_vehiculo">Vehiculo</string>
@@ -80,6 +80,7 @@
     <string name="iniciar_sesión">Iniciar de Sesión</string>
     <string name="usuario">Usuario</string>
     <string name="contrasena">Contraseña</string>
+    <string name="menu_perfil">Perfil</string>
 
     <!-- AQUI TERMINAN LOS STRINGS PARA INICIO/CIERRE DE SESION -->
 </resources>

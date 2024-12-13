@@ -132,7 +132,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public Animation rotateAnimation, cargaAnimacion, animSalida, animacionClick, animEntrada;
     public boolean animacionEjecutada = false, isFirstClick = true, isMenuOpen = false, rutaGenerada = false, isTrackingCamera = true, isExactRouteEnabled = false, isSimularRutaVisible = false, isRutaVisible = false, isDialogShowing = false, routeSuccessfullyProcessed = false, activarGeocercas = true, mapOfflineMexDownload = false;
     public RoutesWithId ruta,rutaPre;
-    public ImageButton trackCamara, btnTerminarRuta, btnGeocercas;
+    public ImageButton trackCamara, btnTerminarRuta;
     public ImageView imgVelocidad;
     public View detallesRuta;
     public LinearLayout llGeocerca, llPois, llMapas;
@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public Button btnDescargar, btnBuscarActualizaciones, btnIniciarActualizacion, recalculateRouteButton;
     /** TextView para mosntrar como se descarga y el porcentaje de descarga del mapa*/
     public TextView txtProcesoDescarga,txtDescargaTitulo;
-    public FloatingActionButton fbEliminarPoi, fbMapas;
+    public FloatingActionButton fbEliminarPoi, fbMapas, btnGeocercas;
     public int styleCounter=0;
     // INICIALIZACION DE LA VARIABLE TIPO MapScheme PARA EL ESTILO DEL MAPA POR DEFECTO
     private MapScheme style = MapScheme.NORMAL_DAY;
@@ -242,7 +242,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     alertDialogRuta.show();
                 });
                 break;
-            case "Puntos cercanos":
+            case "Puntos Cercanos":
                 avoidZonesExample.cleanPolygon();
                 controlPointsExample.cleanPoint();
                 setTapGestureHandler();

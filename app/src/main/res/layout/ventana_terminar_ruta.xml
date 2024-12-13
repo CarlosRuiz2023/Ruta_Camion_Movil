@@ -23,6 +23,7 @@
         android:paddingBottom="10dp"
         android:text="Confirmación"
         android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textColor="@color/black"
         android:textSize="20sp"
         android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"

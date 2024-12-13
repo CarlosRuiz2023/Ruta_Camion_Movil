@@ -2,6 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <group android:checkableBehavior="single">
         <item
+            android:id="@+id/action_perfil"
+            android:title="@string/menu_perfil"
+            android:icon="@drawable/ic_person"/>
+        <item
             android:id="@+id/action_route"
             android:title="@string/menu_route"
             android:icon="@drawable/routing"/>
@@ -9,22 +13,22 @@
             android:id="@+id/action_early_points"
             android:title="@string/menu_early_points"
             android:icon="@drawable/shield_search"/>
-        <item
+        <!--<item
             android:id="@+id/action_prohibited_areas"
             android:title="@string/menu_prohibited_areas"
             android:icon="@drawable/location_slash"/>
         <item
             android:id="@+id/action_control_points"
             android:title="@string/menu_control_points"
-            android:icon="@drawable/gps"/>
+            android:icon="@drawable/gps"/>-->
         <item
             android:id="@+id/action_download_map"
             android:title="@string/menu_download_map"
             android:icon="@drawable/ic_download"/>
-        <item
+        <!--<item
             android:id="@+id/action_vehiculo"
             android:title="@string/menu_vehiculo"
-            android:icon="@drawable/truck"/>
+            android:icon="@drawable/truck"/>-->
     </group>
     <item
         android:id="@+id/action_salir"

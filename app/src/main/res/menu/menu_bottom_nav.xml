@@ -9,7 +9,7 @@
         android:id="@+id/action_mapa_offline"
         android:title="Mapa offline"
         android:checkable="true"/>
-    <item
+    <!--<item
         android:id="@+id/action_profile"
-        android:title="Perfil"/>
+        android:title="Perfil"/>-->
 </menu>
