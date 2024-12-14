@@ -88,6 +88,8 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                         mainActivity.limpiezaTotal();
                     }
                     mainActivity.llGeocerca.setVisibility(VISIBLE);
+                    mainActivity.llLoadingRoute.setVisibility(VISIBLE);
+                    //mainActivity.likeImageView1.setVisibility(VISIBLE);
                     btnStartRoute.startAnimation(mainActivity.animacionClick);
                     mainActivity.handler.postDelayed(new Runnable() {
                         @Override
@@ -140,6 +142,8 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                             }
                             mainActivity.mapView.getMapScene().addMapPolyline(mainActivity.ruta.polyline);
                             mainActivity.geocercas.drawGeofenceAroundPolyline(mainActivity.ruta.polyline, 100.0);
+                            mainActivity.llLoadingRoute.setVisibility(View.GONE);
+                            //mainActivity.likeImageView1.setVisibility(View.GONE);
                             mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
                             mainActivity.controlPointsExample.cleanPoint();
                             mainActivity.avoidZonesExample.cleanPolygon();

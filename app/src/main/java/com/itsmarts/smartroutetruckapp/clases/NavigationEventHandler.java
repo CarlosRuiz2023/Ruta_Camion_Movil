@@ -395,7 +395,7 @@ public class NavigationEventHandler {
                             }
                         }
                     }
-                    boolean validacionZona = false;
+                    /*boolean validacionZona = false;
                     for (PolygonWithId polygonWithId : mainActivity.avoidZonesExample.polygonWithIds) {
                         for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
                             if(polygonWithId.visibility && polygonWithId.status && !polygonWithId.peligrosa){
@@ -461,7 +461,7 @@ public class NavigationEventHandler {
                     }else{
                         // Iniciar el temporizador al comienzo
                         handler.postDelayed(resetFlagsRunnable, 120000);
-                    }
+                    }*/
                 }
 
                 Double speed = currentNavigableLocation.originalLocation.speedInMetersPerSecond;

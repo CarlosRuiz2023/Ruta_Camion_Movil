@@ -32,12 +32,12 @@ public class InicioSesionActivity extends AppCompatActivity {
         // Verificar si el usuario ya está logueado
         SharedPreferences preferences = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
         boolean isLoggedIn = preferences.getBoolean("isLoggedIn", false);
-        if (isLoggedIn) {
+        /*if (isLoggedIn) {
             // Si el usuario ya ha iniciado sesión, redirigir a MainActivity
             Intent intent = new Intent(InicioSesionActivity.this, MainActivity.class);
             startActivity(intent);
             finish();  // Evitar que el usuario regrese a la pantalla de login al presionar 'atrás'
-        }
+        }*/
         setContentView(R.layout.activity_inicio_sesion);
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);

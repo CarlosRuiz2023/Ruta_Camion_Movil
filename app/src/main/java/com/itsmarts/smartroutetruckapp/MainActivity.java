@@ -4,6 +4,8 @@ import static android.view.View.VISIBLE;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Typeface;
@@ -24,6 +26,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -82,6 +85,7 @@ import com.here.sdk.search.SearchEngine;
 import com.here.sdk.search.SearchError;
 import com.here.sdk.search.SearchOptions;
 import com.here.sdk.search.TextQuery;
+import com.itsmarts.smartroutetruckapp.activitys.InicioSesionActivity;
 import com.itsmarts.smartroutetruckapp.adaptadores.RouterAsignedAdapter;
 import com.itsmarts.smartroutetruckapp.api.ApiService;
 import com.itsmarts.smartroutetruckapp.api.RetrofitClient;
@@ -135,7 +139,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public ImageButton trackCamara, btnTerminarRuta;
     public ImageView imgVelocidad;
     public View detallesRuta;
-    public LinearLayout llGeocerca, llPois, llMapas;
+    public LinearLayout llGeocerca, llPois, llMapas, llLoadingRoute;
     public Geocercas geocercas;
     public RoutingExample routingExample;
     public DatabaseHelper dbHelper;
@@ -157,12 +161,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     // INICIALIZACION DE LA VARIABLE TIPO MapScheme PARA EL ESTILO DEL MAPA POR DEFECTO
     private MapScheme style = MapScheme.NORMAL_DAY;
     public TruckConfig truckConfig;
-    private LottieAnimationView likeAnimationView;
-    private AnimatorNew likeAnimator;
+    public LottieAnimationView likeImageView, likeImageView1;
+    public AnimatorNew likeAnimator;
     List<CompletableFuture<ResponseBody>> futures = new ArrayList<>();
     private static final String TAG = "MainActivity";
     public List<PolygonWithId> poligonos = new ArrayList<>();
     public List<PointWithId> puntos = new ArrayList<>();
+    public ProgressBar loading_spinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -378,6 +383,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 truckConfig.mostrarMenu();
                 break;
             case "Salir":
+                // Remove credentials from SharedPreferences
+                SharedPreferences preferences = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
+                SharedPreferences.Editor editor = preferences.edit();
+                editor.remove("username");  // Remove username key
+                editor.remove("password");  // Remove password key (if stored directly)
+                editor.putBoolean("isLoggedIn", false); // Update login state
+                editor.apply(); // Apply changes to SharedPreferences
+
+                // Additional actions on logout (optional)
+                // - Redirect to login activity
+                // - Clear other user data
+                Intent intent = new Intent(MainActivity.this, InicioSesionActivity.class); // Assuming your login activity is LoginActivity
+                startActivity(intent);
                 finish();
                 break;
             default:
@@ -537,12 +555,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         llMapas = findViewById(R.id.llMapas);
         fbMapas = findViewById(R.id.fbMapas);
         truck_config_content = findViewById(R.id.truck_config_content);
-        likeAnimationView = findViewById(R.id.likeImageView);
+        likeImageView = findViewById(R.id.likeImageView);
         recalculateRouteButton = findViewById(R.id.recalculateRouteButton);
+        loading_spinner = findViewById(R.id.loading_spinner);
+        llLoadingRoute = findViewById(R.id.llLoadingRoute);
+        //likeImageView1 = findViewById(R.id.likeImageView1);
 
         //Animacion de cargando
-        //cohete
-        likeAnimator.beginAnimation(likeAnimationView,R.raw.loading_2,R.raw.loading_5);
+        likeAnimator.beginAnimation(likeImageView,R.raw.loading_2,R.raw.loading_5);
+        //likeAnimator.beginAnimation(likeImageView1,R.raw.loading_2,R.raw.loading_5);
 
         // Set the toolbar as the action bar
         this.setSupportActionBar(toolbar);
