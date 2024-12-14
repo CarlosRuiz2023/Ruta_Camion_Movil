@@ -520,7 +520,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Recupera todas las coordenadas de la base de datos
     public List<RoutesWithId> getAllRoutes() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         List<RoutesWithId> routesWithIds = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
         String selectQuery = "SELECT * FROM " + TABLE_ROUTES;
@@ -562,14 +563,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 try {
                     fechaCreacion = dateFormat.parse(fechaCreacionString);
                 } catch (ParseException e) {
-                    //throw new RuntimeException(e);
+                    e.printStackTrace(); // Handle the exception appropriately
                 }
                 String fechaUltimaModificacionString = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_ULTIMA_MODIFICACION));
                 Date fechaUltimaModificacion = null;
-                try {
-                    fechaUltimaModificacion = dateFormat.parse(fechaUltimaModificacionString);
-                } catch (ParseException e) {
-                    //throw new RuntimeException(e);
+                if (fechaUltimaModificacionString != "") {
+                    try {
+                        fechaUltimaModificacion = dateFormat.parse(fechaUltimaModificacionString);
+                    } catch (ParseException e) {
+                        //throw new RuntimeException(e);
+                    }
                 }
                 String truckSpecIdsString = cursor.getString(cursor.getColumnIndex(COLUMN_TUCKSPEC_IDS));
                 String[] truckSpecIdsArray = truckSpecIdsString.split(",");

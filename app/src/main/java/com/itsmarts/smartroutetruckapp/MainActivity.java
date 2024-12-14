@@ -1260,8 +1260,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     }
                                     int distancia = rutaObject.optInt("distancia", 0);
                                     int tiempo = rutaObject.optInt("tiempo", 0);
-                                    String fecha_creacion = rutaObject.optString("fecha_creacion", "");
-                                    String fecha_ultima_modificacion = rutaObject.optString("fecha_ultima_modificacion", "");
+                                    String fecha_creacion = rutaObject.optString("fecha_hora_creacion", "");
+                                    String fecha_ultima_modificacion = rutaObject.optString("fecha_hora_ultima_modificacion", "");
                                     int status = rutaObject.optInt("estatus", 0);
                                     JSONArray puntosArray = rutaObject.getJSONArray("puntos_de_control");
                                     // Calcular el tamaño del array de enteros de antemano

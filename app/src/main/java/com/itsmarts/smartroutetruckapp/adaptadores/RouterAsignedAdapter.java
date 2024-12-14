@@ -2,6 +2,7 @@ package com.itsmarts.smartroutetruckapp.adaptadores;
 
 import static android.view.View.VISIBLE;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,6 +10,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.here.sdk.core.GeoCoordinates;
@@ -19,6 +21,7 @@ import com.itsmarts.smartroutetruckapp.R;
 import com.itsmarts.smartroutetruckapp.clases.RoutingExample;
 import com.itsmarts.smartroutetruckapp.modelos.RoutesWithId;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,12 +67,20 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
     public static class RouteViewHolder extends RecyclerView.ViewHolder {
         public TextView routeNameTextView;
         public ImageButton btnStartRoute;
+        public CardView routeCardView;
 
         public RouteViewHolder(View itemView, RouterAsignedAdapter adapter) {
             super(itemView);
             // Enlaza el TextView con el layout
             routeNameTextView = itemView.findViewById(R.id.routeNameTextView);
             btnStartRoute = itemView.findViewById(R.id.btnStartRoute);
+            routeCardView = itemView.findViewById(R.id.routeCardView);
+            routeCardView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showRouteInfoDialog(getAdapterPosition());
+                }
+            });
             btnStartRoute.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -163,6 +174,68 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                 }
             });
         }
+    }
+    public static void showRouteInfoDialog(int position) {
+        RoutesWithId selectedRoute = rutas.get(position);
+
+        // Infla el layout personalizado
+        View dialogView = LayoutInflater.from(mainActivity).inflate(R.layout.route_info_dialog, null);
+        TextView routeNameTextView = dialogView.findViewById(R.id.route_name);
+        TextView startAddressTextView = dialogView.findViewById(R.id.start_address);
+        TextView endAddressTextView = dialogView.findViewById(R.id.end_address);
+        TextView creationDateTextView = dialogView.findViewById(R.id.creation_date);
+        TextView lastModifiedTextView = dialogView.findViewById(R.id.last_modified_date);
+        TextView durationTextView = dialogView.findViewById(R.id.duration);
+        TextView distanceTextView = dialogView.findViewById(R.id.distance);
+        TextView pointsTextView = dialogView.findViewById(R.id.points);
+        TextView zonesTextView = dialogView.findViewById(R.id.zones);
+
+        // Formatea las fechas
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        String creationDate = dateFormat.format(selectedRoute.fecha_creacion);
+        String lastModifiedDate = "";
+        if(selectedRoute.fecha_ultima_modificacion != null){
+            lastModifiedDate = dateFormat.format(selectedRoute.fecha_ultima_modificacion);
+        }else{
+            lastModifiedDate = "No se ha actualizado";
+        }
+        // Establece los valores en los TextView
+        routeNameTextView.setText(selectedRoute.name);
+        startAddressTextView.setText("Inicio: " + selectedRoute.direccion_inicio);
+        endAddressTextView.setText("Fin: " + selectedRoute.direccion_fin);
+        creationDateTextView.setText("Fecha de creación: " + creationDate);
+        lastModifiedTextView.setText("Última modificación: " + lastModifiedDate);
+        if(selectedRoute.tiempo > 3600){
+            durationTextView.setText("Duración: " + (selectedRoute.tiempo/3600) + " hrs.");
+        }
+        else if(selectedRoute.tiempo > 60){
+            durationTextView.setText("Duración: " + (selectedRoute.tiempo/60) + " mns.");
+        }else{
+            durationTextView.setText("Duración: " + selectedRoute.tiempo + " s.");
+        }
+        if(selectedRoute.distancia > 1000){
+            distanceTextView.setText("Distancia: " + (selectedRoute.distancia/1000) + " km.");
+        }else{
+            distanceTextView.setText("Distancia: " + selectedRoute.distancia + " mtrs.");
+        }
+        if(selectedRoute.puntosIds!=null){
+            pointsTextView.setText("Puntos de control: " + selectedRoute.puntosIds.length);
+        }else{
+            pointsTextView.setText("Puntos de control: " + 0);
+        }
+        if(selectedRoute.zonasIds!=null){
+            zonesTextView.setText("Zonas: " + selectedRoute.zonasIds.length);
+        }else{
+            zonesTextView.setText("Zonas: " + 0);
+        }
+
+        // Crea el AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+        builder.setView(dialogView);
+        builder.setPositiveButton("Cerrar", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 }
 
