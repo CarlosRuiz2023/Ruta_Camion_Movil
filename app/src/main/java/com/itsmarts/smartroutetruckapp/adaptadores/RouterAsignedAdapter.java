@@ -201,26 +201,26 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
         if(selectedRoute.fecha_ultima_modificacion != null){
             lastModifiedDate = dateFormat.format(selectedRoute.fecha_ultima_modificacion);
         }else{
-            lastModifiedDate = "No se ha actualizado";
+            lastModifiedDate = "Sin actualizaciones";
         }
         // Establece los valores en los TextView
         routeNameTextView.setText(selectedRoute.name);
         startAddressTextView.setText("Inicio: " + selectedRoute.direccion_inicio);
         endAddressTextView.setText("Fin: " + selectedRoute.direccion_fin);
-        creationDateTextView.setText("Fecha de creación: " + creationDate);
-        lastModifiedTextView.setText("Última modificación: " + lastModifiedDate);
+        creationDateTextView.setText("Fecha de creación: \n" + creationDate);
+        lastModifiedTextView.setText("Última modificación: \n" + lastModifiedDate);
         if(selectedRoute.tiempo > 3600){
-            durationTextView.setText("Duración: " + (selectedRoute.tiempo/3600) + " hrs.");
+            durationTextView.setText("Duración: \n" + (selectedRoute.tiempo/3600) + " hrs.");
         }
         else if(selectedRoute.tiempo > 60){
-            durationTextView.setText("Duración: " + (selectedRoute.tiempo/60) + " mns.");
+            durationTextView.setText("Duración: \n" + (selectedRoute.tiempo/60) + " mns.");
         }else{
-            durationTextView.setText("Duración: " + selectedRoute.tiempo + " s.");
+            durationTextView.setText("Duración: \n" + selectedRoute.tiempo + " s.");
         }
         if(selectedRoute.distancia > 1000){
-            distanceTextView.setText("Distancia: " + (selectedRoute.distancia/1000) + " km.");
+            distanceTextView.setText("Distancia: \n" + (selectedRoute.distancia/1000) + " km.");
         }else{
-            distanceTextView.setText("Distancia: " + selectedRoute.distancia + " mtrs.");
+            distanceTextView.setText("Distancia: \n" + selectedRoute.distancia + " mtrs.");
         }
         if(selectedRoute.puntosIds!=null){
             pointsTextView.setText("Puntos de control: " + selectedRoute.puntosIds.length);

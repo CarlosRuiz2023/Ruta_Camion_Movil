@@ -37,21 +37,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="72dp" />
 
-    <!-- Mensaje de Espera -->
-    <TextView
-        android:id="@+id/wait_message"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Favor de esperar."
-        android:textAlignment="center"
-        android:gravity="center"
-        android:textColor="@android:color/darker_gray"
-        android:textSize="16sp"
-        app:layout_constraintTop_toBottomOf="@id/location_message"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="48dp" />
-
     <!-- Indicador de Cargando -->
     <!--<ProgressBar
         android:id="@+id/loading_spinner"
@@ -66,13 +51,24 @@
         android:id="@+id/likeImageView"
         android:layout_width="100dp"
         android:layout_height="100dp"
-        app:layout_constraintTop_toBottomOf="@id/wait_message"
+        app:layout_constraintTop_toBottomOf="@id/location_message"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="32dp"/>
-    <!--android:layout_width="100dp"
-        android:layout_height="100dp"
-        android:layout_margin="16dp"
-        android:layout_weight="1"-->
+        android:layout_marginTop="48dp"/>
+
+    <!-- Mensaje de Espera -->
+    <TextView
+        android:id="@+id/wait_message"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Favor de esperar."
+        android:textAlignment="center"
+        android:gravity="center"
+        android:textColor="@android:color/darker_gray"
+        android:textSize="16sp"
+        app:layout_constraintTop_toBottomOf="@id/likeImageView"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

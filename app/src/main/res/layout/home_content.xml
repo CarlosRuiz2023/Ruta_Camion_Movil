@@ -345,6 +345,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
             android:text="Cargando ruta"
+            android:fontFamily="monospace"
             android:textColor="@color/purple"
             android:textSize="24dp"
             android:textStyle="bold"/>
