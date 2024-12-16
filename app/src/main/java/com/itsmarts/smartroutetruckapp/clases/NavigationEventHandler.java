@@ -395,23 +395,12 @@ public class NavigationEventHandler {
                             }
                         }
                     }
-                    /*boolean validacionZona = false;
+                    boolean validacionZona = false;
                     for (PolygonWithId polygonWithId : mainActivity.avoidZonesExample.polygonWithIds) {
                         for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
                             if(polygonWithId.visibility && polygonWithId.status && !polygonWithId.peligrosa){
-                                double minLat = 0;
-                                double maxLat = 0;
-                                double minLng = 0;
-                                double maxLng = 0;
-                                for (GeoCoordinates vertex : polygonWithId.polygon.getGeometry().vertices) {
-                                    minLat = Math.min(minLat, vertex.latitude);
-                                    maxLat = Math.max(maxLat, vertex.latitude);
-                                    minLng = Math.min(minLng, vertex.longitude);
-                                    maxLng = Math.max(maxLng, vertex.longitude);
-                                }
-                                // Check if user's location is within the bounding box
-                                if (lastMapMatchedLocation.coordinates.latitude >= minLat && lastMapMatchedLocation.coordinates.latitude <= maxLat &&
-                                        lastMapMatchedLocation.coordinates.longitude >= minLng && lastMapMatchedLocation.coordinates.longitude <= maxLng) {
+                                boolean isInside = isPointInPolygon(lastMapMatchedLocation.coordinates, polygonWithId.polygon.getGeometry().vertices);
+                                if (isInside) {
                                     NotificationHelper.showNotification(
                                             context,
                                             "Zona Prohibida",
@@ -429,19 +418,8 @@ public class NavigationEventHandler {
                     for (PolygonWithId polygonWithId : mainActivity.avoidZonesExample.polygonWithIds) {
                         for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
                             if(polygonWithId.visibility && polygonWithId.status && polygonWithId.peligrosa){
-                                double minLat = 0;
-                                double maxLat = 0;
-                                double minLng = 0;
-                                double maxLng = 0;
-                                for (GeoCoordinates vertex : polygonWithId.polygon.getGeometry().vertices) {
-                                    minLat = Math.min(minLat, vertex.latitude);
-                                    maxLat = Math.max(maxLat, vertex.latitude);
-                                    minLng = Math.min(minLng, vertex.longitude);
-                                    maxLng = Math.max(maxLng, vertex.longitude);
-                                }
-                                // Check if user's location is within the bounding box
-                                if (lastMapMatchedLocation.coordinates.latitude >= minLat && lastMapMatchedLocation.coordinates.latitude <= maxLat &&
-                                        lastMapMatchedLocation.coordinates.longitude >= minLng && lastMapMatchedLocation.coordinates.longitude <= maxLng) {
+                                boolean isInside = isPointInPolygon(lastMapMatchedLocation.coordinates, polygonWithId.polygon.getGeometry().vertices);
+                                if (isInside) {
                                     NotificationHelper.showNotification(
                                             context,
                                             "Zona Peligrosa",
@@ -461,7 +439,7 @@ public class NavigationEventHandler {
                     }else{
                         // Iniciar el temporizador al comienzo
                         handler.postDelayed(resetFlagsRunnable, 120000);
-                    }*/
+                    }
                 }
 
                 Double speed = currentNavigableLocation.originalLocation.speedInMetersPerSecond;
@@ -1018,5 +996,30 @@ public class NavigationEventHandler {
             default:
                 return "Continúe";
         }
+    }
+
+    private boolean isPointInPolygon(GeoCoordinates point, List<GeoCoordinates> polygon) {
+        int intersectCount = 0;
+        for (int j = 0; j < polygon.size() - 1; j++) {
+            if (doesRayIntersect(point, polygon.get(j), polygon.get(j + 1))) {
+                intersectCount++;
+            }
+        }
+        return intersectCount % 2 == 1;
+    }
+
+    private boolean doesRayIntersect(GeoCoordinates point, GeoCoordinates polyStart, GeoCoordinates polyEnd) {
+        // Condición para verificar si el punto está en el rango de latitud del segmento
+        if ((polyStart.latitude > point.latitude) != (polyEnd.latitude > point.latitude)) {
+            // Calcula la intersección x del rayo horizontal
+            double intersectX = polyStart.longitude +
+                    (point.latitude - polyStart.latitude) *
+                            (polyEnd.longitude - polyStart.longitude) /
+                            (polyEnd.latitude - polyStart.latitude);
+
+            // Verifica si el punto está a la izquierda de la intersección
+            return point.longitude < intersectX;
+        }
+        return false;
     }
 }
