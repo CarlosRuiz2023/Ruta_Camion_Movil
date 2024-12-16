@@ -6,19 +6,26 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.button.MaterialButton;
 import com.here.sdk.core.GeoCoordinates;
 import com.here.sdk.mapview.MapPolygon;
 import com.here.sdk.routing.Route;
 import com.itsmarts.smartroutetruckapp.MainActivity;
 import com.itsmarts.smartroutetruckapp.R;
 import com.itsmarts.smartroutetruckapp.clases.RoutingExample;
+import com.itsmarts.smartroutetruckapp.modelos.PointWithId;
+import com.itsmarts.smartroutetruckapp.modelos.PolygonWithId;
 import com.itsmarts.smartroutetruckapp.modelos.RoutesWithId;
 
 import java.text.SimpleDateFormat;
@@ -28,14 +35,14 @@ import java.util.List;
 public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdapter.RouteViewHolder> {
     private static int position=0;
     private static MainActivity mainActivity;
-    private static AlertDialog alertDialogRuta;
+    private static AlertDialog alertDialogRutaMaster;
     private static List<RoutesWithId> rutas;
     private static final String TAG = "RouterAsignedAdapter";
 
     // Constructor para el adaptador
-    public RouterAsignedAdapter(MainActivity mainActivity, AlertDialog alertDialogRuta, List<RoutesWithId> rutas) {
+    public RouterAsignedAdapter(MainActivity mainActivity, AlertDialog alertDialogRutaMaster, List<RoutesWithId> rutas) {
         this.mainActivity = mainActivity;
-        this.alertDialogRuta = alertDialogRuta;
+        this.alertDialogRutaMaster = alertDialogRutaMaster;
         this.rutas = rutas;
     }
 
@@ -84,101 +91,241 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
             btnStartRoute.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    if(mainActivity.ruta != null){
-                        mainActivity.limpiezaTotal();
-                    }
-                    mainActivity.llGeocerca.setVisibility(VISIBLE);
-                    mainActivity.llLoadingRoute.setVisibility(VISIBLE);
-                    //mainActivity.likeImageView1.setVisibility(VISIBLE);
-                    btnStartRoute.startAnimation(mainActivity.animacionClick);
-                    mainActivity.handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            mainActivity.ruta=rutas.get(getAdapterPosition());
-                            alertDialogRuta.dismiss();
-                            List<GeoCoordinates> puntos_de_control = new ArrayList<>();
-                            List<MapPolygon> zonas = new ArrayList<>();
-                            if(mainActivity.ruta.puntosIds!=null){
-                                for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
-                                    boolean foundPuntoDeControl = false;
-                                    for (int id : mainActivity.ruta.puntosIds) {
-                                        if (id == mainActivity.controlPointsExample.pointsWithIds.get(i).id) {
-                                            foundPuntoDeControl = true;
-                                            break;
-                                        }
-                                    }
-                                    if (foundPuntoDeControl) {
-                                        if (mainActivity.controlPointsExample.pointsWithIds.get(i).status) {
-                                            mainActivity.controlPointsExample.pointsWithIds.get(i).visibility=true;
-                                            mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
-                                            puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
-                                            mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
-                                            mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
-                                        }
-                                    }
-                                }
-                            }
-                            if(mainActivity.ruta.zonasIds!=null){
-                                for (int i = 0; i < mainActivity.avoidZonesExample.polygonWithIds.size(); i++) {
-                                    boolean foundZona = false;
-                                    for (int id : mainActivity.ruta.zonasIds) {
-                                        if (id == mainActivity.avoidZonesExample.polygonWithIds.get(i).id) {
-                                            foundZona = true;
-                                            break;
-                                        }
-                                    }
+                    alertDialogRutaMaster.dismiss();
+                    View dialogView = mainActivity.getLayoutInflater().inflate(R.layout.ventana_seleccionar_tipo_ruta, null);
+                    AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
+                    builder.setView(dialogView);
+                    final AlertDialog alertDialogRuta = builder.create();
 
-                                    if (foundZona) {
-                                        if (mainActivity.avoidZonesExample.polygonWithIds.get(i).status) {
-                                            mainActivity.avoidZonesExample.polygonWithIds.get(i).visibility=true;
-                                            mainActivity.avoidZonesExample.polygonWithIds.get(i).label=true;
-                                            mainActivity.poligonos.add(mainActivity.avoidZonesExample.polygonWithIds.get(i));
-                                            if(!mainActivity.avoidZonesExample.polygonWithIds.get(i).peligrosa){
-                                                zonas.add(mainActivity.avoidZonesExample.polygonWithIds.get(i).polygon);
+                    ImageButton btnSimularRuta = dialogView.findViewById(R.id.btnSimularRuta);
+                    ImageButton btnObtenerRuta = dialogView.findViewById(R.id.btnObtenerRuta);
+                    Button btnCancelar = dialogView.findViewById(R.id.btnCancelar);
+
+                    btnSimularRuta.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            btnSimularRuta.startAnimation(mainActivity.animacionClick);
+                            mainActivity.handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    alertDialogRuta.dismiss();
+                                }
+                            }, 400);
+                        }
+                    });
+
+                    btnObtenerRuta.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            alertDialogRutaMaster.dismiss();
+                            if(mainActivity.ruta != null){
+                                mainActivity.limpiezaTotal();
+                            }
+                            mainActivity.llGeocerca.setVisibility(VISIBLE);
+                            mainActivity.llLoadingRoute.setVisibility(VISIBLE);
+                            //mainActivity.likeImageView1.setVisibility(VISIBLE);
+                            btnStartRoute.startAnimation(mainActivity.animacionClick);
+                            mainActivity.handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mainActivity.ruta=rutas.get(getAdapterPosition());
+                                    alertDialogRuta.dismiss();
+                                    List<GeoCoordinates> puntos_de_control = new ArrayList<>();
+                                    List<MapPolygon> zonas = new ArrayList<>();
+                                    if(mainActivity.ruta.puntosIds!=null){
+                                        for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
+                                            boolean foundPuntoDeControl = false;
+                                            for (int id : mainActivity.ruta.puntosIds) {
+                                                if (id == mainActivity.controlPointsExample.pointsWithIds.get(i).id) {
+                                                    foundPuntoDeControl = true;
+                                                    break;
+                                                }
+                                            }
+                                            if (foundPuntoDeControl) {
+                                                if (mainActivity.controlPointsExample.pointsWithIds.get(i).status) {
+                                                    mainActivity.controlPointsExample.pointsWithIds.get(i).visibility=true;
+                                                    mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
+                                                    puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
+                                                    mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
+                                                    mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
+                                                }
                                             }
                                         }
                                     }
-                                }
-                            }
-                            mainActivity.mapView.getMapScene().addMapPolyline(mainActivity.ruta.polyline);
-                            mainActivity.geocercas.drawGeofenceAroundPolyline(mainActivity.ruta.polyline, 100.0);
-                            mainActivity.llLoadingRoute.setVisibility(View.GONE);
-                            //mainActivity.likeImageView1.setVisibility(View.GONE);
-                            mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
-                            mainActivity.controlPointsExample.cleanPoint();
-                            mainActivity.avoidZonesExample.cleanPolygon();
-                            mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio, new RoutingExample.RouteCallback() {
-                                @Override
-                                public void onRouteCalculated(Route route) {
-                                    if (route != null) {
-                                        mainActivity.messageView.startAnimation(mainActivity.cargaAnimacion);
-                                        mainActivity.messageView.setVisibility(View.VISIBLE);
-                                        mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
-                                        mainActivity.txtNavegacion.setVisibility(VISIBLE);
-                                        mainActivity.txtTerminarRuta.setVisibility(VISIBLE);
-                                        mainActivity.detallesRuta.setVisibility(VISIBLE);
-                                        mainActivity.distanceTextView.setVisibility(VISIBLE);
-                                        mainActivity.timeTextView.setVisibility(VISIBLE);
+                                    if(mainActivity.ruta.zonasIds!=null){
+                                        for (int i = 0; i < mainActivity.avoidZonesExample.polygonWithIds.size(); i++) {
+                                            boolean foundZona = false;
+                                            for (int id : mainActivity.ruta.zonasIds) {
+                                                if (id == mainActivity.avoidZonesExample.polygonWithIds.get(i).id) {
+                                                    foundZona = true;
+                                                    break;
+                                                }
+                                            }
 
-                                        mainActivity.rutaGenerada = true;
-                                        try {
-                                            mainActivity.navigationExample.startNavigation(route, false, true);
-                                            mainActivity.routeSuccessfullyProcessed = true;
-                                        } catch (Exception e) {
-                                            mainActivity.routeSuccessfullyProcessed = false;
+                                            if (foundZona) {
+                                                if (mainActivity.avoidZonesExample.polygonWithIds.get(i).status) {
+                                                    mainActivity.avoidZonesExample.polygonWithIds.get(i).visibility=true;
+                                                    mainActivity.avoidZonesExample.polygonWithIds.get(i).label=true;
+                                                    mainActivity.poligonos.add(mainActivity.avoidZonesExample.polygonWithIds.get(i));
+                                                    if(!mainActivity.avoidZonesExample.polygonWithIds.get(i).peligrosa){
+                                                        zonas.add(mainActivity.avoidZonesExample.polygonWithIds.get(i).polygon);
+                                                    }
+                                                }
+                                            }
                                         }
-                                    } else {
-                                        mainActivity.messages.showCustomToast("No se pudo calcular la ruta");
-                                        mainActivity.routeSuccessfullyProcessed = false;
                                     }
+                                    mainActivity.mapView.getMapScene().addMapPolyline(mainActivity.ruta.polyline);
+                                    mainActivity.geocercas.drawGeofenceAroundPolyline(mainActivity.ruta.polyline, 100.0);
+                                    mainActivity.llLoadingRoute.setVisibility(View.GONE);
+                                    //mainActivity.likeImageView1.setVisibility(View.GONE);
+                                    mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
+                                    mainActivity.controlPointsExample.cleanPoint();
+                                    mainActivity.avoidZonesExample.cleanPolygon();
+                                    mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio, new RoutingExample.RouteCallback() {
+                                        @Override
+                                        public void onRouteCalculated(Route route) {
+                                            if (route != null) {
+                                                mainActivity.messageView.startAnimation(mainActivity.cargaAnimacion);
+                                                mainActivity.messageView.setVisibility(View.VISIBLE);
+                                                mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
+                                                mainActivity.txtNavegacion.setVisibility(VISIBLE);
+                                                mainActivity.txtTerminarRuta.setVisibility(VISIBLE);
+                                                mainActivity.detallesRuta.setVisibility(VISIBLE);
+                                                mainActivity.distanceTextView.setVisibility(VISIBLE);
+                                                mainActivity.timeTextView.setVisibility(VISIBLE);
+
+                                                mainActivity.rutaGenerada = true;
+                                                try {
+                                                    mainActivity.navigationExample.startNavigation(route, false, true);
+                                                    mainActivity.routeSuccessfullyProcessed = true;
+                                                } catch (Exception e) {
+                                                    mainActivity.routeSuccessfullyProcessed = false;
+                                                }
+                                            } else {
+                                                mainActivity.messages.showCustomToast("No se pudo calcular la ruta");
+                                                mainActivity.routeSuccessfullyProcessed = false;
+                                            }
+                                        }
+                                    });
                                 }
-                            });
+                            }, 400);
                         }
-                    }, 400);
+                    });
+                    btnSimularRuta.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if(mainActivity.ruta != null){
+                                mainActivity.limpiezaTotal();
+                            }
+                            mainActivity.llGeocerca.setVisibility(VISIBLE);
+                            mainActivity.llLoadingRoute.setVisibility(VISIBLE);
+                            //mainActivity.likeImageView1.setVisibility(VISIBLE);
+                            btnStartRoute.startAnimation(mainActivity.animacionClick);
+                            mainActivity.handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    mainActivity.ruta=rutas.get(getAdapterPosition());
+                                    alertDialogRuta.dismiss();
+                                    List<GeoCoordinates> puntos_de_control = new ArrayList<>();
+                                    List<MapPolygon> zonas = new ArrayList<>();
+                                    if(mainActivity.ruta.puntosIds!=null){
+                                        for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
+                                            boolean foundPuntoDeControl = false;
+                                            for (int id : mainActivity.ruta.puntosIds) {
+                                                if (id == mainActivity.controlPointsExample.pointsWithIds.get(i).id) {
+                                                    foundPuntoDeControl = true;
+                                                    break;
+                                                }
+                                            }
+                                            if (foundPuntoDeControl) {
+                                                if (mainActivity.controlPointsExample.pointsWithIds.get(i).status) {
+                                                    mainActivity.controlPointsExample.pointsWithIds.get(i).visibility=true;
+                                                    mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
+                                                    puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
+                                                    mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
+                                                    mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if(mainActivity.ruta.zonasIds!=null){
+                                        for (int i = 0; i < mainActivity.avoidZonesExample.polygonWithIds.size(); i++) {
+                                            boolean foundZona = false;
+                                            for (int id : mainActivity.ruta.zonasIds) {
+                                                if (id == mainActivity.avoidZonesExample.polygonWithIds.get(i).id) {
+                                                    foundZona = true;
+                                                    break;
+                                                }
+                                            }
+
+                                            if (foundZona) {
+                                                if (mainActivity.avoidZonesExample.polygonWithIds.get(i).status) {
+                                                    mainActivity.avoidZonesExample.polygonWithIds.get(i).visibility=true;
+                                                    mainActivity.avoidZonesExample.polygonWithIds.get(i).label=true;
+                                                    mainActivity.poligonos.add(mainActivity.avoidZonesExample.polygonWithIds.get(i));
+                                                    if(!mainActivity.avoidZonesExample.polygonWithIds.get(i).peligrosa){
+                                                        zonas.add(mainActivity.avoidZonesExample.polygonWithIds.get(i).polygon);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    mainActivity.mapView.getMapScene().addMapPolyline(mainActivity.ruta.polyline);
+                                    mainActivity.geocercas.drawGeofenceAroundPolyline(mainActivity.ruta.polyline, 100.0);
+                                    mainActivity.llLoadingRoute.setVisibility(View.GONE);
+                                    //mainActivity.likeImageView1.setVisibility(View.GONE);
+                                    mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
+                                    mainActivity.controlPointsExample.cleanPoint();
+                                    mainActivity.avoidZonesExample.cleanPolygon();
+                                    mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio, new RoutingExample.RouteCallback() {
+                                        @Override
+                                        public void onRouteCalculated(Route route) {
+                                            if (route != null) {
+                                                mainActivity.messageView.startAnimation(mainActivity.cargaAnimacion);
+                                                mainActivity.messageView.setVisibility(View.VISIBLE);
+                                                mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
+                                                mainActivity.txtNavegacion.setVisibility(VISIBLE);
+                                                mainActivity.txtTerminarRuta.setVisibility(VISIBLE);
+                                                mainActivity.detallesRuta.setVisibility(VISIBLE);
+                                                mainActivity.distanceTextView.setVisibility(VISIBLE);
+                                                mainActivity.timeTextView.setVisibility(VISIBLE);
+
+                                                mainActivity.rutaGenerada = true;
+                                                try {
+                                                    mainActivity.navigationExample.startNavigation(route, true, true);
+                                                    mainActivity.routeSuccessfullyProcessed = true;
+                                                } catch (Exception e) {
+                                                    mainActivity.routeSuccessfullyProcessed = false;
+                                                }
+                                            } else {
+                                                mainActivity.messages.showCustomToast("No se pudo calcular la ruta");
+                                                mainActivity.routeSuccessfullyProcessed = false;
+                                            }
+                                        }
+                                    });
+                                }
+                            }, 400);
+                        }
+                    });
+                    btnCancelar.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            btnCancelar.startAnimation(mainActivity.animacionClick);
+                            mainActivity.handler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    alertDialogRuta.dismiss();
+                                }
+                            }, 400);
+                        }
+                    });
+                    alertDialogRuta.show();
                 }
             });
+            alertDialogRutaMaster.show();
         }
     }
+
     public static void showRouteInfoDialog(int position) {
         RoutesWithId selectedRoute = rutas.get(position);
 
