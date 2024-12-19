@@ -36,6 +36,7 @@ import com.itsmarts.smartroutetruckapp.api.RetrofitClient;
 import com.itsmarts.smartroutetruckapp.bd.DatabaseHelper;
 import com.itsmarts.smartroutetruckapp.fragments.ModalBottomSheetFullScreenFragmentPuntos;
 import com.itsmarts.smartroutetruckapp.modelos.PointWithId;
+import com.itsmarts.smartroutetruckapp.modelos.PolygonWithId;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -74,33 +75,42 @@ public class ControlPointsExample {
         // Recupera la lista de polígonos de la base de datos
         pointsWithIds = dbHelper.getAllPuntos();
         if(pointsWithIds.size()>0){
-            for (PointWithId point : pointsWithIds) {
-                markers.add(point.mapMarker);
-                if(point.visibility){
-                    mapView.getMapScene().addMapMarker(point.mapMarker);
-                    if(point.label){
-                        // Crea un TextView para la etiqueta
-                        TextView textView = new TextView(context);
-                        textView.setTextColor(Color.parseColor("#7EB8D5"));
-                        textView.setText(point.name);
-                        textView.setTypeface(Typeface.DEFAULT_BOLD);
+            // Agrega todas las llamadas a los métodos de descarga
+            futures.add(descargarPuntosDeControlFaltantes());
 
-                        // Crea un LinearLayout para contener el TextView y agregar padding
-                        LinearLayout linearLayout = new LinearLayout(context);
-                        //linearLayout.setBackgroundResource(R.color.colorAccent);
-                        linearLayout.setPadding(0, 0, 0, 130);
-                        linearLayout.addView(textView);
+            // Espera a que todos los futures terminen
+            CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+            allOf.whenComplete((result, ex) -> {
+                if (ex != null) {
+                    // Manejo de errores, si es necesario
+                    Log.e(TAG, "Error during downloads", ex);
+                }
+                // Recupera la lista de polígonos de la base de datos
+                pointsWithIds = dbHelper.getAllPuntos();
+                for (PointWithId point : pointsWithIds) {
+                    markers.add(point.mapMarker);
+                    if(point.visibility){
+                        mapView.getMapScene().addMapMarker(point.mapMarker);
+                        if(point.label){
+                            // Crea un TextView para la etiqueta
+                            TextView textView = new TextView(context);
+                            textView.setTextColor(Color.parseColor("#7EB8D5"));
+                            textView.setText(point.name);
+                            textView.setTypeface(Typeface.DEFAULT_BOLD);
 
-                        // Ancla el LinearLayout al mapa en las coordenadas ajustadas
-                        mapView.pinView(linearLayout, point.mapMarker.getCoordinates());
+                            // Crea un LinearLayout para contener el TextView y agregar padding
+                            LinearLayout linearLayout = new LinearLayout(context);
+                            //linearLayout.setBackgroundResource(R.color.colorAccent);
+                            linearLayout.setPadding(0, 0, 0, 130);
+                            linearLayout.addView(textView);
+
+                            // Ancla el LinearLayout al mapa en las coordenadas ajustadas
+                            mapView.pinView(linearLayout, point.mapMarker.getCoordinates());
+                        }
                     }
                 }
-            }
+            });
         }else{
-            /*dbHelper.savePunto(new GeoCoordinates(21.099146716048164,-101.57487163638099),"Mi casa","Guanajuato","Leon");
-            dbHelper.savePunto(new GeoCoordinates(21.144492680543852,-101.69185396141856),"El trabajo","Guanajuato","Leon");
-            dbHelper.savePunto(new GeoCoordinates(21.12990137766593,-101.645661225448),"Sunrise","Guanajuato","Leon");*/
-
             // Agrega todas las llamadas a los métodos de descarga
             futures.add(descargarPuntosDeControl());
 
@@ -298,6 +308,84 @@ public class ControlPointsExample {
                                     JSONObject puntoObject = puntosArray.getJSONObject(i);
                                     // Extraer datos del punto
                                     int id = puntoObject.optInt("id_punto_de_control", 0);
+                                    double latitud = puntoObject.optDouble("latitud", 0.0);
+                                    double longitud = puntoObject.optDouble("longitud", 0.0);
+                                    String nombre = puntoObject.optString("nombre", "Sin nombre");
+                                    int id_estado = puntoObject.optInt("id_estado", 0);
+                                    int id_municipio = puntoObject.optInt("id_municipio", 0);
+                                    int status = puntoObject.optInt("estatus", 0);
+                                    // Guardar el punto en la base de datos
+                                    try {
+                                        dbHelper.savePunto(
+                                                id,
+                                                new GeoCoordinates(latitud, longitud),
+                                                nombre,
+                                                id_estado,
+                                                id_municipio,
+                                                status
+                                        );
+                                    } catch (Exception e) {
+                                        Log.e("Database", "Error al guardar el punto: " + e.getMessage());
+                                    }
+                                }
+                            } else {
+                                Log.e("Error", "La operación no fue exitosa.");
+                            }
+                            Log.d("Retrofit", "Puntos guardados correctamente.");
+                            future.complete(response.body());
+                        } catch (Exception e) {
+                            Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                        }
+                    } else {
+                        Log.e("Retrofit", "Error en la respuesta del servidor.");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.e("Retrofit", "Error al obtener datos: " + t.getMessage());
+                    future.completeExceptionally(t);
+                }
+            });
+            return future;
+        } catch (Error e) {
+            Log.e(TAG, "Error en la solicitud de los puntos de control: ", e);
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private CompletableFuture<ResponseBody> descargarPuntosDeControlFaltantes() {
+        try {
+            CompletableFuture<ResponseBody> future = new CompletableFuture<>();
+            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            apiService.getPuntosDeControl().enqueue(new retrofit2.Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            // Obtener el JSON como string
+                            String jsonResponse = response.body().string();
+                            // Convierte la respuesta en un objeto JSON
+                            JSONObject jsonObject = new JSONObject(jsonResponse);
+                            // Verifica si la operación fue exitosa
+                            boolean success = jsonObject.getBoolean("success");
+                            if (success) {
+                                // Obtén el arreglo "result"
+                                JSONArray puntosArray = jsonObject.getJSONArray("result");
+                                // Itera sobre cada elemento en el arreglo
+                                for (int i = 0; i < puntosArray.length(); i++) {
+                                    JSONObject puntoObject = puntosArray.getJSONObject(i);
+                                    // Extraer datos del punto
+                                    int id = puntoObject.optInt("id_punto_de_control", 0);
+                                    PointWithId punto_previo = null;
+                                    try {
+                                        punto_previo = dbHelper.getPuntoById(id);
+                                    }catch (Exception e){
+                                        Log.e(TAG,"Punto no encontrada en BD");
+                                    }
+                                    if(punto_previo!=null){
+                                        continue;
+                                    }
                                     double latitud = puntoObject.optDouble("latitud", 0.0);
                                     double longitud = puntoObject.optDouble("longitud", 0.0);
                                     String nombre = puntoObject.optString("nombre", "Sin nombre");

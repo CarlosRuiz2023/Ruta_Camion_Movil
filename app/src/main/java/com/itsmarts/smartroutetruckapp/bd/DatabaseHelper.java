@@ -42,6 +42,8 @@ import java.util.Map;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
+    private static final String TAG = "DatabaseHelper";
+
     private static final String DATABASE_NAME = "smartRouteTruckApp.db";
     private static final int DATABASE_VERSION = 1;
 
@@ -233,6 +235,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return pointsWithIds;
     }
 
+    public PointWithId getPuntoById(int idPunto) {
+        PointWithId punto = null;
+        try {
+            SQLiteDatabase db = this.getReadableDatabase();
+            String selectQuery = "SELECT * FROM " + TABLE_PUNTOS + " WHERE " + COLUMN_ID + " = ?";
+            Cursor cursor = db.rawQuery(selectQuery, new String[]{String.valueOf(idPunto)});
+            if (cursor.moveToFirst()) {
+                int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+                String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+                double latitude = cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE));
+                double longitude = cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE));
+                int id_estado = cursor.getInt(cursor.getColumnIndex(COLUMN_IDESTADO));
+                int id_municipio = cursor.getInt(cursor.getColumnIndex(COLUMN_IDMUNICIPIO));
+                String truckSpecIds = cursor.getString(cursor.getColumnIndex(COLUMN_TUCKSPEC_IDS));
+                String[] truckSpecIdsArray = truckSpecIds.split(",");
+                int[] ids = new int[truckSpecIdsArray.length];
+                for (int i = 0; i < truckSpecIdsArray.length; i++) {
+                    ids[i] = Integer.parseInt(truckSpecIdsArray[i].trim());
+                }
+                Boolean label = cursor.getInt(cursor.getColumnIndex(COLUMN_LABEL)) == 1;
+                Boolean visibility = cursor.getInt(cursor.getColumnIndex(COLUMN_VISIBILITY)) == 1;
+                Boolean status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)) == 1;
+                MapImage mapImage = MapImageFactory.fromResource(context.getResources(), R.drawable.punto_control);
+                MapMarker mapMarker = new MapMarker(new GeoCoordinates(latitude, longitude), mapImage);
+                punto = new PointWithId(id,mapMarker,name,id_estado,id_municipio,ids,label,visibility,status);
+            }
+            cursor.close();
+            db.close();
+        }catch (Exception e){
+            Log.e(TAG,e.getMessage());
+        }
+        return punto;
+    }
+
     // Actualizar el estatus del poligono de la base de datos por su ID
     public void updateVisibilityPunto(int id, Boolean visibility) {
         SQLiteDatabase db = this.getWritableDatabase();
@@ -250,6 +286,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_LABEL, label ? 1 : 0);
         db.update(TABLE_PUNTOS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
 
+        db.close();
+    }
+
+    // Elimina una coordenada de la base de datos por su ID
+    public void deletePunto(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_PUNTOS, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
         db.close();
     }
 
@@ -324,6 +367,52 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return polygons;
     }
 
+    public PolygonWithId getZonaById(int idZona) {
+        PolygonWithId zona = null;
+        try {
+            SQLiteDatabase db = this.getReadableDatabase();
+            String selectQuery = "SELECT * FROM " + TABLE_ZONAS + " WHERE " + COLUMN_ID + " = ?";
+            Cursor cursor = db.rawQuery(selectQuery, new String[]{String.valueOf(idZona)});
+            if (cursor.moveToFirst()) {
+                int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+                String verticesString = cursor.getString(cursor.getColumnIndex(COLUMN_VERTICES));
+                String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+                int id_estado = cursor.getInt(cursor.getColumnIndex(COLUMN_IDESTADO));
+                int id_municipio = cursor.getInt(cursor.getColumnIndex(COLUMN_IDMUNICIPIO));
+                String truckSpecIds = cursor.getString(cursor.getColumnIndex(COLUMN_TUCKSPEC_IDS));
+                String[] truckSpecIdsArray = truckSpecIds.split(",");
+                int[] ids = new int[truckSpecIdsArray.length];
+                for (int i = 0; i < truckSpecIdsArray.length; i++) {
+                    ids[i] = Integer.parseInt(truckSpecIdsArray[i].trim());
+                }
+                Boolean label = cursor.getInt(cursor.getColumnIndex(COLUMN_LABEL)) == 1;
+                Boolean visibility = cursor.getInt(cursor.getColumnIndex(COLUMN_VISIBILITY)) == 1;
+                Boolean peligrosa = cursor.getInt(cursor.getColumnIndex(COLUMN_PELIGROSA)) == 1;
+                Boolean status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)) == 1;
+                List<GeoCoordinates> vertices = deserializePolygon(verticesString);
+                GeoPolygon geometry = null;
+                try {
+                    geometry = new GeoPolygon(vertices);
+                } catch (InstantiationErrorException e) {
+                    //throw new RuntimeException(e);
+                }
+                Color fillColor = null;
+                if(peligrosa){
+                    fillColor = Color.valueOf(0.5f, 0.5f, 0.5f, 0.63f);  // RGBA
+                }else{
+                    fillColor = Color.valueOf(1f, 0f, 0f, 0.63f);  // RGBA
+                }
+                MapPolygon polygon = new MapPolygon(geometry,fillColor);
+                zona = new PolygonWithId(id,polygon,name,id_estado,id_municipio,ids,label,visibility,peligrosa,status);
+            }
+            cursor.close();
+            db.close();
+        }catch (Exception e){
+            Log.e(TAG,e.getMessage());
+        }
+        return zona;
+    }
+
     // Serializa un MapPolygon en una cadena de texto
     private String serializePolygon(MapPolygon polygon) {
         List<GeoCoordinates> vertices = polygon.getGeometry().vertices;
@@ -385,6 +474,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_LABEL, label ? 1 : 0);
         db.update(TABLE_ZONAS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
 
+        db.close();
+    }
+
+    // Elimina una coordenada de la base de datos por su ID
+    public void deleteZona(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_ZONAS, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
         db.close();
     }
 
@@ -520,7 +616,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Recupera todas las coordenadas de la base de datos
     public List<RoutesWithId> getAllRoutes() {
-        //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         List<RoutesWithId> routesWithIds = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -609,37 +704,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
         return routesWithIds;
     }
-/*
-    // Recupera todas las coordenadas de la base de datos
-    public List<RoutesWithId> getAllRoutesActive() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        List<RoutesWithId> routesWithIds = new ArrayList<>();
-        SQLiteDatabase db = this.getReadableDatabase();
-        String selectQuery = "SELECT * FROM " + TABLE_ROUTES + " WHERE " + COLUMN_STATUS + " = 1";
-        Cursor cursor = db.rawQuery(selectQuery, null);
 
-        if (cursor.moveToFirst()) {
-            do {
+    public RoutesWithId getRouteById(int idRuta) {
+        RoutesWithId ruta = null;
+        try {
+            //SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+            SQLiteDatabase db = this.getReadableDatabase();
+            String selectQuery = "SELECT * FROM " + TABLE_ROUTES + " WHERE " + COLUMN_ID + " = ?";
+            Cursor cursor = db.rawQuery(selectQuery, new String[]{String.valueOf(idRuta)});
+            if (cursor.moveToFirst()) {
                 int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
                 String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+                String direccion_inicio = cursor.getString(cursor.getColumnIndex(COLUMN_DIRECCION_INICIO));
                 double latitude_inicial = cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE_INICIO));
                 double longitude_inicial = cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE_INICIO));
+                String direccion_fin = cursor.getString(cursor.getColumnIndex(COLUMN_DIRECCION_FIN));
                 double latitude_fin = cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE_FIN));
                 double longitude_fin = cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE_FIN));
-                String fechaCreacionString = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_CREACION));
-                Date fechaCreacion = null;
-                try {
-                    fechaCreacion = dateFormat.parse(fechaCreacionString);
-                } catch (ParseException e) {
-                    //throw new RuntimeException(e);
-                }
-                String fechaUltimaModificacionString = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_ULTIMA_MODIFICACION));
-                Date fechaUltimaModificacion = null;
-                try {
-                    fechaUltimaModificacion = dateFormat.parse(fechaUltimaModificacionString);
-                } catch (ParseException e) {
-                    //throw new RuntimeException(e);
-                }
                 String poligolineString = cursor.getString(cursor.getColumnIndex(COLUMN_POLIGOLINE));
                 GeoPolyline geoPolyline = null;
                 try {
@@ -658,6 +740,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     Log.e("MapPolyline Representation Exception:", e.error.name());
                 } catch (MapMeasureDependentRenderSize.InstantiationException e) {
                     Log.e("MapMeasureDependentRenderSize Exception:", e.error.name());
+                }
+                int distancia = cursor.getInt(cursor.getColumnIndex(COLUMN_DISTANCIA));
+                int tiempo = cursor.getInt(cursor.getColumnIndex(COLUMN_TIEMPO));
+                String fechaCreacionString = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_CREACION));
+                Date fechaCreacion = null;
+                try {
+                    fechaCreacion = dateFormat.parse(fechaCreacionString);
+                } catch (ParseException e) {
+                    e.printStackTrace(); // Handle the exception appropriately
+                }
+                String fechaUltimaModificacionString = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_ULTIMA_MODIFICACION));
+                Date fechaUltimaModificacion = null;
+                if (fechaUltimaModificacionString != "") {
+                    try {
+                        fechaUltimaModificacion = dateFormat.parse(fechaUltimaModificacionString);
+                    } catch (ParseException e) {
+                        //throw new RuntimeException(e);
+                    }
                 }
                 String truckSpecIdsString = cursor.getString(cursor.getColumnIndex(COLUMN_TUCKSPEC_IDS));
                 String[] truckSpecIdsArray = truckSpecIdsString.split(",");
@@ -686,14 +786,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     }
                 }
                 int status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS));
-                routesWithIds.add(new RoutesWithId(id,name,new GeoCoordinates(latitude_inicial,longitude_inicial),new GeoCoordinates(latitude_fin,longitude_fin),fechaCreacion,fechaUltimaModificacion,trafficSpanMapPolyline,truckSpectIds,puntosIds,zonasIds,status));
-            } while (cursor.moveToNext());
+                ruta = new RoutesWithId(id,name,direccion_inicio,new GeoCoordinates(latitude_inicial,longitude_inicial),direccion_fin,new GeoCoordinates(latitude_fin,longitude_fin),trafficSpanMapPolyline,distancia,tiempo,fechaCreacion,fechaUltimaModificacion,truckSpectIds,puntosIds,zonasIds,status);
+            }
+            cursor.close();
+            db.close();
+        }catch (Exception e){
+            Log.e(TAG,e.getMessage());
         }
-
-        cursor.close();
-        db.close();
-        return routesWithIds;
-    }*/
+        return ruta;
+    }
 
     // Elimina una coordenada de la base de datos por su ID
     public void deleteRoute(int id) {
@@ -701,17 +802,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.delete(TABLE_ROUTES, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
         db.close();
     }
-
-    // Actualizar el estatus del poligono de la base de datos por su ID
-    public void updateStatusRoute(int id, int status) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_STATUS, status);
-        db.update(TABLE_ROUTES, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
-
-        db.close();
-    }
-
 
     /**
      * FUNCION PARA REALIZAR INSERTS GENERICOS DE CUALQUIER TABLA

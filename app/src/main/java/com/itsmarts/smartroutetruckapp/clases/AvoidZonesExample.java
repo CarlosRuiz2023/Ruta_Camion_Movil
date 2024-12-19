@@ -82,68 +82,49 @@ public class AvoidZonesExample {
         // Recupera la lista de polígonos de la base de datos
         polygonWithIds = dbHelper.getAllZonas();
         if(polygonWithIds.size()>0){
-            for (PolygonWithId polygonWithId : polygonWithIds) {
-                poligonos.add(polygonWithId.polygon);
-                if(polygonWithId.visibility){
-                    mapView.getMapScene().addMapPolygon(polygonWithId.polygon);
+            // Agrega todas las llamadas a los métodos de descarga
+            futures.add(descargarZonasPeligrosasFaltantes());
+            futures.add(descargarZonasProhibidasFaltantes());
+            // Espera a que todos los futures terminen
+            CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+            allOf.whenComplete((result, ex) -> {
+                if (ex != null) {
+                    // Manejo de errores, si es necesario
+                    Log.e(TAG, "Error during downloads", ex);
                 }
-                if(polygonWithId.label){
-                    // Crea un TextView para la etiqueta
-                    TextView textView = new TextView(context);
-                    if(polygonWithId.peligrosa){
-                        textView.setTextColor(android.graphics.Color.parseColor("#000000"));
-                    }else{
-                        textView.setTextColor(android.graphics.Color.parseColor("#FF0000"));
+                // Recupera la lista de polígonos de la base de datos
+                polygonWithIds = dbHelper.getAllZonas();
+                for (PolygonWithId polygonWithId : polygonWithIds) {
+                    poligonos.add(polygonWithId.polygon);
+                    if(polygonWithId.visibility){
+                        mapView.getMapScene().addMapPolygon(polygonWithId.polygon);
                     }
-                    textView.setText(polygonWithId.name);
-                    textView.setTypeface(Typeface.DEFAULT_BOLD);
+                    if(polygonWithId.label){
+                        // Crea un TextView para la etiqueta
+                        TextView textView = new TextView(context);
+                        if(polygonWithId.peligrosa){
+                            textView.setTextColor(android.graphics.Color.parseColor("#000000"));
+                        }else{
+                            textView.setTextColor(android.graphics.Color.parseColor("#FF0000"));
+                        }
+                        textView.setText(polygonWithId.name);
+                        textView.setTypeface(Typeface.DEFAULT_BOLD);
 
-                    // Crea un LinearLayout para contener el TextView y agregar padding
-                    LinearLayout linearLayout = new LinearLayout(context);
-                    //linearLayout.setBackgroundResource(R.color.colorAccent);
-                    //linearLayout.setPadding(0, 0, 0, 130);
-                    linearLayout.addView(textView);
+                        // Crea un LinearLayout para contener el TextView y agregar padding
+                        LinearLayout linearLayout = new LinearLayout(context);
+                        //linearLayout.setBackgroundResource(R.color.colorAccent);
+                        //linearLayout.setPadding(0, 0, 0, 130);
+                        linearLayout.addView(textView);
 
-                    // Crear un nuevo GeoCoordinates para el punto medio
-                    GeoCoordinates midpoint = calculateCentroid(polygonWithId.polygon.getGeometry().vertices);
+                        // Crear un nuevo GeoCoordinates para el punto medio
+                        GeoCoordinates midpoint = calculateCentroid(polygonWithId.polygon.getGeometry().vertices);
 
-                    // Usar el punto medio para anclar la vista
-                    mapView.pinView(linearLayout, midpoint);
+                        // Usar el punto medio para anclar la vista
+                        mapView.pinView(linearLayout, midpoint);
+                    }
                 }
-            }
+            });
         }else{
-            /*MapPolygon mapPolygon = null, mapPolygon1 = null, mapPolygon2 = null;
-            List<GeoCoordinates> vertices = new ArrayList<>();
-            vertices.add(new GeoCoordinates(21.101579497244543,-101.61594078421876));
-            vertices.add(new GeoCoordinates(21.104292047419793,-101.61396701803433));
-            vertices.add(new GeoCoordinates(21.102307254608633,-101.60879553009859));
-            vertices.add(new GeoCoordinates(21.09807302994483,-101.61140884063329));
-            vertices.add(new GeoCoordinates(21.099230825751338,-101.61590770433858));
-            vertices.add(new GeoCoordinates(21.101579497244543,-101.61594078421876));
-            List<GeoCoordinates> vertices1 = new ArrayList<>();
-            vertices1.add(new GeoCoordinates(21.096174668016264,-101.63235086115643));
-            vertices1.add(new GeoCoordinates(21.10113648473711,-101.62627516721253));
-            vertices1.add(new GeoCoordinates(21.0961240372334,-101.62126271970882));
-            vertices1.add(new GeoCoordinates(21.090048343289503,-101.62569291320958));
-            vertices1.add(new GeoCoordinates(21.09192168225554,-101.63711015474581));
-            vertices1.add(new GeoCoordinates(21.096174668016264,-101.63235086115643));
-            List<GeoCoordinates> vertices2 = new ArrayList<>();
-            vertices2.add(new GeoCoordinates(21.096998891067,-101.6302840110248));
-            vertices2.add(new GeoCoordinates(21.101087283359682,-101.61989062820845));
-            vertices2.add(new GeoCoordinates(21.09212237495886,-101.61900398891606));
-            vertices2.add(new GeoCoordinates(21.08936394160476,-101.63240209377884));
-            vertices2.add(new GeoCoordinates(21.096998891067,-101.6302840110248));
-            try {
-                mapPolygon = new MapPolygon(new GeoPolygon(vertices),new Color(1f, 0f, 0f, 0.63f));
-                mapPolygon1 = new MapPolygon(new GeoPolygon(vertices1),new Color(1f, 0f, 0f, 0.63f));
-                mapPolygon2 = new MapPolygon(new GeoPolygon(vertices2),new Color(1f, 0f, 0f, 0.63f));
-            } catch (InstantiationErrorException e) {
-                //throw new RuntimeException(e);
-            }
-            dbHelper.saveZona(mapPolygon,"Zona Prohibida","Guanajuato","Leon",0);
-            dbHelper.saveZona(mapPolygon1,"Zona Prohibida2","Guanajuato","Leon",0);
-            dbHelper.saveZona(mapPolygon2,"Zona Peligrosa","Guanajuato","Leon",1);*/
-
             // Agrega todas las llamadas a los métodos de descarga
             futures.add(descargarZonasPeligrosas());
             futures.add(descargarZonasProhibidas());
@@ -447,6 +428,110 @@ public class AvoidZonesExample {
         }
     }
 
+    private CompletableFuture<ResponseBody> descargarZonasPeligrosasFaltantes() {
+        try {
+            CompletableFuture<ResponseBody> future = new CompletableFuture<>();
+            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            apiService.getZonasPeligrosas().enqueue(new retrofit2.Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            // Obtener el JSON como string
+                            String jsonResponse = response.body().string();
+                            // Convierte la respuesta en un objeto JSON
+                            JSONObject jsonObject = new JSONObject(jsonResponse);
+                            // Verifica si la operación fue exitosa
+                            boolean success = jsonObject.getBoolean("success");
+                            if (success) {
+                                // Obtén el arreglo "result"
+                                JSONArray puntosArray = jsonObject.getJSONArray("result");
+                                // Itera sobre cada elemento en el arreglo
+                                for (int i = 0; i < puntosArray.length(); i++) {
+                                    JSONObject zonaObject = puntosArray.getJSONObject(i);
+                                    // Extraer datos del punto
+                                    int id = zonaObject.optInt("id_zona", 0);
+                                    PolygonWithId zona_previa = null;
+                                    try {
+                                        zona_previa = dbHelper.getZonaById(id);
+                                    }catch (Exception e){
+                                        Log.e(TAG,"Zona no encontrada en BD");
+                                    }
+                                    if(zona_previa!=null){
+                                        continue;
+                                    }
+                                    String nombre = zonaObject.optString("nombre", "Sin nombre");
+                                    int id_estado = zonaObject.optInt("id_estado", 0);
+                                    int id_municipio = zonaObject.optInt("id_municipio", 0);
+                                    Boolean peligrosa = zonaObject.optBoolean("peligrosa", true);
+                                    String verticesString = zonaObject.optString("vertices", "");
+                                    int status = zonaObject.optInt("estatus", 0);
+                                    MapPolygon mapPolygon = null;
+                                    List<GeoCoordinates> vertices = new ArrayList<>();
+                                    String[] vertexPairs = verticesString.split("\\],\\[");
+
+                                    for (String vertexPair : vertexPairs) {
+                                        // Remove extra square brackets
+                                        vertexPair = vertexPair.replace("[", "").replace("]", "");
+                                        String[] coords = vertexPair.split(",");
+                                        try {
+                                            double latitude = Double.parseDouble(coords[0].substring(1, coords[0].length() - 1));
+                                            double longitude = Double.parseDouble(coords[1].substring(1, coords[1].length() - 1));
+                                            vertices.add(new GeoCoordinates(latitude, longitude));
+                                        } catch (NumberFormatException e) {
+                                            Log.e("Error", "Invalid coordinate format: " + vertexPair);
+                                        }
+                                    }
+
+                                    try {
+                                        mapPolygon = new MapPolygon(new GeoPolygon(vertices), new Color(1f, 0f, 0f, 0.63f));
+                                        // Use the mapPolygon object
+                                    } catch (InstantiationErrorException e) {
+                                        Log.e("Error", "Error creating MapPolygon: " + e.getMessage());
+                                    } catch (IllegalArgumentException e) {
+                                        Log.e("Error", "Invalid GeoPolygon: " + e.getMessage());
+                                    }
+                                    // Guardar la zona en la base de datos
+                                    try {
+                                        dbHelper.saveZona(
+                                                id,
+                                                mapPolygon,
+                                                nombre,
+                                                id_estado,
+                                                id_municipio,
+                                                peligrosa,
+                                                status
+                                        );
+                                    } catch (Exception e) {
+                                        Log.e("Database", "Error al guardar el punto: " + e.getMessage());
+                                    }
+                                }
+                            } else {
+                                Log.e("Error", "La operación no fue exitosa.");
+                            }
+                            Log.d("Retrofit", "Puntos guardados correctamente.");
+                            future.complete(response.body());
+                        } catch (Exception e) {
+                            Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                        }
+                    } else {
+                        Log.e("Retrofit", "Error en la respuesta del servidor.");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.e("Retrofit", "Error al obtener datos: " + t.getMessage());
+                    future.completeExceptionally(t);
+                }
+            });
+            return future;
+        } catch (Error e) {
+            Log.e(TAG, "Error en la solicitud de los puntos de control: ", e);
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
     private CompletableFuture<ResponseBody> descargarZonasProhibidas() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
@@ -470,6 +555,105 @@ public class AvoidZonesExample {
                                     JSONObject zonaObject = puntosArray.getJSONObject(i);
                                     // Extraer datos del punto
                                     int id = zonaObject.optInt("id_zona", 0);
+                                    String nombre = zonaObject.optString("nombre", "Sin nombre");
+                                    int id_estado = zonaObject.optInt("id_estado", 0);
+                                    int id_municipio = zonaObject.optInt("id_municipio", 0);
+                                    Boolean peligrosa = zonaObject.optBoolean("peligrosa", false);
+                                    String verticesString = zonaObject.optString("vertices", "");
+                                    int status = zonaObject.optInt("estatus", 0);
+                                    MapPolygon mapPolygon = null;
+                                    List<GeoCoordinates> vertices = new ArrayList<>();
+                                    String[] vertexPairs = verticesString.split("\\],\\[");
+
+                                    for (String vertexPair : vertexPairs) {
+                                        // Remove extra square brackets
+                                        vertexPair = vertexPair.replace("[", "").replace("]", "");
+                                        String[] coords = vertexPair.split(",");
+                                        try {
+                                            double latitude = Double.parseDouble(coords[0].substring(1, coords[0].length() - 1));
+                                            double longitude = Double.parseDouble(coords[1].substring(1, coords[1].length() - 1));
+                                            vertices.add(new GeoCoordinates(latitude, longitude));
+                                        } catch (NumberFormatException e) {
+                                            Log.e("Error", "Invalid coordinate format: " + vertexPair);
+                                        }
+                                    }
+
+                                    try {
+                                        mapPolygon = new MapPolygon(new GeoPolygon(vertices), new Color(1f, 0f, 0f, 0.63f));
+                                        // Use the mapPolygon object
+                                    } catch (InstantiationErrorException e) {
+                                        Log.e("Error", "Error creating MapPolygon: " + e.getMessage());
+                                    } catch (IllegalArgumentException e) {
+                                        Log.e("Error", "Invalid GeoPolygon: " + e.getMessage());
+                                    }
+                                    // Guardar la zona en la base de datos
+                                    try {
+                                        dbHelper.saveZona(
+                                                id,
+                                                mapPolygon,
+                                                nombre,
+                                                id_estado,
+                                                id_municipio,
+                                                peligrosa,
+                                                status
+                                        );
+                                    } catch (Exception e) {
+                                        Log.e("Database", "Error al guardar el punto: " + e.getMessage());
+                                    }
+                                }
+                            } else {
+                                Log.e("Error", "La operación no fue exitosa.");
+                            }
+                            Log.d("Retrofit", "Puntos guardados correctamente.");
+                            future.complete(response.body());
+                        } catch (Exception e) {
+                            Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                        }
+                    } else {
+                        Log.e("Retrofit", "Error en la respuesta del servidor.");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<ResponseBody> call, Throwable t) {
+                    Log.e("Retrofit", "Error al obtener datos: " + t.getMessage());
+                    future.completeExceptionally(t);
+                }
+            });
+            return future;
+        } catch (Error e) {
+            Log.e(TAG, "Error en la solicitud de los puntos de control: ", e);
+            return CompletableFuture.failedFuture(e);
+        }
+    }
+
+    private CompletableFuture<ResponseBody> descargarZonasProhibidasFaltantes() {
+        try {
+            CompletableFuture<ResponseBody> future = new CompletableFuture<>();
+            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            apiService.getZonasProhibidas().enqueue(new retrofit2.Callback<ResponseBody>() {
+                @Override
+                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            // Obtener el JSON como string
+                            String jsonResponse = response.body().string();
+                            // Convierte la respuesta en un objeto JSON
+                            JSONObject jsonObject = new JSONObject(jsonResponse);
+                            // Verifica si la operación fue exitosa
+                            boolean success = jsonObject.getBoolean("success");
+                            if (success) {
+                                // Obtén el arreglo "result"
+                                JSONArray puntosArray = jsonObject.getJSONArray("result");
+                                // Itera sobre cada elemento en el arreglo
+                                for (int i = 0; i < puntosArray.length(); i++) {
+                                    JSONObject zonaObject = puntosArray.getJSONObject(i);
+                                    // Extraer datos del punto
+                                    int id = zonaObject.optInt("id_zona", 0);
+                                    PolygonWithId zona_previa = dbHelper.getZonaById(id);
+                                    if(zona_previa!=null){
+                                        continue;
+                                    }
                                     String nombre = zonaObject.optString("nombre", "Sin nombre");
                                     int id_estado = zonaObject.optInt("id_estado", 0);
                                     int id_municipio = zonaObject.optInt("id_municipio", 0);
