@@ -336,7 +336,7 @@ public class AvoidZonesExample {
     private CompletableFuture<ResponseBody> descargarZonasPeligrosas() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
             apiService.getZonasPeligrosas().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -431,7 +431,7 @@ public class AvoidZonesExample {
     private CompletableFuture<ResponseBody> descargarZonasPeligrosasFaltantes() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
             apiService.getZonasPeligrosas().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -535,7 +535,7 @@ public class AvoidZonesExample {
     private CompletableFuture<ResponseBody> descargarZonasProhibidas() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
             apiService.getZonasProhibidas().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -630,7 +630,7 @@ public class AvoidZonesExample {
     private CompletableFuture<ResponseBody> descargarZonasProhibidasFaltantes() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
             apiService.getZonasProhibidas().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {

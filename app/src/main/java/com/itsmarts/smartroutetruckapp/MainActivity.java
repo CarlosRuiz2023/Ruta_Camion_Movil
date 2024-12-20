@@ -3,6 +3,7 @@ package com.itsmarts.smartroutetruckapp;
 import static android.view.View.VISIBLE;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -42,6 +43,7 @@ import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -101,9 +103,11 @@ import com.itsmarts.smartroutetruckapp.clases.OfflineMap;
 import com.itsmarts.smartroutetruckapp.clases.RoutingExample;
 import com.itsmarts.smartroutetruckapp.clases.TruckConfig;
 import com.itsmarts.smartroutetruckapp.clases.mapHelper;
+import com.itsmarts.smartroutetruckapp.fragments.ErrorDialogFragment;
 import com.itsmarts.smartroutetruckapp.fragments.ModalBottomSheetFullScreenFragmentPuntos;
 import com.itsmarts.smartroutetruckapp.fragments.ModalBottomSheetFullScreenFragmentZonas;
 import com.itsmarts.smartroutetruckapp.helpers.Geocercas;
+import com.itsmarts.smartroutetruckapp.helpers.Internet;
 import com.itsmarts.smartroutetruckapp.helpers.Messages;
 import com.itsmarts.smartroutetruckapp.modelos.PointWithId;
 import com.itsmarts.smartroutetruckapp.modelos.PolygonWithId;
@@ -121,6 +125,7 @@ import java.util.concurrent.CompletableFuture;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, NavigationEventHandler.SpeedUpdateListener, NavigationEventHandler.DestinationDistanceListener, NavigationEventHandler.DestinationReachedListener{
@@ -388,21 +393,64 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mapView.getGestures().setTapListener(null);
                 truckConfig.mostrarMenu();
                 break;
-            case "Salir":
-                // Remove credentials from SharedPreferences
-                SharedPreferences preferences = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
-                SharedPreferences.Editor editor = preferences.edit();
-                editor.remove("username");  // Remove username key
-                editor.remove("password");  // Remove password key (if stored directly)
-                editor.putBoolean("isLoggedIn", false); // Update login state
-                editor.apply(); // Apply changes to SharedPreferences
+            case "Cerrar Sesion":
+                if(Internet.isNetworkConnected()){
+                    SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                    String token = sharedPreferences.getString("token", "");
+                    // Use Retrofit to make the POST request
+                    ApiService apiService = RetrofitClient.getInstance(token).create(ApiService.class);
+                    Call<ResponseBody> call = apiService.desloguearse();
 
-                // Additional actions on logout (optional)
-                // - Redirect to login activity
-                // - Clear other user data
-                Intent intent = new Intent(MainActivity.this, InicioSesionActivity.class); // Assuming your login activity is LoginActivity
-                startActivity(intent);
-                finish();
+                    call.enqueue(new Callback<ResponseBody>() {
+                        @Override
+                        public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                            if (response.isSuccessful() && response.body() != null) {
+                                try {
+                                    // Obtener el JSON como string
+                                    String jsonResponse = response.body().string();
+                                    // Convierte la respuesta en un objeto JSON
+                                    JSONObject jsonObject = new JSONObject(jsonResponse);
+                                    // Verifica si la operación fue exitosa
+                                    boolean success = jsonObject.getBoolean("success");
+                                    JSONObject resultObject = null;
+                                    if (success) {
+                                        // Remove credentials from SharedPreferences
+                                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                                        editor.putBoolean("isLoggedIn", false); // Update login state
+                                        editor.remove("token");  // Remove username key
+                                        editor.remove("id_usuario");  // Remove password key (if stored directly)
+                                        editor.remove("nombres");  // Remove password key (if stored directly)
+                                        editor.remove("apellido_paterno");  // Remove password key (if stored directly)
+                                        editor.remove("apellido_materno");  // Remove password key (if stored directly)
+                                        editor.remove("correo");  // Remove password key (if stored directly)
+                                        editor.remove("telefono");  // Remove password key (if stored directly)
+                                        editor.remove("id_rol");  // Remove password key (if stored directly)
+                                        editor.apply(); // Apply changes to SharedPreferences
+
+                                        // - Redirect to login activity
+                                        Intent intent = new Intent(MainActivity.this, InicioSesionActivity.class); // Assuming your login activity is LoginActivity
+                                        startActivity(intent);
+                                        // Obtén el objeto "result"
+                                        Toast.makeText(getApplicationContext(), "Usuario deslogueado con exito", Toast.LENGTH_SHORT).show();
+                                        finish();
+                                    }
+                                } catch (Exception e) {
+                                    Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                                }
+                            } else {
+                                Toast.makeText(getApplicationContext(), "No se pudo desloguear al usuario", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                            Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
+                        }
+                    });
+                    }else{
+                    DialogFragment errorDialog = new ErrorDialogFragment();
+                    errorDialog.show(getSupportFragmentManager(), "errorDialog");
+                }
                 break;
             default:
                 String msg = item.getTitle().toString();
@@ -1204,12 +1252,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         stopLocalVoiceInteraction();
         navigationExample.stopLocating();
         navigationExample.stopRendering();
+        // Remove credentials from SharedPreferences
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean("isLoggedIn", false); // Update login state
+        editor.remove("token");  // Remove username key
+        editor.remove("id_usuario");  // Remove password key (if stored directly)
+        editor.remove("nombres");  // Remove password key (if stored directly)
+        editor.remove("apellido_paterno");  // Remove password key (if stored directly)
+        editor.remove("apellido_materno");  // Remove password key (if stored directly)
+        editor.remove("correo");  // Remove password key (if stored directly)
+        editor.remove("telefono");  // Remove password key (if stored directly)
+        editor.remove("id_rol");  // Remove password key (if stored directly)
+        editor.apply(); // Apply changes to SharedPreferences
     }
 
     private CompletableFuture<ResponseBody> descargarRutas() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
             apiService.getRutas().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -1342,7 +1403,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         try {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
             apiService.getRutas().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -1577,9 +1638,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private CompletableFuture<ResponseBody> obtenerAsignaciones() {
         try {
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+
+            int id_usuario = sharedPreferences.getInt("id_usuario", 0);
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
-            apiService.getAsignaciones().enqueue(new retrofit2.Callback<ResponseBody>() {
+            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+            apiService.getAsignaciones(id_usuario).enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                     if (response.isSuccessful() && response.body() != null) {
@@ -1617,7 +1681,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 @Override
                 public void onFailure(Call<ResponseBody> call, Throwable t) {
-                    Log.e("Retrofit", "Error al obtener datos: " + t.getMessage());
+                    DialogFragment errorDialog = new ErrorDialogFragment();
+                    errorDialog.show(getSupportFragmentManager(), "errorDialog");
                     future.completeExceptionally(t);
                 }
             });

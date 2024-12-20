@@ -31,8 +31,8 @@
             android:icon="@drawable/truck"/>-->
     </group>
     <item
-        android:id="@+id/action_salir"
-        android:title="@string/menu_salir"
+        android:id="@+id/action_cerrar_sesion"
+        android:title="@string/menu_cerrar_sesion"
         android:icon="@drawable/logout"/>
 </menu>
 <!-- Separador -->

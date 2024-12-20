@@ -288,7 +288,7 @@ public class ControlPointsExample {
     private CompletableFuture<ResponseBody> descargarPuntosDeControl() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
             apiService.getPuntosDeControl().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -357,7 +357,7 @@ public class ControlPointsExample {
     private CompletableFuture<ResponseBody> descargarPuntosDeControlFaltantes() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance().create(ApiService.class);
+            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
             apiService.getPuntosDeControl().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {

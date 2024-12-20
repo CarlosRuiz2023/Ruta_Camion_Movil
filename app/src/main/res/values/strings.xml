@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">SmartRouteTruckApp</string>
     <string name="navigation_drawer_modal">SmartRouteTruck</string>
-    <string name="menu_salir">Salir</string>
+    <string name="menu_cerrar_sesion">Cerrar Sesion</string>
     <string name="menu_download_map">Descargar Mapa</string>
     <string name="menu_control_points">Puntos de Control</string>
     <string name="menu_early_points">Puntos Cercanos</string>
@@ -74,7 +74,7 @@
     <string name="error_vacio_username">El usuario no puede estar vacío</string>
     <string name="error_vacio_password">La contraseña no puede estar vacía</string>
     <string name="dialog_error_credenciales_titulo">Error de autenticación</string>
-    <string name="dialog_error_credenciale_mensaje">Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo.</string>
+    <string name="dialog_error_credenciale_mensaje">Usuario o contraseña incorrectos. Por favor, inténtalo de nuevo. Si el problema persiste contacta al administrador.</string>
     <string name="error_credenciale_acceptar">Aceptar</string>
     <string name="inicio_sesión">Inicio de Sesión</string>
     <string name="iniciar_sesión">Iniciar de Sesión</string>
