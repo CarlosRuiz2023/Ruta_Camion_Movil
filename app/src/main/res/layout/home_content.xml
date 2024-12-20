@@ -52,6 +52,27 @@
     </LinearLayout>
 
     <TextView
+        android:id="@+id/messageView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/rounded_dialog_background"
+        android:clickable="false"
+        android:elevation="2dp"
+        android:focusable="false"
+        android:hint="Indicaciones"
+        android:padding="10dp"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:textColorHint="@color/white"
+        android:textSize="16sp"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
         android:id="@+id/txtTerminarRuta"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -66,7 +87,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="@+id/btnTerminarRuta"
         app:layout_constraintStart_toStartOf="@+id/btnTerminarRuta"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/messageView" />
 
     <ImageButton
         android:id="@+id/btnTerminarRuta"
@@ -99,7 +120,7 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@+id/trackCamara"
         app:layout_constraintStart_toStartOf="@+id/trackCamara"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toBottomOf="@+id/messageView" />
 
     <ImageButton
         android:id="@+id/trackCamara"
@@ -129,27 +150,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/messageView" />
-
-    <TextView
-        android:id="@+id/messageView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="10dp"
-        android:layout_marginTop="10dp"
-        android:background="@drawable/rounded_dialog_background"
-        android:clickable="false"
-        android:elevation="2dp"
-        android:focusable="false"
-        android:hint="Indicaciones"
-        android:padding="10dp"
-        android:textAlignment="center"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        android:textSize="16sp"
-        android:visibility="gone"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/trackCamara" />
 
     <TextView
         android:id="@+id/speedTextView"
@@ -330,8 +330,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:visibility="gone"
-        tools:visibility="visible">
+        android:visibility="gone">
 
         <ProgressBar
             android:id="@+id/loading_spinner"

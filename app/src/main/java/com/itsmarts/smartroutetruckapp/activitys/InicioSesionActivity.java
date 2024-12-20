@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -51,6 +52,7 @@ public class InicioSesionActivity extends AppCompatActivity {
     private CredentialsManager credentialsManager;
     private static final String TAG = "InicioSesionActivity";
     private LinearLayout llLoadingSesion;
+    private TextView forgotPasswordText;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,6 +71,13 @@ public class InicioSesionActivity extends AppCompatActivity {
         btnLogin = findViewById(R.id.btnLogin);
         ivTogglePassword = findViewById(R.id.ivTogglePassword);
         llLoadingSesion = findViewById(R.id.llLoadingSesion);
+        forgotPasswordText = findViewById(R.id.forgotPasswordText);
+        forgotPasswordText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "En desarrollo", Toast.LENGTH_SHORT).show();
+            }
+        });
         etUsername.setText("example@gmail.com");
         etPassword.setText("123456");
         // Inicializar el administrador de credenciales
