@@ -2,6 +2,7 @@ package com.itsmarts.smartroutetruckapp.api;
 
 import com.itsmarts.smartroutetruckapp.modelos.LoginRequest;
 import com.itsmarts.smartroutetruckapp.modelos.PointWithId;
+import com.itsmarts.smartroutetruckapp.modelos.RecuperarContraseniaRequest;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -33,6 +34,9 @@ public interface ApiService {
 
     @POST("api/auth/login")
     Call<ResponseBody> loguearse(@Body LoginRequest loginRequest);
+
+    @POST("api/auth/recuperar")
+    Call<ResponseBody> recuperarContrasenia(@Body RecuperarContraseniaRequest recuperarContraseniaRequest);
 
     @POST("api/auth/logout")
     Call<ResponseBody> desloguearse();

@@ -1,5 +1,8 @@
 package com.itsmarts.smartroutetruckapp.activitys;
 
+import static android.view.View.VISIBLE;
+
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -7,13 +10,17 @@ import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,6 +37,7 @@ import com.itsmarts.smartroutetruckapp.clases.CredentialsManager;
 import com.itsmarts.smartroutetruckapp.fragments.ErrorDialogFragment;
 import com.itsmarts.smartroutetruckapp.helpers.Internet;
 import com.itsmarts.smartroutetruckapp.modelos.LoginRequest;
+import com.itsmarts.smartroutetruckapp.modelos.RecuperarContraseniaRequest;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -75,7 +83,76 @@ public class InicioSesionActivity extends AppCompatActivity {
         forgotPasswordText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Toast.makeText(getApplicationContext(), "En desarrollo", Toast.LENGTH_SHORT).show();
+                try {
+                    //Toast.makeText(getApplicationContext(), "En desarrollo", Toast.LENGTH_SHORT).show();
+                    View dialogView = getLayoutInflater().inflate(R.layout.ventana_recuperar_contrasenia, null);
+
+                    final Dialog dialogRecuperarContrasenia = new Dialog(InicioSesionActivity.this);
+                    dialogRecuperarContrasenia.setContentView(dialogView);
+                    dialogRecuperarContrasenia.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+                    EditText et_email = dialogView.findViewById(R.id.et_email);
+                    Button btn_send = dialogView.findViewById(R.id.btn_send);
+                    Button btn_cancelar = dialogView.findViewById(R.id.btn_cancelar);
+
+                    btn_send.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            String email = et_email.getText().toString();
+
+                            if (isValidEmail(email)) {
+                                RecuperarContraseniaRequest recuperarContraseniaRequest = new RecuperarContraseniaRequest(email);
+                                // Use Retrofit to make the POST request
+                                ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+                                Call<ResponseBody> call = apiService.recuperarContrasenia(recuperarContraseniaRequest);
+
+                                call.enqueue(new Callback<ResponseBody>() {
+                                    @Override
+                                    public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                                        if (response.isSuccessful() && response.body() != null) {
+                                            try {
+                                                // Obtener el JSON como string
+                                                String jsonResponse = response.body().string();
+                                                // Convierte la respuesta en un objeto JSON
+                                                JSONObject jsonObject = new JSONObject(jsonResponse);
+                                                // Verifica si la operación fue exitosa
+                                                boolean success = jsonObject.getBoolean("success");
+                                                JSONObject resultObject = null;
+                                                if (success) {
+                                                    dialogRecuperarContrasenia.dismiss();
+                                                    Toast.makeText(getApplicationContext(), "Correo enviado con exito", Toast.LENGTH_SHORT).show();
+                                                }
+                                                Log.d("Retrofit", "Solicitud exitosa.");
+                                            } catch (Exception e) {
+                                                Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                                            }
+                                        } else {
+                                            Toast.makeText(getApplicationContext(), "Correo no encontrado intente nuevamente", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }
+
+                                    @Override
+                                    public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                                        Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
+                                    }
+                                });
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Correo electrónico no válido", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+
+                    btn_cancelar.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialogRecuperarContrasenia.dismiss();
+                        }
+                    });
+
+                    dialogRecuperarContrasenia.show();
+                }catch (Exception e){
+                    Log.e(TAG, "Error al mostrar el diálogo", e);
+                }
             }
         });
         etUsername.setText("example@gmail.com");
@@ -260,5 +337,10 @@ public class InicioSesionActivity extends AppCompatActivity {
         });
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+    // Método para validar el formato de correo electrónico
+    private boolean isValidEmail(String email) {
+        String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
+        return email.matches(emailPattern);
     }
 }

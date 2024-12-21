@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**Botton para comenzar la descarga de mapa*/
     public Button btnDescargar, btnBuscarActualizaciones, btnIniciarActualizacion, recalculateRouteButton;
     /** TextView para mosntrar como se descarga y el porcentaje de descarga del mapa*/
-    public TextView txtProcesoDescarga,txtDescargaTitulo;
+    public TextView txtProcesoDescarga, txtDescargaTitulo, nav_header_name, nav_header_email;
     public FloatingActionButton fbEliminarPoi, fbMapas, btnGeocercas;
     public int styleCounter=0;
     // INICIALIZACION DE LA VARIABLE TIPO MapScheme PARA EL ESTILO DEL MAPA POR DEFECTO
@@ -598,7 +598,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         recalculateRouteButton = findViewById(R.id.recalculateRouteButton);
         loading_spinner = findViewById(R.id.loading_spinner);
         llLoadingRoute = findViewById(R.id.llLoadingRoute);
+        // Infla el layout del encabezado
+        View headerView = nmd.inflateHeaderView(R.layout.nav_header);
+        nav_header_name = headerView.findViewById(R.id.nav_header_name);
+        nav_header_email = headerView.findViewById(R.id.nav_header_email);
         //likeImageView1 = findViewById(R.id.likeImageView1);
+
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        String nombres = sharedPreferences.getString("nombres", "").trim();
+        String apellido_paterno = sharedPreferences.getString("apellido_paterno", "").trim();
+        String correo = sharedPreferences.getString("correo", "");
+
+        nav_header_name.setText(String.format("¡Bienvenido, %s %s!", nombres,apellido_paterno));
+        nav_header_email.setText(String.format("%s", correo));
 
         //Animacion de cargando
         likeAnimator.beginAnimation(likeImageView,R.raw.loading_2,R.raw.loading_5);

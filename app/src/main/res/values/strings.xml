@@ -81,7 +81,7 @@
     <string name="usuario">Usuario</string>
     <string name="contrasena">Contraseña</string>
     <string name="menu_perfil">Perfil</string>
-    <string name="forgot_password">Olvidaste tu contraseña</string>
+    <string name="forgot_password">Restablecer contraseña</string>
 
     <!-- AQUI TERMINAN LOS STRINGS PARA INICIO/CIERRE DE SESION -->
 </resources>
