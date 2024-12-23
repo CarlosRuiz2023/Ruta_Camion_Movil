@@ -64,15 +64,6 @@ public class InicioSesionActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Verificar si el usuario ya está logueado
-        SharedPreferences preferences = getSharedPreferences("LoginPrefs", MODE_PRIVATE);
-        boolean isLoggedIn = preferences.getBoolean("isLoggedIn", false);
-        /*if (isLoggedIn) {
-            // Si el usuario ya ha iniciado sesión, redirigir a MainActivity
-            Intent intent = new Intent(InicioSesionActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();  // Evitar que el usuario regrese a la pantalla de login al presionar 'atrás'
-        }*/
         setContentView(R.layout.activity_inicio_sesion);
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
@@ -150,13 +141,26 @@ public class InicioSesionActivity extends AppCompatActivity {
                     });
 
                     dialogRecuperarContrasenia.show();
-                }catch (Exception e){
+                } catch (Exception e) {
                     Log.e(TAG, "Error al mostrar el diálogo", e);
                 }
             }
         });
-        etUsername.setText("example@gmail.com");
-        etPassword.setText("123456");
+        // Verificar si el usuario ya está logueado
+        SharedPreferences preferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+        boolean isLoggedIn = preferences.getBoolean("isLoggedIn", false);
+        String correo = preferences.getString("correo", "");
+        if (isLoggedIn) {
+            etUsername.setText(correo);
+            etPassword.setText("");
+            /*// Si el usuario ya ha iniciado sesión, redirigir a MainActivity
+            Intent intent = new Intent(InicioSesionActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();  // Evitar que el usuario regrese a la pantalla de login al presionar 'atrás'*/
+        }else{
+            etUsername.setText("example@gmail.com");
+            etPassword.setText("123456");
+        }
         // Inicializar el administrador de credenciales
         credentialsManager = new CredentialsManager();
         // Capturar el layout principal
@@ -299,16 +303,24 @@ public class InicioSesionActivity extends AppCompatActivity {
                                     }
                                 } else {
                                     llLoadingSesion.setVisibility(View.GONE);
-                                    showInvalidCredentialsDialog();
+                                    if (response.code() == 405){
+                                        showInvalidCredentialsDialog("Usuario Bloqueado","Demasiados intentos fallidos.\n Intente más tarde.");
+                                    }else if (response.code() == 406){
+                                        showInvalidCredentialsDialog("Sesion Activa","Ya se cuenta con una sesion iniciada.\n Solicita el deslogueo de tu cuenta.");
+                                    }else if (response.code() == 400){
+                                        showInvalidCredentialsDialog("Error de autenticación","Usuario o contraseña incorrectos.");
+                                    }
                                 }
                             }
 
                             @Override
                             public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                                llLoadingSesion.setVisibility(View.GONE);
                                 Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
                             }
                         });
                     }else{
+                        llLoadingSesion.setVisibility(View.GONE);
                         DialogFragment errorDialog = new ErrorDialogFragment();
                         errorDialog.show(getSupportFragmentManager(), "errorDialog");
                     }
@@ -325,10 +337,10 @@ public class InicioSesionActivity extends AppCompatActivity {
         }
     }
     // Método para mostrar un diálogo de error
-    private void showInvalidCredentialsDialog() {
+    private void showInvalidCredentialsDialog(String titulo, String mensaje) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(getString(R.string.dialog_error_credenciales_titulo));
-        builder.setMessage(getString(R.string.dialog_error_credenciale_mensaje));
+        builder.setTitle(titulo);
+        builder.setMessage(mensaje);
         builder.setPositiveButton(getString(R.string.error_credenciale_acceptar), new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {

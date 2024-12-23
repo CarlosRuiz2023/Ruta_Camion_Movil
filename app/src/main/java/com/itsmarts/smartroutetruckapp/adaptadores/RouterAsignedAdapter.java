@@ -101,7 +101,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                     ImageButton btnObtenerRuta = dialogView.findViewById(R.id.btnObtenerRuta);
                     Button btnCancelar = dialogView.findViewById(R.id.btnCancelar);
 
-                    btnSimularRuta.setOnClickListener(new View.OnClickListener() {
+                    /*btnSimularRuta.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             btnSimularRuta.startAnimation(mainActivity.animacionClick);
@@ -112,7 +112,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                 }
                             }, 400);
                         }
-                    });
+                    });*/
 
                     btnObtenerRuta.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -120,6 +120,10 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                             alertDialogRutaMaster.dismiss();
                             if(mainActivity.ruta != null){
                                 mainActivity.limpiezaTotal();
+                            }
+                            if(!mainActivity.isTrackingCamera){
+                                mainActivity.isTrackingCamera=true;
+                                mainActivity.trackCamara.setImageResource(R.drawable.track_off);
                             }
                             mainActivity.llGeocerca.setVisibility(VISIBLE);
                             mainActivity.llLoadingRoute.setVisibility(VISIBLE);
@@ -216,6 +220,10 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                         public void onClick(View v) {
                             if(mainActivity.ruta != null){
                                 mainActivity.limpiezaTotal();
+                            }
+                            if(!mainActivity.isTrackingCamera){
+                                mainActivity.isTrackingCamera=true;
+                                mainActivity.trackCamara.setImageResource(R.drawable.track_off);
                             }
                             mainActivity.llGeocerca.setVisibility(VISIBLE);
                             mainActivity.llLoadingRoute.setVisibility(VISIBLE);

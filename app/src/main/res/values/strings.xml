@@ -73,8 +73,6 @@
     <string name="cerrar_sesión">Cerrar Sesión</string>
     <string name="error_vacio_username">El usuario no puede estar vacío</string>
     <string name="error_vacio_password">La contraseña no puede estar vacía</string>
-    <string name="dialog_error_credenciales_titulo">Error de autenticación</string>
-    <string name="dialog_error_credenciale_mensaje">Usuario o contraseña incorrectos. \nPor favor, inténtalo de nuevo. \nSi el problema persiste contacta al administrador.</string>
     <string name="error_credenciale_acceptar">Aceptar</string>
     <string name="inicio_sesión">Inicio de Sesión</string>
     <string name="iniciar_sesión">Iniciar de Sesión</string>

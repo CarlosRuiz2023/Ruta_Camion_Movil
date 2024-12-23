@@ -416,13 +416,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     if (success) {
                                         // Remove credentials from SharedPreferences
                                         SharedPreferences.Editor editor = sharedPreferences.edit();
-                                        editor.putBoolean("isLoggedIn", false); // Update login state
                                         editor.remove("token");  // Remove username key
                                         editor.remove("id_usuario");  // Remove password key (if stored directly)
                                         editor.remove("nombres");  // Remove password key (if stored directly)
                                         editor.remove("apellido_paterno");  // Remove password key (if stored directly)
                                         editor.remove("apellido_materno");  // Remove password key (if stored directly)
-                                        editor.remove("correo");  // Remove password key (if stored directly)
                                         editor.remove("telefono");  // Remove password key (if stored directly)
                                         editor.remove("id_rol");  // Remove password key (if stored directly)
                                         editor.apply(); // Apply changes to SharedPreferences
@@ -606,10 +604,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         String nombres = sharedPreferences.getString("nombres", "").trim();
-        String apellido_paterno = sharedPreferences.getString("apellido_paterno", "").trim();
         String correo = sharedPreferences.getString("correo", "");
 
-        nav_header_name.setText(String.format("¡Bienvenido, %s %s!", nombres,apellido_paterno));
+        nav_header_name.setText(String.format("¡Bienvenido, %s!", nombres));
         nav_header_email.setText(String.format("%s", correo));
 
         //Animacion de cargando
@@ -974,7 +971,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         poligonos.clear();
         avoidZonesExample.cleanPolygon();
-        rutasAsignadas.clear();
         recalculateRouteButton.setVisibility(View.GONE);
     }
 
@@ -1267,13 +1263,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Remove credentials from SharedPreferences
         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean("isLoggedIn", false); // Update login state
         editor.remove("token");  // Remove username key
         editor.remove("id_usuario");  // Remove password key (if stored directly)
         editor.remove("nombres");  // Remove password key (if stored directly)
         editor.remove("apellido_paterno");  // Remove password key (if stored directly)
         editor.remove("apellido_materno");  // Remove password key (if stored directly)
-        editor.remove("correo");  // Remove password key (if stored directly)
         editor.remove("telefono");  // Remove password key (if stored directly)
         editor.remove("id_rol");  // Remove password key (if stored directly)
         editor.apply(); // Apply changes to SharedPreferences
@@ -1576,8 +1570,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     public void recalculateRoute() {
-        recalculateRouteButton.setVisibility(View.GONE);
         try {
+            recalculateRouteButton.setVisibility(View.GONE);
+            if(!isTrackingCamera){
+                isTrackingCamera=true;
+                trackCamara.setImageResource(R.drawable.track_off);
+            }
             if (currentGeoCoordinates != null && destinationGeoCoordinates != null) {
                 List<GeoCoordinates> puntos_de_control = new ArrayList<>();
                 List<MapPolygon> zonas = new ArrayList<>();
@@ -1685,6 +1683,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             future.complete(response.body());
                         } catch (Exception e) {
                             Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                            DialogFragment errorDialog = new ErrorDialogFragment();
+                            errorDialog.show(getSupportFragmentManager(), "errorDialog");
                         }
                     } else {
                         Log.e("Retrofit", "Error en la respuesta del servidor.");
