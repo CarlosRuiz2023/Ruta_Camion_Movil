@@ -238,54 +238,58 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 // Mostrar diálogo
                 alertDialogRuta.show();
 
-                // Iniciar descargas
-                futures = new ArrayList<>();
-                futures.add(descargarRutasFaltantes());
-                futures.add(controlPointsExample.descargarPuntosDeControlFaltantes());
-                futures.add(avoidZonesExample.descargarZonasPeligrosasFaltantes());
-                futures.add(avoidZonesExample.descargarZonasProhibidasFaltantes());
+                if(Internet.isNetworkConnected()){
+                    // Iniciar descargas
+                    futures = new ArrayList<>();
+                    futures.add(descargarRutasFaltantes());
+                    futures.add(controlPointsExample.descargarPuntosDeControlFaltantes());
+                    futures.add(avoidZonesExample.descargarZonasPeligrosasFaltantes());
+                    futures.add(avoidZonesExample.descargarZonasProhibidasFaltantes());
 
-                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                        .whenComplete((result, ex) -> {
-                            runOnUiThread(() -> {
-                                if (ex != null) {
-                                    Log.e(TAG, "Error during downloads", ex);
-                                    sinRutasTextView.setText("Error al cargar rutas");
-                                    return;
-                                }
-                                rutas = dbHelper.getAllRoutes();
-                                controlPointsExample.pointsWithIds = dbHelper.getAllPuntos();
-                                avoidZonesExample.polygonWithIds = dbHelper.getAllZonas();
+                    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                            .whenComplete((result, ex) -> {
+                                runOnUiThread(() -> {
+                                    if (ex != null) {
+                                        Log.e(TAG, "Error during downloads", ex);
+                                        sinRutasTextView.setText("Error al cargar rutas");
+                                        return;
+                                    }
+                                    rutas = dbHelper.getAllRoutes();
+                                    controlPointsExample.pointsWithIds = dbHelper.getAllPuntos();
+                                    avoidZonesExample.polygonWithIds = dbHelper.getAllZonas();
 
-                                // Iniciar descargas
-                                futures = new ArrayList<>();
-                                futures.add(obtenerAsignaciones());
+                                    // Iniciar descargas
+                                    futures = new ArrayList<>();
+                                    futures.add(obtenerAsignaciones());
 
-                                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                                        .whenComplete((result1, ex1) -> {
-                                            runOnUiThread(() -> {
-                                                if (ex1 != null) {
-                                                    Log.e(TAG, "Error during downloads", ex1);
-                                                    sinRutasTextView.setText("Error al cargar rutas");
-                                                    return;
-                                                }
+                                    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                                            .whenComplete((result1, ex1) -> {
+                                                runOnUiThread(() -> {
+                                                    if (ex1 != null) {
+                                                        Log.e(TAG, "Error during downloads", ex1);
+                                                        sinRutasTextView.setText("Error al cargar rutas");
+                                                        return;
+                                                    }
 
-                                                adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
+                                                    adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
 
-                                                if (adapterAsignedRoutes.getItemCount() == 0) {
-                                                    scrollView.setVisibility(View.GONE);
-                                                    sinRutasTextView.setText("No hay rutas disponibles");
-                                                    sinRutasTextView.setVisibility(View.VISIBLE);
-                                                } else {
-                                                    recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
-                                                    recyclerView.setAdapter(adapterAsignedRoutes);
-                                                    scrollView.setVisibility(View.VISIBLE);
-                                                    sinRutasTextView.setVisibility(View.GONE);
-                                                }
+                                                    if (adapterAsignedRoutes.getItemCount() == 0) {
+                                                        scrollView.setVisibility(View.GONE);
+                                                        sinRutasTextView.setText("No hay rutas disponibles");
+                                                        sinRutasTextView.setVisibility(View.VISIBLE);
+                                                    } else {
+                                                        recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
+                                                        recyclerView.setAdapter(adapterAsignedRoutes);
+                                                        scrollView.setVisibility(View.VISIBLE);
+                                                        sinRutasTextView.setVisibility(View.GONE);
+                                                    }
+                                                });
                                             });
-                                        });
+                                });
                             });
-                        });
+                }else{
+                    sinRutasTextView.setText("Verifique su conexion a internet.");
+                }
                 break;
             case "Puntos Cercanos":
                 avoidZonesExample.cleanPolygon();
