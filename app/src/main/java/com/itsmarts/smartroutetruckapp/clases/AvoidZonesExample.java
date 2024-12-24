@@ -82,7 +82,7 @@ public class AvoidZonesExample {
         // Recupera la lista de polígonos de la base de datos
         polygonWithIds = dbHelper.getAllZonas();
         if(polygonWithIds.size()>0){
-            // Agrega todas las llamadas a los métodos de descarga
+            /*// Agrega todas las llamadas a los métodos de descarga
             futures.add(descargarZonasPeligrosasFaltantes());
             futures.add(descargarZonasProhibidasFaltantes());
             // Espera a que todos los futures terminen
@@ -123,7 +123,7 @@ public class AvoidZonesExample {
                         mapView.pinView(linearLayout, midpoint);
                     }
                 }
-            });
+            });*/
         }else{
             // Agrega todas las llamadas a los métodos de descarga
             futures.add(descargarZonasPeligrosas());
@@ -333,7 +333,7 @@ public class AvoidZonesExample {
         return centroid;
     }
 
-    private CompletableFuture<ResponseBody> descargarZonasPeligrosas() {
+    public CompletableFuture<ResponseBody> descargarZonasPeligrosas() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
             ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
@@ -405,7 +405,7 @@ public class AvoidZonesExample {
                             } else {
                                 Log.e("Error", "La operación no fue exitosa.");
                             }
-                            Log.d("Retrofit", "Puntos guardados correctamente.");
+                            Log.d("Retrofit", "Zonas peligrosas guardadas correctamente.");
                             future.complete(response.body());
                         } catch (Exception e) {
                             Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
@@ -428,7 +428,7 @@ public class AvoidZonesExample {
         }
     }
 
-    private CompletableFuture<ResponseBody> descargarZonasPeligrosasFaltantes() {
+    public CompletableFuture<ResponseBody> descargarZonasPeligrosasFaltantes() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
             ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
@@ -509,7 +509,7 @@ public class AvoidZonesExample {
                             } else {
                                 Log.e("Error", "La operación no fue exitosa.");
                             }
-                            Log.d("Retrofit", "Puntos guardados correctamente.");
+                            Log.d("Retrofit", "Zonas Peligrosas actualizadas correctamente.");
                             future.complete(response.body());
                         } catch (Exception e) {
                             Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
@@ -532,7 +532,7 @@ public class AvoidZonesExample {
         }
     }
 
-    private CompletableFuture<ResponseBody> descargarZonasProhibidas() {
+    public CompletableFuture<ResponseBody> descargarZonasProhibidas() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
             ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
@@ -604,7 +604,7 @@ public class AvoidZonesExample {
                             } else {
                                 Log.e("Error", "La operación no fue exitosa.");
                             }
-                            Log.d("Retrofit", "Puntos guardados correctamente.");
+                            Log.d("Retrofit", "Zonas Prohibidas guardadas correctamente.");
                             future.complete(response.body());
                         } catch (Exception e) {
                             Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
@@ -627,7 +627,7 @@ public class AvoidZonesExample {
         }
     }
 
-    private CompletableFuture<ResponseBody> descargarZonasProhibidasFaltantes() {
+    public CompletableFuture<ResponseBody> descargarZonasProhibidasFaltantes() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
             ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
@@ -703,7 +703,7 @@ public class AvoidZonesExample {
                             } else {
                                 Log.e("Error", "La operación no fue exitosa.");
                             }
-                            Log.d("Retrofit", "Puntos guardados correctamente.");
+                            Log.d("Retrofit", "Zonas prohibidas actualizadas correctamente.");
                             future.complete(response.body());
                         } catch (Exception e) {
                             Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());

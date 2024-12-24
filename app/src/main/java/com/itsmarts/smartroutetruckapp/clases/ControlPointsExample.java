@@ -75,9 +75,8 @@ public class ControlPointsExample {
         // Recupera la lista de polígonos de la base de datos
         pointsWithIds = dbHelper.getAllPuntos();
         if(pointsWithIds.size()>0){
-            // Agrega todas las llamadas a los métodos de descarga
+            /*// Agrega todas las llamadas a los métodos de descarga
             futures.add(descargarPuntosDeControlFaltantes());
-
             // Espera a que todos los futures terminen
             CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
             allOf.whenComplete((result, ex) -> {
@@ -97,23 +96,20 @@ public class ControlPointsExample {
                             textView.setTextColor(Color.parseColor("#7EB8D5"));
                             textView.setText(point.name);
                             textView.setTypeface(Typeface.DEFAULT_BOLD);
-
                             // Crea un LinearLayout para contener el TextView y agregar padding
                             LinearLayout linearLayout = new LinearLayout(context);
                             //linearLayout.setBackgroundResource(R.color.colorAccent);
                             linearLayout.setPadding(0, 0, 0, 130);
                             linearLayout.addView(textView);
-
                             // Ancla el LinearLayout al mapa en las coordenadas ajustadas
                             mapView.pinView(linearLayout, point.mapMarker.getCoordinates());
                         }
                     }
                 }
-            });
+            });*/
         }else{
             // Agrega todas las llamadas a los métodos de descarga
             futures.add(descargarPuntosDeControl());
-
             // Espera a que todos los futures terminen
             CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
             allOf.whenComplete((result, ex) -> {
@@ -133,13 +129,11 @@ public class ControlPointsExample {
                             textView.setTextColor(Color.parseColor("#7EB8D5"));
                             textView.setText(point.name);
                             textView.setTypeface(Typeface.DEFAULT_BOLD);
-
                             // Crea un LinearLayout para contener el TextView y agregar padding
                             LinearLayout linearLayout = new LinearLayout(context);
                             //linearLayout.setBackgroundResource(R.color.colorAccent);
                             linearLayout.setPadding(0, 0, 0, 130);
                             linearLayout.addView(textView);
-
                             // Ancla el LinearLayout al mapa en las coordenadas ajustadas
                             mapView.pinView(linearLayout, point.mapMarker.getCoordinates());
                         }
@@ -189,13 +183,11 @@ public class ControlPointsExample {
         // Infla el layout personalizado
         View dialogView = layoutInflater.inflate(R.layout.dialog_save_point, null);
         builder.setView(dialogView);
-
         // Obtén las referencias a los elementos del layout
         final EditText input = dialogView.findViewById(R.id.polygon_name_input);
         MaterialButton cancelButton = dialogView.findViewById(R.id.cancel_button);
         MaterialButton saveButton = dialogView.findViewById(R.id.save_button);
         input.setText(pointWithId.name);
-
         // Configura los listeners de los botones
         cancelButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -205,7 +197,6 @@ public class ControlPointsExample {
                 dialog.dismiss();
             }
         });
-
         saveButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -223,7 +214,6 @@ public class ControlPointsExample {
             }
         });
         mapView.getGestures().setTapListener(null);
-
         // Muestra el diálogo
         dialog = builder.create();
         dialog.show();
@@ -260,13 +250,11 @@ public class ControlPointsExample {
                     textView.setTextColor(Color.parseColor("#7EB8D5"));
                     textView.setText(point.name);
                     textView.setTypeface(Typeface.DEFAULT_BOLD);
-
                     // Crea un LinearLayout para contener el TextView y agregar padding
                     LinearLayout linearLayout = new LinearLayout(context);
                     //linearLayout.setBackgroundResource(R.color.colorAccent);
                     linearLayout.setPadding(0, 0, 0, 130);
                     linearLayout.addView(textView);
-
                     // Ancla el LinearLayout al mapa en las coordenadas ajustadas
                     mapView.pinView(linearLayout, point.mapMarker.getCoordinates());
                 }
@@ -354,7 +342,7 @@ public class ControlPointsExample {
         }
     }
 
-    private CompletableFuture<ResponseBody> descargarPuntosDeControlFaltantes() {
+    public CompletableFuture<ResponseBody> descargarPuntosDeControlFaltantes() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
             ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
@@ -409,7 +397,7 @@ public class ControlPointsExample {
                             } else {
                                 Log.e("Error", "La operación no fue exitosa.");
                             }
-                            Log.d("Retrofit", "Puntos guardados correctamente.");
+                            Log.d("Retrofit", "Puntos actualizados correctamente.");
                             future.complete(response.body());
                         } catch (Exception e) {
                             Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());

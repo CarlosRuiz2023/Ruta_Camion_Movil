@@ -209,12 +209,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         AlertDialog.Builder builder = null;
         switch (title) {
             case "Obtener Ruta":
+                // Inicializar UI
                 rutasAsignadas = new ArrayList<>();
                 dialogView = getLayoutInflater().inflate(R.layout.ventana_seleccionar_ruta, null);
                 builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setView(dialogView);
                 final AlertDialog alertDialogRuta = builder.create();
 
+                // Configurar vistas
                 TextView textView10 = dialogView.findViewById(R.id.textView10);
                 final Button btnCancelarRuta = dialogView.findViewById(R.id.btnCancelar);
                 LinearLayout linearLayout = dialogView.findViewById(R.id.linearLayout);
@@ -222,42 +224,68 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 TextView sinRutasTextView = dialogView.findViewById(R.id.sinRutasTextView);
                 ScrollView scrollView = dialogView.findViewById(R.id.scrollView);
 
-                List<CompletableFuture<ResponseBody>> futures1 = new ArrayList<>();
-                futures1.add(obtenerAsignaciones());
-                // Espera a que todos los futures terminen
-                CompletableFuture<Void> allOf = CompletableFuture.allOf(futures1.toArray(new CompletableFuture[0]));
-                allOf.whenComplete((result, ex) -> {
-                    if (ex != null) {
-                        // Manejo de errores, si es necesario
-                        Log.e(TAG, "Error during downloads", ex);
-                    }
+                // Configurar estado inicial
+                scrollView.setVisibility(View.GONE);
+                sinRutasTextView.setText("Cargando rutas...");
+                sinRutasTextView.setVisibility(View.VISIBLE);
 
-                    adapterAsignedRoutes = new RouterAsignedAdapter(this,alertDialogRuta,rutasAsignadas);
-
-                    if (adapterAsignedRoutes.getItemCount() == 0) {
-                        scrollView.setVisibility(View.GONE);
-                        sinRutasTextView.setVisibility(View.VISIBLE);
-                    }else{
-                        recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
-                        recyclerView.setAdapter(adapterAsignedRoutes);
-                        scrollView.setVisibility(View.VISIBLE);
-                        sinRutasTextView.setVisibility(View.GONE);
-                    }
-
-                    btnCancelarRuta.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            btnCancelarRuta.startAnimation(animacionClick);
-                            handler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    alertDialogRuta.dismiss();
-                                }
-                            }, 400);
-                        }
-                    });
-                    alertDialogRuta.show();
+                // Configurar botón cancelar
+                btnCancelarRuta.setOnClickListener(v -> {
+                    btnCancelarRuta.startAnimation(animacionClick);
+                    handler.postDelayed(alertDialogRuta::dismiss, 400);
                 });
+
+                // Mostrar diálogo
+                alertDialogRuta.show();
+
+                // Iniciar descargas
+                futures = new ArrayList<>();
+                futures.add(descargarRutasFaltantes());
+                futures.add(controlPointsExample.descargarPuntosDeControlFaltantes());
+                futures.add(avoidZonesExample.descargarZonasPeligrosasFaltantes());
+                futures.add(avoidZonesExample.descargarZonasProhibidasFaltantes());
+
+                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                        .whenComplete((result, ex) -> {
+                            runOnUiThread(() -> {
+                                if (ex != null) {
+                                    Log.e(TAG, "Error during downloads", ex);
+                                    sinRutasTextView.setText("Error al cargar rutas");
+                                    return;
+                                }
+                                rutas = dbHelper.getAllRoutes();
+                                controlPointsExample.pointsWithIds = dbHelper.getAllPuntos();
+                                avoidZonesExample.polygonWithIds = dbHelper.getAllZonas();
+
+                                // Iniciar descargas
+                                futures = new ArrayList<>();
+                                futures.add(obtenerAsignaciones());
+
+                                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                                        .whenComplete((result1, ex1) -> {
+                                            runOnUiThread(() -> {
+                                                if (ex1 != null) {
+                                                    Log.e(TAG, "Error during downloads", ex1);
+                                                    sinRutasTextView.setText("Error al cargar rutas");
+                                                    return;
+                                                }
+
+                                                adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
+
+                                                if (adapterAsignedRoutes.getItemCount() == 0) {
+                                                    scrollView.setVisibility(View.GONE);
+                                                    sinRutasTextView.setText("No hay rutas disponibles");
+                                                    sinRutasTextView.setVisibility(View.VISIBLE);
+                                                } else {
+                                                    recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
+                                                    recyclerView.setAdapter(adapterAsignedRoutes);
+                                                    scrollView.setVisibility(View.VISIBLE);
+                                                    sinRutasTextView.setVisibility(View.GONE);
+                                                }
+                                            });
+                                        });
+                            });
+                        });
                 break;
             case "Puntos Cercanos":
                 avoidZonesExample.cleanPolygon();
@@ -544,7 +572,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 // Recupera la lista de polígonos de la base de datos
                 rutas = dbHelper.getAllRoutes();
             });
-        }else{
+        }/*else{
             // Agrega todas las llamadas a los métodos de descarga
             futures.add(descargarRutasFaltantes());
             // Espera a que todos los futures terminen
@@ -557,7 +585,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 // Recupera la lista de polígonos de la base de datos
                 rutas = dbHelper.getAllRoutes();
             });
-        }
+        }*/
     }
 
     private void initializeComponents(){
@@ -1382,7 +1410,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             } else {
                                 Log.e("Error", "La operación no fue exitosa.");
                             }
-                            Log.d("Retrofit", "Puntos guardados correctamente.");
+                            Log.d("Retrofit", "Rutas guardadas correctamente.");
                             future.complete(response.body());
                         } catch (Exception e) {
                             Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
@@ -1540,13 +1568,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                                 status
                                         );
                                     } catch (Exception e) {
-                                        Log.e("Database", "Error al guardar el punto: " + e.getMessage());
+                                        Log.e("Database", "Error al guardar la ruta: " + e.getMessage());
                                     }
                                 }
                             } else {
                                 Log.e("Error", "La operación no fue exitosa.");
                             }
-                            Log.d("Retrofit", "Puntos guardados correctamente.");
+                            Log.d("Retrofit", "Rutas actualizadas correctamente.");
                             future.complete(response.body());
                         } catch (Exception e) {
                             Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
@@ -1649,7 +1677,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private CompletableFuture<ResponseBody> obtenerAsignaciones() {
         try {
             SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-
             int id_usuario = sharedPreferences.getInt("id_usuario", 0);
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
             ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
@@ -1679,7 +1706,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             } else {
                                 Log.e("Error", "La operación no fue exitosa.");
                             }
-                            Log.d("Retrofit", "Detalles guardados localmente.");
+                            Log.d("Retrofit", "Asignaciones obtenidas exitosamente.");
                             future.complete(response.body());
                         } catch (Exception e) {
                             Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
