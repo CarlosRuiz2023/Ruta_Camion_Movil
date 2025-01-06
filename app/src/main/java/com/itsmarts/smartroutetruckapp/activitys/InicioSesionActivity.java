@@ -36,6 +36,7 @@ import com.itsmarts.smartroutetruckapp.api.RetrofitClient;
 import com.itsmarts.smartroutetruckapp.clases.CredentialsManager;
 import com.itsmarts.smartroutetruckapp.fragments.ErrorDialogFragment;
 import com.itsmarts.smartroutetruckapp.helpers.Internet;
+import com.itsmarts.smartroutetruckapp.helpers.Messages;
 import com.itsmarts.smartroutetruckapp.modelos.LoginRequest;
 import com.itsmarts.smartroutetruckapp.modelos.RecuperarContraseniaRequest;
 
@@ -305,16 +306,16 @@ public class InicioSesionActivity extends AppCompatActivity {
                                 } else {
                                     llLoadingSesion.setVisibility(View.GONE);
                                     if (response.code() == 405){
-                                        showInvalidCredentialsDialog("Usuario Bloqueado","Demasiados intentos fallidos.\n Intente más tarde.");
+                                        Messages.showInvalidCredentialsDialog("Usuario Bloqueado","Demasiados intentos fallidos.\n Intente más tarde.",InicioSesionActivity.this);
                                     }else if (response.code() == 406){
-                                        showInvalidCredentialsDialog("Sesion Activa","Ya se cuenta con una sesion iniciada.\n Solicita el deslogueo de tu cuenta.");
+                                        Messages.showInvalidCredentialsDialog("Sesion Activa","Ya se cuenta con una sesion iniciada.\n Solicita el deslogueo de tu cuenta.",InicioSesionActivity.this);
                                         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
                                         String correo = sharedPreferences.getString("correo", "");
                                         if( username.equalsIgnoreCase(correo)){
                                             closeSesionText.setVisibility(View.VISIBLE);
                                         }
                                     }else if (response.code() == 400){
-                                        showInvalidCredentialsDialog("Error de autenticación","Usuario o contraseña incorrectos.");
+                                        Messages.showInvalidCredentialsDialog("Error de autenticación","Usuario o contraseña incorrectos.",InicioSesionActivity.this);
                                     }
                                 }
                             }
@@ -373,20 +374,6 @@ public class InicioSesionActivity extends AppCompatActivity {
             InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
         }
-    }
-    // Método para mostrar un diálogo de error
-    private void showInvalidCredentialsDialog(String titulo, String mensaje) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(titulo);
-        builder.setMessage(mensaje);
-        builder.setPositiveButton(getString(R.string.error_credenciale_acceptar), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        AlertDialog dialog = builder.create();
-        dialog.show();
     }
     // Método para validar el formato de correo electrónico
     private boolean isValidEmail(String email) {

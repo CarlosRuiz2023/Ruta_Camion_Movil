@@ -7,17 +7,15 @@ import java.io.Serializable;
 import java.util.Date;
 
 public class RoutesWithId implements Serializable{
-    public int id;
+    public int id, status, distancia, tiempo;
     public String name, direccion_inicio, direccion_fin;
     public GeoCoordinates coordinatesInicio,coordinatesFin;
     public Date fecha_creacion,fecha_ultima_modificacion;
     public MapPolyline polyline;
-    public int[] truckSpectIds;
-    public int[] puntosIds;
-    public int[] zonasIds;
-    public int status, distancia, tiempo;
+    public int[] truckSpectIds, puntosIds, zonasIds;
+    public boolean orden_automatico;
 
-    public RoutesWithId(int id, String name, String direccion_inicio, GeoCoordinates coordinatesInicio, String direccion_fin, GeoCoordinates coordinatesFin, MapPolyline polyline, int distancia, int tiempo, Date fecha_creacion, Date fecha_ultima_modificacion, int[] truckSpectIds,int[] puntosIds,int[] zonasIds, int status) {
+    public RoutesWithId(int id, String name, String direccion_inicio, GeoCoordinates coordinatesInicio, String direccion_fin, GeoCoordinates coordinatesFin, MapPolyline polyline, int distancia, int tiempo, Date fecha_creacion, Date fecha_ultima_modificacion, int[] truckSpectIds,int[] puntosIds,int[] zonasIds,boolean orden_automatico, int status) {
         this.id = id;
         this.name = name;
         this.direccion_inicio = direccion_inicio;
@@ -32,6 +30,7 @@ public class RoutesWithId implements Serializable{
         this.truckSpectIds = truckSpectIds;
         this.puntosIds = puntosIds;
         this.zonasIds = zonasIds;
+        this.orden_automatico = orden_automatico;
         this.status = status;
     }
 
@@ -154,4 +153,13 @@ public class RoutesWithId implements Serializable{
     public void setTiempo(int tiempo) {
         this.tiempo = tiempo;
     }
+
+    public boolean orden_automatico() {
+        return orden_automatico;
+    }
+
+    public void setOrden_automatico(boolean orden_automatico) {
+        this.orden_automatico = orden_automatico;
+    }
+
 }

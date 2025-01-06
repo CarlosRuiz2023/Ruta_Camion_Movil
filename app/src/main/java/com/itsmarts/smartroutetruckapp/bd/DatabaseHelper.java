@@ -85,6 +85,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_DIRECCION_FIN = "direccion_fin";
     private static final String COLUMN_DISTANCIA = "distancia";
     private static final String COLUMN_TIEMPO = "tiempo";
+    private static final String COLUMN_ORDEN_AUTOMATICO = "orden_automatico";
 
     private static Context context;
 
@@ -145,6 +146,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_TUCKSPEC_IDS + " TEXT, " +
                 COLUMN_PUNTOS_IDS + " TEXT, " +
                 COLUMN_ZONAS_IDS + " TEXT, " +
+                COLUMN_ORDEN_AUTOMATICO + " INTEGER, " +
                 COLUMN_STATUS + " INTEGER)";
 
         db.execSQL(createTableQueryPuntos);
@@ -593,7 +595,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
 
     // Guarda una coordenada en la base de datos
-    public void saveRuta(int id,String name, String direccion_inicio, GeoCoordinates coordinateInicial , String direccion_fin , GeoCoordinates coordinateFinal, MapPolyline poligoline, int distancia, int tiempo, String fechaCreacion, String fechaUltimaModificacion, int[] truckSpecIds, int[] puntosIds, int[] zonasIds, int status) {
+    public void saveRuta(int id,String name, String direccion_inicio, GeoCoordinates coordinateInicial , String direccion_fin , GeoCoordinates coordinateFinal, MapPolyline poligoline, int distancia, int tiempo, String fechaCreacion, String fechaUltimaModificacion, int[] truckSpecIds, int[] puntosIds, int[] zonasIds, boolean ordenar_automaticamente, int status) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_ID, id);
@@ -625,6 +627,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 .toArray(String[]::new);
         String zonasIdsString = TextUtils.join(",", zonasIdsStringArray);
         values.put(COLUMN_ZONAS_IDS, zonasIdsString);
+        values.put(COLUMN_ORDEN_AUTOMATICO, ordenar_automaticamente ? 1 : 0);
         values.put(COLUMN_STATUS, status);
         db.insert(TABLE_ROUTES, null, values);
         db.close();
@@ -733,8 +736,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         zonasIds[i] = Integer.parseInt(zonasIdsArray[i].trim());
                     }
                 }
+                boolean ordena_automatico = cursor.getInt(cursor.getColumnIndex(COLUMN_ORDEN_AUTOMATICO)) == 1;
                 int status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS));
-                routesWithIds.add(new RoutesWithId(id,name,direccion_inicio,new GeoCoordinates(latitude_inicial,longitude_inicial),direccion_fin,new GeoCoordinates(latitude_fin,longitude_fin),trafficSpanMapPolyline,distancia,tiempo,fechaCreacion,fechaUltimaModificacion,truckSpectIds,puntosIds,zonasIds,status));
+                routesWithIds.add(new RoutesWithId(id,name,direccion_inicio,new GeoCoordinates(latitude_inicial,longitude_inicial),direccion_fin,new GeoCoordinates(latitude_fin,longitude_fin),trafficSpanMapPolyline,distancia,tiempo,fechaCreacion,fechaUltimaModificacion,truckSpectIds,puntosIds,zonasIds,ordena_automatico,status));
             } while (cursor.moveToNext());
         }
 
@@ -823,8 +827,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         zonasIds[i] = Integer.parseInt(zonasIdsArray[i].trim());
                     }
                 }
+                boolean orden_automatico = cursor.getInt(cursor.getColumnIndex(COLUMN_ORDEN_AUTOMATICO)) == 1;
                 int status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS));
-                ruta = new RoutesWithId(id,name,direccion_inicio,new GeoCoordinates(latitude_inicial,longitude_inicial),direccion_fin,new GeoCoordinates(latitude_fin,longitude_fin),trafficSpanMapPolyline,distancia,tiempo,fechaCreacion,fechaUltimaModificacion,truckSpectIds,puntosIds,zonasIds,status);
+                ruta = new RoutesWithId(id,name,direccion_inicio,new GeoCoordinates(latitude_inicial,longitude_inicial),direccion_fin,new GeoCoordinates(latitude_fin,longitude_fin),trafficSpanMapPolyline,distancia,tiempo,fechaCreacion,fechaUltimaModificacion,truckSpectIds,puntosIds,zonasIds,orden_automatico,status);
             }
             cursor.close();
             db.close();

@@ -120,7 +120,8 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="@+id/trackCamara"
         app:layout_constraintStart_toStartOf="@+id/trackCamara"
-        app:layout_constraintTop_toBottomOf="@+id/messageView" />
+        app:layout_constraintTop_toBottomOf="@+id/messageView"
+        android:visibility="gone" />
 
     <ImageButton
         android:id="@+id/trackCamara"
@@ -130,13 +131,13 @@
         android:layout_marginTop="5dp"
         android:layout_marginEnd="5dp"
         android:backgroundTint="#3B5D83"
-        android:src="@drawable/track_off"
-        android:text="Navegación: OFF"
+        android:src="@drawable/track_on"
         android:textColorHint="#F2F4F7"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/btnTerminarRuta"
-        app:layout_constraintTop_toBottomOf="@+id/txtNavegacion" />
+        app:layout_constraintTop_toBottomOf="@+id/txtNavegacion"
+        android:visibility="gone" />
 
     <Button
         android:id="@+id/recalculateRouteButton"

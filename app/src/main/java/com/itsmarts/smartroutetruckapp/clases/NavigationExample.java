@@ -20,6 +20,7 @@
 package com.itsmarts.smartroutetruckapp.clases;
 
 import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -81,6 +82,7 @@ public class NavigationExample {
 
         navigationEventHandler = new NavigationEventHandler(mainActivity, messageView);
         navigationEventHandler.setupListeners(visualNavigator, dynamicRoutingEngine);
+        updateCameraTracking(false);
     }
 
     public NavigationEventHandler getNavigationEventHandler() {
@@ -112,6 +114,8 @@ public class NavigationExample {
     }
 
     public void startNavigation(Route route, boolean isSimulated, boolean isCameraTrackingEnabled) {
+        mainActivity.trackCamara.setVisibility(View.VISIBLE);
+        mainActivity.txtNavegacion.setVisibility(View.VISIBLE);
         GeoCoordinates startGeoCoordinates = route.getGeometry().vertices.get(0);
         prefetchMapData(startGeoCoordinates);
 

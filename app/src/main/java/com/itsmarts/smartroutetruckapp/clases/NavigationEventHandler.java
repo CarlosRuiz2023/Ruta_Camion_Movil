@@ -353,6 +353,7 @@ public class NavigationEventHandler {
                         double distanceInMeters = 1000 * 0.5;
                         MapMeasure mapMeasureZoom = new MapMeasure(MapMeasure.Kind.DISTANCE, distanceInMeters);
                         mainActivity.mapView.getCamera().lookAt(currentNavigableLocation.originalLocation.coordinates, mapMeasureZoom);
+                        //mainActivity.mMapHelper.flyTo(mainActivity.currentGeoCoordinates);
                     } else if (mainActivity.currentGeoCoordinates != currentNavigableLocation.originalLocation.coordinates) {
                         mainActivity.currentGeoCoordinates = currentNavigableLocation.originalLocation.coordinates;
                     }

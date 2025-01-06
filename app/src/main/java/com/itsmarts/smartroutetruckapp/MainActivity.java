@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public ControlPointsExample controlPointsExample;
     public List<RoutesWithId> rutas = new ArrayList<>(), rutasAsignadas = new ArrayList<>();
     public Animation rotateAnimation, cargaAnimacion, animSalida, animacionClick, animEntrada;
-    public boolean animacionEjecutada = false, isFirstClick = true, isMenuOpen = false, rutaGenerada = false, isTrackingCamera = true, isExactRouteEnabled = false, isSimularRutaVisible = false, isRutaVisible = false, isDialogShowing = false, routeSuccessfullyProcessed = false, activarGeocercas = true, mapOfflineMexDownload = false;
+    public boolean animacionEjecutada = false, isFirstClick = true, isMenuOpen = false, rutaGenerada = false, isTrackingCamera = false, isExactRouteEnabled = false, isSimularRutaVisible = false, isRutaVisible = false, isDialogShowing = false, routeSuccessfullyProcessed = false, activarGeocercas = true, mapOfflineMexDownload = false;
     public RoutesWithId ruta,rutaPre;
     public ImageButton trackCamara, btnTerminarRuta;
     public ImageView imgVelocidad;
@@ -209,86 +209,90 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         AlertDialog.Builder builder = null;
         switch (title) {
             case "Obtener Ruta":
-                // Inicializar UI
-                rutasAsignadas = new ArrayList<>();
-                dialogView = getLayoutInflater().inflate(R.layout.ventana_seleccionar_ruta, null);
-                builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setView(dialogView);
-                final AlertDialog alertDialogRuta = builder.create();
+                if(ruta==null){
+                    // Inicializar UI
+                    rutasAsignadas = new ArrayList<>();
+                    dialogView = getLayoutInflater().inflate(R.layout.ventana_seleccionar_ruta, null);
+                    builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setView(dialogView);
+                    final AlertDialog alertDialogRuta = builder.create();
 
-                // Configurar vistas
-                TextView textView10 = dialogView.findViewById(R.id.textView10);
-                final Button btnCancelarRuta = dialogView.findViewById(R.id.btnCancelar);
-                LinearLayout linearLayout = dialogView.findViewById(R.id.linearLayout);
-                RecyclerView recyclerView = dialogView.findViewById(R.id.routesRecyclerView);
-                TextView sinRutasTextView = dialogView.findViewById(R.id.sinRutasTextView);
-                ScrollView scrollView = dialogView.findViewById(R.id.scrollView);
+                    // Configurar vistas
+                    TextView textView10 = dialogView.findViewById(R.id.textView10);
+                    final Button btnCancelarRuta = dialogView.findViewById(R.id.btnCancelar);
+                    LinearLayout linearLayout = dialogView.findViewById(R.id.linearLayout);
+                    RecyclerView recyclerView = dialogView.findViewById(R.id.routesRecyclerView);
+                    TextView sinRutasTextView = dialogView.findViewById(R.id.sinRutasTextView);
+                    ScrollView scrollView = dialogView.findViewById(R.id.scrollView);
 
-                // Configurar estado inicial
-                scrollView.setVisibility(View.GONE);
-                sinRutasTextView.setText("Cargando rutas...");
-                sinRutasTextView.setVisibility(View.VISIBLE);
+                    // Configurar estado inicial
+                    scrollView.setVisibility(View.GONE);
+                    sinRutasTextView.setText("Cargando rutas...");
+                    sinRutasTextView.setVisibility(View.VISIBLE);
 
-                // Configurar botón cancelar
-                btnCancelarRuta.setOnClickListener(v -> {
-                    btnCancelarRuta.startAnimation(animacionClick);
-                    handler.postDelayed(alertDialogRuta::dismiss, 400);
-                });
+                    // Configurar botón cancelar
+                    btnCancelarRuta.setOnClickListener(v -> {
+                        btnCancelarRuta.startAnimation(animacionClick);
+                        handler.postDelayed(alertDialogRuta::dismiss, 400);
+                    });
 
-                // Mostrar diálogo
-                alertDialogRuta.show();
+                    // Mostrar diálogo
+                    alertDialogRuta.show();
 
-                if(Internet.isNetworkConnected()){
-                    // Iniciar descargas
-                    futures = new ArrayList<>();
-                    futures.add(descargarRutasFaltantes());
-                    futures.add(controlPointsExample.descargarPuntosDeControlFaltantes());
-                    futures.add(avoidZonesExample.descargarZonasPeligrosasFaltantes());
-                    futures.add(avoidZonesExample.descargarZonasProhibidasFaltantes());
+                    if(Internet.isNetworkConnected()){
+                        // Iniciar descargas
+                        futures = new ArrayList<>();
+                        futures.add(descargarRutasFaltantes());
+                        futures.add(controlPointsExample.descargarPuntosDeControlFaltantes());
+                        futures.add(avoidZonesExample.descargarZonasPeligrosasFaltantes());
+                        futures.add(avoidZonesExample.descargarZonasProhibidasFaltantes());
 
-                    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                            .whenComplete((result, ex) -> {
-                                runOnUiThread(() -> {
-                                    if (ex != null) {
-                                        Log.e(TAG, "Error during downloads", ex);
-                                        sinRutasTextView.setText("Error al cargar rutas");
-                                        return;
-                                    }
-                                    rutas = dbHelper.getAllRoutes();
-                                    controlPointsExample.pointsWithIds = dbHelper.getAllPuntos();
-                                    avoidZonesExample.polygonWithIds = dbHelper.getAllZonas();
+                        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                                .whenComplete((result, ex) -> {
+                                    runOnUiThread(() -> {
+                                        if (ex != null) {
+                                            Log.e(TAG, "Error during downloads", ex);
+                                            sinRutasTextView.setText("Error al cargar rutas");
+                                            return;
+                                        }
+                                        rutas = dbHelper.getAllRoutes();
+                                        controlPointsExample.pointsWithIds = dbHelper.getAllPuntos();
+                                        avoidZonesExample.polygonWithIds = dbHelper.getAllZonas();
 
-                                    // Iniciar descargas
-                                    futures = new ArrayList<>();
-                                    futures.add(obtenerAsignaciones());
+                                        // Iniciar descargas
+                                        futures = new ArrayList<>();
+                                        futures.add(obtenerAsignaciones());
 
-                                    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                                            .whenComplete((result1, ex1) -> {
-                                                runOnUiThread(() -> {
-                                                    if (ex1 != null) {
-                                                        Log.e(TAG, "Error during downloads", ex1);
-                                                        sinRutasTextView.setText("Error al cargar rutas");
-                                                        return;
-                                                    }
+                                        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                                                .whenComplete((result1, ex1) -> {
+                                                    runOnUiThread(() -> {
+                                                        if (ex1 != null) {
+                                                            Log.e(TAG, "Error during downloads", ex1);
+                                                            sinRutasTextView.setText("Error al cargar rutas");
+                                                            return;
+                                                        }
 
-                                                    adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
+                                                        adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
 
-                                                    if (adapterAsignedRoutes.getItemCount() == 0) {
-                                                        scrollView.setVisibility(View.GONE);
-                                                        sinRutasTextView.setText("No hay rutas disponibles");
-                                                        sinRutasTextView.setVisibility(View.VISIBLE);
-                                                    } else {
-                                                        recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
-                                                        recyclerView.setAdapter(adapterAsignedRoutes);
-                                                        scrollView.setVisibility(View.VISIBLE);
-                                                        sinRutasTextView.setVisibility(View.GONE);
-                                                    }
+                                                        if (adapterAsignedRoutes.getItemCount() == 0) {
+                                                            scrollView.setVisibility(View.GONE);
+                                                            sinRutasTextView.setText("No hay rutas disponibles");
+                                                            sinRutasTextView.setVisibility(View.VISIBLE);
+                                                        } else {
+                                                            recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
+                                                            recyclerView.setAdapter(adapterAsignedRoutes);
+                                                            scrollView.setVisibility(View.VISIBLE);
+                                                            sinRutasTextView.setVisibility(View.GONE);
+                                                        }
+                                                    });
                                                 });
-                                            });
+                                    });
                                 });
-                            });
+                    }else{
+                        sinRutasTextView.setText("Verifique su conexion a internet.");
+                    }
                 }else{
-                    sinRutasTextView.setText("Verifique su conexion a internet.");
+                    Messages.showInvalidCredentialsDialog("Ya se tiene una ruta activa.","Es necesario terminar la ruta activa antes de seleccionar otra ruta.",MainActivity.this);
                 }
                 break;
             case "Puntos Cercanos":
@@ -1006,6 +1010,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         recalculateRouteButton.setVisibility(View.GONE);
         navigationExample.getNavigationEventHandler().puntos_completados = new ArrayList<Integer>();
         navigationExample.getNavigationEventHandler().id_punto_control = 0;
+        trackCamara.setVisibility(View.GONE);
+        txtNavegacion.setVisibility(View.GONE);
     }
 
     public void clearMapPolylines() {
@@ -1408,6 +1414,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     for (int j = 0; j < vehiculosArray.length(); j++) {
                                         truckSpecIds[j] = vehiculosArray.getInt(j);
                                     }
+                                    boolean orden_automatico = rutaObject.optBoolean("orden_automatico", true);
                                     // Guardar la zona en la base de datos
                                     try {
                                         dbHelper.saveRuta(
@@ -1425,6 +1432,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                                 truckSpecIds,
                                                 puntos,
                                                 zonas,
+                                                orden_automatico,
                                                 status
                                         );
                                     } catch (Exception e) {
@@ -1578,6 +1586,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     for (int j = 0; j < vehiculosArray.length(); j++) {
                                         truckSpecIds[j] = vehiculosArray.getInt(j);
                                     }
+                                    boolean orden_automatico = rutaObject.optBoolean("orden_automatico", true);
                                     // Guardar la zona en la base de datos
                                     try {
                                         dbHelper.saveRuta(
@@ -1595,6 +1604,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                                 truckSpecIds,
                                                 puntos,
                                                 zonas,
+                                                orden_automatico,
                                                 status
                                         );
                                     } catch (Exception e) {
@@ -1630,9 +1640,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void recalculateRoute() {
         try {
             recalculateRouteButton.setVisibility(View.GONE);
-            if(!isTrackingCamera){
-                isTrackingCamera=true;
-                trackCamara.setImageResource(R.drawable.track_off);
+            if(isTrackingCamera){
+                isTrackingCamera=false;
+                trackCamara.setImageResource(R.drawable.track_on);
             }
             if (currentGeoCoordinates != null && destinationGeoCoordinates != null) {
                 List<GeoCoordinates> puntos_de_control = new ArrayList<>();
@@ -1702,7 +1712,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         if (route != null) {
                             runOnUiThread(() -> {
                                 try {
-                                    navigationExample.startNavigation(route, false, true);
+                                    navigationExample.startNavigation(route, false, false);
                                     recalculateRouteButton.setVisibility(View.GONE);
                                 } catch (Exception e) {
                                     Log.e("MainActivity", "Error starting navigation: ", e);

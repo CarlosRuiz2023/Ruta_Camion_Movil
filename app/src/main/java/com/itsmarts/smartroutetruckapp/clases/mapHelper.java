@@ -174,11 +174,11 @@ public class mapHelper {
         return coordenadasDestino;
     }
 
-    public void flyTo(MapView mapView, GeoCoordinates geoCoordinates) {
+    public void flyTo(GeoCoordinates geoCoordinates) {
         GeoCoordinatesUpdate geoCoordinatesUpdate = new GeoCoordinatesUpdate(geoCoordinates);
         double bowFactor = 1;
         MapCameraAnimation animation = MapCameraAnimationFactory.flyTo(geoCoordinatesUpdate, bowFactor, Duration.ofSeconds(3));
-        mapView.getCamera().startAnimation(animation);
+        mainActivity.mapView.getCamera().startAnimation(animation);
     }
 
     /**

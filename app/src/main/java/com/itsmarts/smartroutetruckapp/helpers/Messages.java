@@ -5,6 +5,7 @@ import static android.view.View.VISIBLE;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -15,6 +16,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -155,9 +157,9 @@ public class Messages {
                                 if (route != null) {
                                     try {
                                         dialog.dismiss();
-                                        mainActivity.isTrackingCamera = true;
-                                        mainActivity.trackCamara.setImageResource(R.drawable.track_off);
-                                        mainActivity.navigationExample.startNavigation(route, false, true);
+                                        mainActivity.isTrackingCamera = false;
+                                        mainActivity.trackCamara.setImageResource(R.drawable.track_on);
+                                        mainActivity.navigationExample.startNavigation(route, false, false);
                                     } catch (Exception e) {
                                         Log.e("MainActivity", "Error starting navigation: ", e);
                                     }
@@ -193,8 +195,9 @@ public class Messages {
                                 if (route != null) {
                                     try {
                                         dialog.dismiss();
-                                        mainActivity.isTrackingCamera = true;
-                                        mainActivity.navigationExample.startNavigation(route, false, true);
+                                        mainActivity.isTrackingCamera = false;
+                                        mainActivity.trackCamara.setImageResource(R.drawable.track_on);
+                                        mainActivity.navigationExample.startNavigation(route, false, false);
                                     } catch (Exception e) {
                                         Log.e("MainActivity", "Error starting navigation: ", e);
                                     }
@@ -251,5 +254,19 @@ public class Messages {
         if (window != null) {
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         }
+    }
+    // Método para mostrar un diálogo de error
+    public static void showInvalidCredentialsDialog(String titulo, String mensaje, Activity context) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle(titulo);
+        builder.setMessage(mensaje);
+        builder.setPositiveButton(context.getString(R.string.error_credenciale_acceptar), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 }

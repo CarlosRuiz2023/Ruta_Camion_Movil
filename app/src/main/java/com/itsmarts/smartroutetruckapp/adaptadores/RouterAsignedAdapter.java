@@ -122,9 +122,9 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                             if(mainActivity.ruta != null){
                                 mainActivity.limpiezaTotal();
                             }
-                            if(!mainActivity.isTrackingCamera){
-                                mainActivity.isTrackingCamera=true;
-                                mainActivity.trackCamara.setImageResource(R.drawable.track_off);
+                            if(mainActivity.isTrackingCamera){
+                                mainActivity.isTrackingCamera=false;
+                                mainActivity.trackCamara.setImageResource(R.drawable.track_on);
                             }
                             mainActivity.llLoadingRoute.setVisibility(VISIBLE);
                             //mainActivity.likeImageView1.setVisibility(VISIBLE);
@@ -133,6 +133,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                 @Override
                                 public void run() {
                                     mainActivity.ruta=rutas.get(getAdapterPosition());
+                                    Log.d("Prueba", "orden_automatico: "+rutas.get(getAdapterPosition()).orden_automatico);
                                     alertDialogRuta.dismiss();
                                     List<GeoCoordinates> puntos_de_control = new ArrayList<>();
                                     List<MapPolygon> zonas = new ArrayList<>();
@@ -209,7 +210,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
 
                                                 mainActivity.rutaGenerada = true;
                                                 try {
-                                                    mainActivity.navigationExample.startNavigation(route, false, true);
+                                                    mainActivity.navigationExample.startNavigation(route, false, false);
                                                     mainActivity.routeSuccessfullyProcessed = true;
                                                 } catch (Exception e) {
                                                     mainActivity.routeSuccessfullyProcessed = false;
@@ -230,9 +231,9 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                             if(mainActivity.ruta != null){
                                 mainActivity.limpiezaTotal();
                             }
-                            if(!mainActivity.isTrackingCamera){
-                                mainActivity.isTrackingCamera=true;
-                                mainActivity.trackCamara.setImageResource(R.drawable.track_off);
+                            if(mainActivity.isTrackingCamera){
+                                mainActivity.isTrackingCamera=false;
+                                mainActivity.trackCamara.setImageResource(R.drawable.track_on);
                             }
                             mainActivity.llGeocerca.setVisibility(VISIBLE);
                             mainActivity.llLoadingRoute.setVisibility(VISIBLE);
@@ -317,7 +318,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
 
                                                 mainActivity.rutaGenerada = true;
                                                 try {
-                                                    mainActivity.navigationExample.startNavigation(route, true, true);
+                                                    mainActivity.navigationExample.startNavigation(route, true, false);
                                                     mainActivity.routeSuccessfullyProcessed = true;
                                                 } catch (Exception e) {
                                                     mainActivity.routeSuccessfullyProcessed = false;
