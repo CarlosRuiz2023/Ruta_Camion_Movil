@@ -128,11 +128,12 @@ public class PolygonAdapter extends RecyclerView.Adapter<PolygonAdapter.PolygonV
                         if(!polygon.label){
                             // Crea un TextView para la etiqueta
                             TextView textView = new TextView(avoidZonesExample.context);
-                            if(polygon.peligrosa){
-                                textView.setTextColor(Color.parseColor("#000000"));
+                            /*if(polygon.peligrosa){
+
                             }else{
                                 textView.setTextColor(Color.parseColor("#FF0000"));
-                            }
+                            }*/
+                            textView.setTextColor(Color.parseColor("#000000"));
                             textView.setText(polygon.name);
                             textView.setTypeface(Typeface.DEFAULT_BOLD);
 

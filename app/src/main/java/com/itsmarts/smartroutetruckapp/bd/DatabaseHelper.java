@@ -122,10 +122,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String createTableQueryTrucks = "CREATE TABLE " + TABLE_CAMIONES + " (" +
                 COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                 COLUMN_NAME + " TEXT, " +
-                COLUMN_TONELADA + " REAL, " +
-                COLUMN_ALTURA + " REAL, " +
-                COLUMN_ANCHO + " REAL, " +
-                COLUMN_LARGO + " REAL, " +
+                COLUMN_TONELADA + " INTEGER, " +
+                COLUMN_ALTURA + " INTEGER, " +
+                COLUMN_ANCHO + " INTEGER, " +
+                COLUMN_LARGO + " INTEGER, " +
                 COLUMN_IMAGEN + " TEXT)";
 
         String createTableQueryRoutes = "CREATE TABLE " + TABLE_ROUTES + " (" +
@@ -530,10 +530,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             do {
                 int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
                 String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
-                double tonelada = cursor.getDouble(cursor.getColumnIndex(COLUMN_TONELADA));
-                double altura = cursor.getDouble(cursor.getColumnIndex(COLUMN_ALTURA));
-                double ancho = cursor.getDouble(cursor.getColumnIndex(COLUMN_ANCHO));
-                double largo = cursor.getDouble(cursor.getColumnIndex(COLUMN_LARGO));
+                int tonelada = cursor.getInt(cursor.getColumnIndex(COLUMN_TONELADA));
+                int altura = cursor.getInt(cursor.getColumnIndex(COLUMN_ALTURA));
+                int ancho = cursor.getInt(cursor.getColumnIndex(COLUMN_ANCHO));
+                int largo = cursor.getInt(cursor.getColumnIndex(COLUMN_LARGO));
                 // Obtener la imagen en Base64
                 String imagenBase64 = cursor.getString(cursor.getColumnIndex(COLUMN_IMAGEN));
 
@@ -550,6 +550,40 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
         return camiones;
+    }
+
+    // Recupera todas las coordenadas de la base de datos
+    public TruckSpec getCamion(int id_vehiculo) {
+        TruckSpec camion = null;
+        try{
+            SQLiteDatabase db = this.getReadableDatabase();
+            String selectQuery = "SELECT * FROM " + TABLE_CAMIONES + " WHERE " + COLUMN_ID + " = ?";
+            Cursor cursor = db.rawQuery(selectQuery, new String[]{String.valueOf(id_vehiculo)});
+
+            if (cursor.moveToFirst()) {
+                int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+                String name = cursor.getString(cursor.getColumnIndex(COLUMN_NAME));
+                int tonelada = cursor.getInt(cursor.getColumnIndex(COLUMN_TONELADA));
+                int altura = cursor.getInt(cursor.getColumnIndex(COLUMN_ALTURA));
+                int ancho = cursor.getInt(cursor.getColumnIndex(COLUMN_ANCHO));
+                int largo = cursor.getInt(cursor.getColumnIndex(COLUMN_LARGO));
+                // Obtener la imagen en Base64
+                String imagenBase64 = cursor.getString(cursor.getColumnIndex(COLUMN_IMAGEN));
+
+                // Convertir la imagen Base64 a Bitmap
+                Bitmap imagen = null;
+                if (imagenBase64 != null && !imagenBase64.isEmpty()) {
+                    byte[] decodedString = Base64.decode(imagenBase64, Base64.DEFAULT);
+                    imagen = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+                }
+                camion = new TruckSpec(id,name,tonelada,altura,ancho,largo,imagen);
+            }
+            cursor.close();
+            db.close();
+        }catch (Exception e){
+            Log.e(TAG,e.getMessage());
+        }
+        return camion;
     }
 
     /*
@@ -572,13 +606,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(COLUMN_LONGITUDE_FIN, coordinateFinal.longitude);
         //values.put(COLUMN_FECHA_CREACION, System.currentTimeMillis());
         values.put(COLUMN_POLIGOLINE, serializePolyline(poligoline));
-        String[] truckSpecIdsStringArray = Arrays.stream(truckSpecIds)
-                .mapToObj(String::valueOf)
-                .toArray(String[]::new);
         values.put(COLUMN_DISTANCIA, distancia);
         values.put(COLUMN_TIEMPO, tiempo);
         values.put(COLUMN_FECHA_CREACION, fechaCreacion);
         values.put(COLUMN_FECHA_ULTIMA_MODIFICACION, fechaUltimaModificacion);
+        String[] truckSpecIdsStringArray = Arrays.stream(truckSpecIds)
+                .mapToObj(String::valueOf)
+                .toArray(String[]::new);
         String truckSpecIdsString = TextUtils.join(",", truckSpecIdsStringArray);
         values.put(COLUMN_TUCKSPEC_IDS, truckSpecIdsString);
         String[] puntosIdsStringArray = Arrays.stream(puntosIds)
@@ -670,10 +704,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     }
                 }
                 String truckSpecIdsString = cursor.getString(cursor.getColumnIndex(COLUMN_TUCKSPEC_IDS));
-                String[] truckSpecIdsArray = truckSpecIdsString.split(",");
-                int[] truckSpectIds = new int[truckSpecIdsArray.length];
-                for (int i = 0; i < truckSpecIdsArray.length; i++) {
-                    truckSpectIds[i] = Integer.parseInt(truckSpecIdsArray[i].trim());
+                int[] truckSpectIds = null;
+                if(truckSpecIdsString.length()!=0){
+                    String[] vehiculosIdsArray = truckSpecIdsString.split(",");
+                    truckSpectIds = new int[vehiculosIdsArray.length];
+                    for (int i = 0; i < vehiculosIdsArray.length; i++) {
+                        vehiculosIdsArray[i] = vehiculosIdsArray[i].replace("[", "").replace("]", "");
+                        truckSpectIds[i] = Integer.parseInt(vehiculosIdsArray[i].trim());
+                    }
                 }
                 String puntosIdsString = cursor.getString(cursor.getColumnIndex(COLUMN_PUNTOS_IDS));
                 int[] puntosIds = null;

@@ -127,7 +127,7 @@ public class NavigationExample {
             messageView.setText("Starting simulated navgation.");
         } else {
             enableDevicePositioning();
-            messageView.setText("Iniciando navegación...");
+            messageView.setText("Ruta: "+mainActivity.ruta.name+"\nIniciando navegación...");
         }
 
         startDynamicSearchForBetterRoutes(route);

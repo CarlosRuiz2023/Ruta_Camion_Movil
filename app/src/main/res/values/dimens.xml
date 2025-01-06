@@ -4,4 +4,8 @@
     <dimen name="img_bar_size">40dp</dimen>
     <dimen name="sheet_bottom_standar_peek_height">80dp</dimen>
     <dimen name="common_padding_middle">24dp</dimen>
+    <dimen name="dimen_160">160dp</dimen>
+    <dimen name="dimen_50">50dp</dimen>
+    <dimen name="dimen_8">8dp</dimen>
+    <dimen name="dimen_4">4dp</dimen>
 </resources>

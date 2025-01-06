@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+
+            <ImageView
+                android:id="@+id/ImgTelcel"
+                android:layout_width="@dimen/dimen_160"
+                android:layout_height="@dimen/dimen_50"
+                android:src="@drawable/logo"
+                app:tint="@color/colorPrimary"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="@dimen/dimen_8"
+                />
+
+            <TextView
+                android:id="@+id/TxtPresentacion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/error_encontrado"
+                android:textColor="@color/colorPrimary"
+                android:layout_marginTop="@dimen/dimen_8"
+                android:layout_marginEnd="@dimen/dimen_8"
+                android:layout_marginStart="@dimen/dimen_8"
+                android:fontFamily="@font/telcel_family"
+                />
+
+            <TextView
+                android:id="@+id/TxtError"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/lorem_ipsum"
+                android:layout_marginTop="@dimen/dimen_8"
+                android:layout_marginEnd="@dimen/dimen_8"
+                android:layout_marginStart="@dimen/dimen_8"
+                android:textAlignment="textStart"
+                android:fontFamily="@font/telcel_family"
+                />
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <!--<com.google.android.material.button.MaterialButton
+                    android:id="@+id/BtnSend"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/text_enviar"
+                    android:layout_marginTop="@dimen/dimen_8"
+                    android:layout_marginStart="@dimen/dimen_8"
+                    android:fontFamily="@font/telcel_family"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"/>-->
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/BtnSalir"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/text__salir_y_continuar"
+                    android:layout_marginTop="@dimen/dimen_8"
+                    android:layout_marginEnd="@dimen/dimen_8"
+                    android:fontFamily="@font/telcel_family"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"/>
+                <TextView
+                    android:id="@+id/TxtMensajeEnvio"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="Mensaje de estado del envío"
+                    android:textColor="@color/colorError"
+                    android:layout_marginTop="@dimen/dimen_4"
+                    android:fontFamily="@font/telcel_family"
+
+                    app:layout_constraintStart_toStartOf="parent"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

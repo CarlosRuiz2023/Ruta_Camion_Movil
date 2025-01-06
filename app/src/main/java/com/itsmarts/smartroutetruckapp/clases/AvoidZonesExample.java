@@ -145,11 +145,12 @@ public class AvoidZonesExample {
                     if(polygonWithId.label){
                         // Crea un TextView para la etiqueta
                         TextView textView = new TextView(context);
-                        if(polygonWithId.peligrosa){
-                            textView.setTextColor(android.graphics.Color.parseColor("#000000"));
+                        /*if(polygonWithId.peligrosa){
+
                         }else{
                             textView.setTextColor(android.graphics.Color.parseColor("#FF0000"));
-                        }
+                        }*/
+                        textView.setTextColor(android.graphics.Color.parseColor("#000000"));
                         textView.setText(polygonWithId.name);
                         textView.setTypeface(Typeface.DEFAULT_BOLD);
 

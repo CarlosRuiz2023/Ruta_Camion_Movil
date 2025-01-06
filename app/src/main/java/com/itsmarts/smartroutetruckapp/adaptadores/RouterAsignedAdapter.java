@@ -30,6 +30,7 @@ import com.itsmarts.smartroutetruckapp.modelos.RoutesWithId;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdapter.RouteViewHolder> {
@@ -125,7 +126,6 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                 mainActivity.isTrackingCamera=true;
                                 mainActivity.trackCamara.setImageResource(R.drawable.track_off);
                             }
-                            mainActivity.llGeocerca.setVisibility(VISIBLE);
                             mainActivity.llLoadingRoute.setVisibility(VISIBLE);
                             //mainActivity.likeImageView1.setVisibility(VISIBLE);
                             btnStartRoute.startAnimation(mainActivity.animacionClick);
@@ -136,6 +136,14 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                     alertDialogRuta.dismiss();
                                     List<GeoCoordinates> puntos_de_control = new ArrayList<>();
                                     List<MapPolygon> zonas = new ArrayList<>();
+                                    int id_vehiculo = 3;
+                                    if(mainActivity.ruta.truckSpectIds!=null){
+                                        for (int i = 0; i < mainActivity.ruta.truckSpectIds.length; i++) {
+                                            if(mainActivity.ruta.truckSpectIds[i] > id_vehiculo){
+                                                id_vehiculo = mainActivity.ruta.truckSpectIds[i];
+                                            }
+                                        }
+                                    }
                                     if(mainActivity.ruta.puntosIds!=null){
                                         for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
                                             boolean foundPuntoDeControl = false;
@@ -183,9 +191,10 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                     mainActivity.llLoadingRoute.setVisibility(View.GONE);
                                     //mainActivity.likeImageView1.setVisibility(View.GONE);
                                     mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
+                                    mainActivity.llGeocerca.setVisibility(VISIBLE);
                                     mainActivity.controlPointsExample.cleanPoint();
                                     mainActivity.avoidZonesExample.cleanPolygon();
-                                    mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio, new RoutingExample.RouteCallback() {
+                                    mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,id_vehiculo, new RoutingExample.RouteCallback() {
                                         @Override
                                         public void onRouteCalculated(Route route) {
                                             if (route != null) {
@@ -236,6 +245,14 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                     alertDialogRuta.dismiss();
                                     List<GeoCoordinates> puntos_de_control = new ArrayList<>();
                                     List<MapPolygon> zonas = new ArrayList<>();
+                                    int id_vehiculo = 3;
+                                    if(mainActivity.ruta.truckSpectIds!=null){
+                                        for (int i = 0; i < mainActivity.ruta.truckSpectIds.length; i++) {
+                                            if(mainActivity.ruta.truckSpectIds[i] > id_vehiculo){
+                                                id_vehiculo = mainActivity.ruta.truckSpectIds[i];
+                                            }
+                                        }
+                                    }
                                     if(mainActivity.ruta.puntosIds!=null){
                                         for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
                                             boolean foundPuntoDeControl = false;
@@ -285,7 +302,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                     mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
                                     mainActivity.controlPointsExample.cleanPoint();
                                     mainActivity.avoidZonesExample.cleanPolygon();
-                                    mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio, new RoutingExample.RouteCallback() {
+                                    mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,id_vehiculo, new RoutingExample.RouteCallback() {
                                         @Override
                                         public void onRouteCalculated(Route route) {
                                             if (route != null) {

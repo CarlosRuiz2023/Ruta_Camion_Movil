@@ -15,15 +15,21 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.fragment.app.FragmentTransaction;
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.here.sdk.core.GeoCoordinates;
 import com.here.sdk.mapview.MapPolygon;
 import com.here.sdk.routing.Route;
 import com.itsmarts.smartroutetruckapp.MainActivity;
 import com.itsmarts.smartroutetruckapp.R;
 import com.itsmarts.smartroutetruckapp.clases.RoutingExample;
+import com.itsmarts.smartroutetruckapp.fragments.DialogFullFragmentErrorDetail;
 import com.itsmarts.smartroutetruckapp.modelos.PointWithId;
 import com.itsmarts.smartroutetruckapp.modelos.PolygonWithId;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,6 +56,25 @@ public class Messages {
         toast.show();
     }
 
+    //DIALOG DE EXCEPCIONES
+    public static void showErrorDetail(AppCompatActivity activity, Exception error)
+    {
+        // Crear un StringWriter para almacenar la traza de la pila
+        StringWriter sw = new StringWriter();
+        // Crear un PrintWriter que escriba en el StringWriter
+        PrintWriter pw = new PrintWriter(sw);
+        // Imprimir la traza de la pila en el PrintWriter
+        error.printStackTrace(pw);
+        // Obtener la traza de la pila como una cadena
+        String stackTrace = sw.toString();
+        DialogFullFragmentErrorDetail detail = new DialogFullFragmentErrorDetail(stackTrace);
+        //FragmentTransaction transaction = activity.getFragmentManager().beginTransaction();
+        FragmentTransaction transaction = activity.getSupportFragmentManager().beginTransaction();
+        detail.show(transaction, DialogFullFragmentErrorDetail.TAG);
+        detail.setCancelable(false);
+    }
+
+
     public void showDialog(String title, String mainInfo, String additionalInfo, String type, GeoCoordinates geoCoordinatesPOI) {
         if (mainActivity.isDialogShowing) {
             return;
@@ -74,6 +99,14 @@ public class Messages {
                         }
                         List<GeoCoordinates> puntos_de_control = new ArrayList<>();
                         List<MapPolygon> zonas = new ArrayList<>();
+                        int id_vehiculo = 3;
+                        if(mainActivity.ruta.truckSpectIds!=null){
+                            for (int i = 0; i < mainActivity.ruta.truckSpectIds.length; i++) {
+                                if(mainActivity.ruta.truckSpectIds[i] > id_vehiculo){
+                                    id_vehiculo = mainActivity.ruta.truckSpectIds[i];
+                                }
+                            }
+                        }
                         if(mainActivity.ruta.puntosIds!=null){
                             for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
                                 boolean foundPuntoDeControl = false;
@@ -116,7 +149,7 @@ public class Messages {
                                 }
                             }
                         }
-                        mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, geoCoordinatesPOI, mainActivity.ruta.coordinatesInicio, new RoutingExample.RouteCallback() {
+                        mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, geoCoordinatesPOI, mainActivity.ruta.coordinatesInicio,id_vehiculo, new RoutingExample.RouteCallback() {
                             @Override
                             public void onRouteCalculated(Route route) {
                                 if (route != null) {
@@ -154,7 +187,7 @@ public class Messages {
                         mainActivity.clearMapMarkersPOIsAndCircle(true);
                         List<GeoCoordinates> puntos = new ArrayList<>();
                         List<MapPolygon> poligonos = new ArrayList<>();
-                        mainActivity.routingExample.addRoute(poligonos,puntos,mainActivity.currentGeoCoordinates,geoCoordinatesPOI, null, null, new RoutingExample.RouteCallback() {
+                        mainActivity.routingExample.addRoute(poligonos,puntos,mainActivity.currentGeoCoordinates,geoCoordinatesPOI, null, null,1, new RoutingExample.RouteCallback() {
                             @Override
                             public void onRouteCalculated(Route route) {
                                 if (route != null) {

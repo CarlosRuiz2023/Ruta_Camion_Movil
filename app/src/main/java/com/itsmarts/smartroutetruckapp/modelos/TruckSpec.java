@@ -5,13 +5,13 @@ import android.graphics.Bitmap;
 public class TruckSpec {
     public int id;
     public String name;
-    public double toneladas;
-    public double altura;
-    public double ancho;
-    public double largo;
+    public int toneladas;
+    public int altura;
+    public int ancho;
+    public int largo;
     public Bitmap imagen;
 
-    public TruckSpec(int id, String name, double toneladas, double altura, double ancho, double largo,Bitmap imagen) {
+    public TruckSpec(int id, String name, int toneladas, int altura, int ancho, int largo,Bitmap imagen) {
         this.id = id;
         this.name = name;
         this.toneladas = toneladas;
@@ -21,19 +21,19 @@ public class TruckSpec {
         this.imagen = imagen;
     }
 
-    public double altura() {
+    public int altura() {
         return altura;
     }
 
-    public void setAltura(double altura) {
+    public void setAltura(int altura) {
         this.altura = altura;
     }
 
-    public double ancho() {
+    public int ancho() {
         return ancho;
     }
 
-    public void setAncho(double ancho) {
+    public void setAncho(int ancho) {
         this.ancho = ancho;
     }
 
@@ -45,11 +45,11 @@ public class TruckSpec {
         this.id = id;
     }
 
-    public double largo() {
+    public int largo() {
         return largo;
     }
 
-    public void setLargo(double largo) {
+    public void setLargo(int largo) {
         this.largo = largo;
     }
 
@@ -61,11 +61,11 @@ public class TruckSpec {
         this.name = name;
     }
 
-    public double toneladas() {
+    public int toneladas() {
         return toneladas;
     }
 
-    public void setToneladas(double toneladas) {
+    public void setToneladas(int toneladas) {
         this.toneladas = toneladas;
     }
     public String toString() {

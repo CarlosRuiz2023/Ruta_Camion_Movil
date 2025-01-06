@@ -60,7 +60,7 @@ public class InicioSesionActivity extends AppCompatActivity {
     private CredentialsManager credentialsManager;
     private static final String TAG = "InicioSesionActivity";
     private LinearLayout llLoadingSesion;
-    private TextView forgotPasswordText;
+    private TextView forgotPasswordText, closeSesionText;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -71,6 +71,7 @@ public class InicioSesionActivity extends AppCompatActivity {
         ivTogglePassword = findViewById(R.id.ivTogglePassword);
         llLoadingSesion = findViewById(R.id.llLoadingSesion);
         forgotPasswordText = findViewById(R.id.forgotPasswordText);
+        closeSesionText = findViewById(R.id.closeSesionText);
         forgotPasswordText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -91,7 +92,7 @@ public class InicioSesionActivity extends AppCompatActivity {
                         public void onClick(View v) {
                             String email = et_email.getText().toString();
 
-                            if (isValidEmail(email)) {
+                            if (isValidEmail(email) ) {
                                 RecuperarContraseniaRequest recuperarContraseniaRequest = new RecuperarContraseniaRequest(email);
                                 // Use Retrofit to make the POST request
                                 ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
@@ -307,6 +308,11 @@ public class InicioSesionActivity extends AppCompatActivity {
                                         showInvalidCredentialsDialog("Usuario Bloqueado","Demasiados intentos fallidos.\n Intente más tarde.");
                                     }else if (response.code() == 406){
                                         showInvalidCredentialsDialog("Sesion Activa","Ya se cuenta con una sesion iniciada.\n Solicita el deslogueo de tu cuenta.");
+                                        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                                        String correo = sharedPreferences.getString("correo", "");
+                                        if( username.equalsIgnoreCase(correo)){
+                                            closeSesionText.setVisibility(View.VISIBLE);
+                                        }
                                     }else if (response.code() == 400){
                                         showInvalidCredentialsDialog("Error de autenticación","Usuario o contraseña incorrectos.");
                                     }
@@ -324,6 +330,38 @@ public class InicioSesionActivity extends AppCompatActivity {
                         DialogFragment errorDialog = new ErrorDialogFragment();
                         errorDialog.show(getSupportFragmentManager(), "errorDialog");
                     }
+                }
+            }
+        });
+        closeSesionText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                llLoadingSesion.setVisibility(View.VISIBLE);
+                // Create a LoginRequest object with the provided username and password
+                if(Internet.isNetworkConnected()){
+                    SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                    int id_usuario = sharedPreferences.getInt("id_usuario", 0);
+                    // Use Retrofit to make the POST request
+                    ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+                    Call<ResponseBody> call1 = apiService.getDesloguearUsuario(id_usuario);
+
+                    call1.enqueue(new Callback<ResponseBody>() {
+                        @Override
+                        public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                            Toast.makeText(getApplicationContext(), "Sesion Cerrada con exito", Toast.LENGTH_SHORT).show();
+                            closeSesionText.setVisibility(View.GONE);
+                            llLoadingSesion.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                            Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
+                        }
+                    });
+                }else {
+                    llLoadingSesion.setVisibility(View.GONE);
+                    DialogFragment errorDialog = new ErrorDialogFragment();
+                    errorDialog.show(getSupportFragmentManager(), "errorDialog");
                 }
             }
         });
@@ -353,6 +391,7 @@ public class InicioSesionActivity extends AppCompatActivity {
     // Método para validar el formato de correo electrónico
     private boolean isValidEmail(String email) {
         String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
-        return email.matches(emailPattern);
+        String emailPatternMX = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+\\.+[a-z]+";
+        return email.matches(emailPattern) || email.matches(emailPatternMX);
     }
 }

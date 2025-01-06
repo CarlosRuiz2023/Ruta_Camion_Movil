@@ -1004,6 +1004,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         poligonos.clear();
         avoidZonesExample.cleanPolygon();
         recalculateRouteButton.setVisibility(View.GONE);
+        navigationExample.getNavigationEventHandler().puntos_completados = new ArrayList<Integer>();
+        navigationExample.getNavigationEventHandler().id_punto_control = 0;
     }
 
     public void clearMapPolylines() {
@@ -1270,39 +1272,51 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onPause() {
-        super.onPause();
-        mapView.onPause();
-        mMapHelper.handleAndroidPermissions();
+        try {
+            super.onPause();
+            mapView.onPause();
+            mMapHelper.handleAndroidPermissions();
+        }catch (Exception e){
+            Messages.showErrorDetail(this, e);
+        }
     }
 
     @Override
     protected void onResume() {
-        super.onResume();
-        mapView.onResume();
-        mMapHelper.handleAndroidPermissions();
-        //mMapHelper.permisoLocalizacion(this, this);
+        try {
+            super.onResume();
+            mapView.onResume();
+            mMapHelper.handleAndroidPermissions();
+            //mMapHelper.permisoLocalizacion(this, this);
+        }catch (Exception e){
+            Messages.showErrorDetail(this, e);
+        }
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
-        mapView.onDestroy();
-        mMapHelper.disposeHERESDK();
-        navigationExample.stopNavigation(false);
-        stopLocalVoiceInteraction();
-        navigationExample.stopLocating();
-        navigationExample.stopRendering();
-        // Remove credentials from SharedPreferences
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.remove("token");  // Remove username key
-        editor.remove("id_usuario");  // Remove password key (if stored directly)
-        editor.remove("nombres");  // Remove password key (if stored directly)
-        editor.remove("apellido_paterno");  // Remove password key (if stored directly)
-        editor.remove("apellido_materno");  // Remove password key (if stored directly)
-        editor.remove("telefono");  // Remove password key (if stored directly)
-        editor.remove("id_rol");  // Remove password key (if stored directly)
-        editor.apply(); // Apply changes to SharedPreferences
+        try {
+            super.onDestroy();
+            mapView.onDestroy();
+            mMapHelper.disposeHERESDK();
+            navigationExample.stopNavigation(false);
+            stopLocalVoiceInteraction();
+            navigationExample.stopLocating();
+            navigationExample.stopRendering();
+            /*// Remove credentials from SharedPreferences
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.remove("token");  // Remove username key
+            editor.remove("id_usuario");  // Remove password key (if stored directly)
+            editor.remove("nombres");  // Remove password key (if stored directly)
+            editor.remove("apellido_paterno");  // Remove password key (if stored directly)
+            editor.remove("apellido_materno");  // Remove password key (if stored directly)
+            editor.remove("telefono");  // Remove password key (if stored directly)
+            editor.remove("id_rol");  // Remove password key (if stored directly)
+            editor.apply(); // Apply changes to SharedPreferences*/
+        }catch (Exception e){
+            Messages.showErrorDetail(this, e);
+        }
     }
 
     private CompletableFuture<ResponseBody> descargarRutas() {
@@ -1387,7 +1401,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     for (int j = 0; j < zonasArray.length(); j++) {
                                         zonas[j] = zonasArray.getInt(j);
                                     }
-                                    int[] truckSpecIds = {1,2,3};
+                                    //int[] truckSpecIds = {1,2,3};
+                                    JSONArray vehiculosArray = rutaObject.getJSONArray("vehiculos");
+                                    // Calcular el tamaño del array de enteros de antemano
+                                    int[] truckSpecIds = new int[vehiculosArray.length()];
+                                    for (int j = 0; j < vehiculosArray.length(); j++) {
+                                        truckSpecIds[j] = vehiculosArray.getInt(j);
+                                    }
                                     // Guardar la zona en la base de datos
                                     try {
                                         dbHelper.saveRuta(
@@ -1551,7 +1571,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                             dbHelper.deleteZona(zonas[j]);
                                         }
                                     }
-                                    int[] truckSpecIds = {1,2,3};
+                                    //int[] truckSpecIds = {1,2,3};
+                                    JSONArray vehiculosArray = rutaObject.getJSONArray("vehiculos");
+                                    // Calcular el tamaño del array de enteros de antemano
+                                    int[] truckSpecIds = new int[vehiculosArray.length()];
+                                    for (int j = 0; j < vehiculosArray.length(); j++) {
+                                        truckSpecIds[j] = vehiculosArray.getInt(j);
+                                    }
                                     // Guardar la zona en la base de datos
                                     try {
                                         dbHelper.saveRuta(
@@ -1611,12 +1637,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (currentGeoCoordinates != null && destinationGeoCoordinates != null) {
                 List<GeoCoordinates> puntos_de_control = new ArrayList<>();
                 List<MapPolygon> zonas = new ArrayList<>();
+                int id_vehiculo = 3;
+                if(ruta.truckSpectIds!=null){
+                    for (int i = 0; i < ruta.truckSpectIds.length; i++) {
+                        if(ruta.truckSpectIds[i] > id_vehiculo){
+                            id_vehiculo = ruta.truckSpectIds[i];
+                        }
+                    }
+                }
                 if(ruta.puntosIds!=null){
                     for (int i = 0; i < controlPointsExample.pointsWithIds.size(); i++) {
                         boolean foundPuntoDeControl = false;
                         for (int id : ruta.puntosIds) {
                             if (id == controlPointsExample.pointsWithIds.get(i).id) {
                                 foundPuntoDeControl = true;
+                                break;
+                            }
+                        }
+                        for (int id_completado : navigationExample.getNavigationEventHandler().puntos_completados){
+                            if (controlPointsExample.pointsWithIds.get(i).id == id_completado) {
+                                foundPuntoDeControl = false;
                                 break;
                             }
                         }
@@ -1652,7 +1692,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                     }
                 }
-                routingExample.addRoute(zonas,puntos_de_control,currentGeoCoordinates, destinationGeoCoordinates, null,ruta.coordinatesInicio, new RoutingExample.RouteCallback() {
+                GeoCoordinates coordenadasIniciales = null;
+                if(navigationExample.getNavigationEventHandler().puntos_completados.size()==0){
+                    coordenadasIniciales = ruta.coordinatesInicio;
+                }
+                routingExample.addRoute(zonas,puntos_de_control,currentGeoCoordinates, ruta.coordinatesFin, null,coordenadasIniciales, id_vehiculo, new RoutingExample.RouteCallback() {
                     @Override
                     public void onRouteCalculated(Route route) {
                         if (route != null) {

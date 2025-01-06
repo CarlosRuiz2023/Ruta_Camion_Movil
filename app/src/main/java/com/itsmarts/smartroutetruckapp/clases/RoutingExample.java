@@ -61,6 +61,7 @@ import com.here.sdk.transport.TruckSpecifications;
 import com.itsmarts.smartroutetruckapp.MainActivity;
 import com.itsmarts.smartroutetruckapp.R;
 import com.itsmarts.smartroutetruckapp.helpers.Distances;
+import com.itsmarts.smartroutetruckapp.modelos.TruckSpec;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -123,25 +124,15 @@ public class RoutingExample {
         this.largoIngresado = largo;
     }
 
-    public void addRoute(List<MapPolygon> poligonos, List<GeoCoordinates> puntos,GeoCoordinates startCoordinates, GeoCoordinates destinationCoordinates, GeoCoordinates geoCoordinatesPOI, GeoCoordinates geoCoordinatesInicioRuta, RouteCallback callback) {
+    public void addRoute(List<MapPolygon> poligonos, List<GeoCoordinates> puntos,GeoCoordinates startCoordinates, GeoCoordinates destinationCoordinates, GeoCoordinates geoCoordinatesPOI, GeoCoordinates geoCoordinatesInicioRuta,int id_vehiculo, RouteCallback callback) {
         clearMap();
         TruckSpecifications truckSpecifications = new TruckSpecifications();
-        truckSpecifications.grossWeightInKilograms = DEFAULT_TONELADAS * 1000;
-        truckSpecifications.heightInCentimeters = DEFAULT_ALTO * 100;
-        truckSpecifications.widthInCentimeters = DEFAULT_ANCHO * 100;
-        truckSpecifications.lengthInCentimeters = DEFAULT_LARGO * 100;
-        if (toneladasIngresadas > 0) {
-            truckSpecifications.grossWeightInKilograms = (int)(toneladasIngresadas * 1000);
-        }
-        if (altoIngresado > 0) {
-            truckSpecifications.heightInCentimeters = (int)(altoIngresado * 100);
-        }
-        if (anchoIngresado > 0) {
-            truckSpecifications.widthInCentimeters = (int)(anchoIngresado * 100);
-        }
-        if (largoIngresado > 0) {
-            truckSpecifications.lengthInCentimeters = (int)(largoIngresado * 100);
-        }
+        TruckSpec truckSpec = mainActivity.dbHelper.getCamion(id_vehiculo);
+        truckSpecifications.grossWeightInKilograms = truckSpec.toneladas;
+        truckSpecifications.heightInCentimeters = truckSpec.altura;
+        truckSpecifications.widthInCentimeters = truckSpec.ancho;
+        truckSpecifications.lengthInCentimeters = truckSpec.largo;
+
         startGeoCoordinates = startCoordinates;
         destinationGeoCoordinates = destinationCoordinates;
 

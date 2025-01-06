@@ -14,4 +14,7 @@
     <color name="selected_background">#0091EA</color>
     <color name="purple">#767676</color>
     <color name="gray">#304FFE</color>
+    <color name="colorPrimary">#06368b</color> <!-- COLOR WEB -->
+    <color name="colorError">#B00020</color>
+    <color name="naranja">#D69D82</color>
 </resources>

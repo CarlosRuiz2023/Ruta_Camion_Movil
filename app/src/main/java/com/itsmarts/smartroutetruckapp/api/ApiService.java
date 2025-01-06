@@ -40,5 +40,8 @@ public interface ApiService {
 
     @POST("api/auth/logout")
     Call<ResponseBody> desloguearse();
+
+    @POST("api/usuarios/desloguear/{id}")
+    Call<ResponseBody> getDesloguearUsuario(@Path("id") int id);
 }
 
