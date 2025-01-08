@@ -17,6 +17,7 @@ package com.itsmarts.smartroutetruckapp.clases;/*
  * License-Filename: LICENSE
  */
 
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
@@ -25,7 +26,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
 import com.here.sdk.core.Color;
+import com.here.sdk.core.GeoBox;
 import com.here.sdk.core.GeoCoordinates;
+import com.here.sdk.core.GeoOrientationUpdate;
 import com.here.sdk.core.GeoPolygon;
 import com.here.sdk.core.GeoPolyline;
 import com.here.sdk.core.errors.InstantiationErrorException;
@@ -61,6 +64,7 @@ import com.here.sdk.transport.TruckSpecifications;
 import com.itsmarts.smartroutetruckapp.MainActivity;
 import com.itsmarts.smartroutetruckapp.R;
 import com.itsmarts.smartroutetruckapp.helpers.Distances;
+import com.itsmarts.smartroutetruckapp.modelos.Triple;
 import com.itsmarts.smartroutetruckapp.modelos.TruckSpec;
 
 import java.text.DateFormat;
@@ -86,6 +90,8 @@ public class RoutingExample {
     public static final int DEFAULT_LARGO = 8;
     private double toneladasIngresadas, altoIngresado, anchoIngresado, largoIngresado;
     private MainActivity mainActivity;
+    // Define la duración de la animación de zoom en milisegundos
+    final long zoomAnimationDuration = 1000L;
 
     public RoutingExample(MainActivity mainActivity) {
         this.context = mainActivity.getApplicationContext();
@@ -124,7 +130,7 @@ public class RoutingExample {
         this.largoIngresado = largo;
     }
 
-    public void addRoute(List<MapPolygon> poligonos, List<GeoCoordinates> puntos,GeoCoordinates startCoordinates, GeoCoordinates destinationCoordinates, GeoCoordinates geoCoordinatesPOI, GeoCoordinates geoCoordinatesInicioRuta,int id_vehiculo, RouteCallback callback) {
+    public void addRoute(List<MapPolygon> poligonos, List<GeoCoordinates> puntos,GeoCoordinates startCoordinates, GeoCoordinates destinationCoordinates, GeoCoordinates geoCoordinatesPOI, GeoCoordinates geoCoordinatesInicioRuta,int id_vehiculo,boolean orden_automatico, RouteCallback callback) {
         clearMap();
         TruckSpecifications truckSpecifications = new TruckSpecifications();
         TruckSpec truckSpec = mainActivity.dbHelper.getCamion(id_vehiculo);
@@ -174,43 +180,84 @@ public class RoutingExample {
                             // Get the first route from the list
                             Route route = routes.get(0);
                             if (puntos.size() > 0 || geoCoordinatesPOI != null) {
-                                double routeLength = route.getLengthInMeters();
+                                /*double routeLength = route.getLengthInMeters();
                                 GeoPolyline polyline = route.getGeometry();
                                 double threshold = routeLength * 0.5; // 50% de la longitud de la ruta
                                 if(threshold > 10000){
                                     threshold = 10000;
-                                }
-                                // Crea una lista de pares (waypoint, distancia)
-                                List<Pair<Waypoint, Double>> waypointDistances = new ArrayList<>();
-                                for (GeoCoordinates punto : puntos) {
-                                    double distanceToStart = 0.0;
-                                    if(geoCoordinatesInicioRuta!=null){
-                                        distanceToStart = punto.distanceTo(geoCoordinatesInicioRuta);
-                                    }else{
-                                        distanceToStart = punto.distanceTo(startGeoCoordinates);
+                                }*/
+                                if(!orden_automatico){
+                                    Log.e("Prueba","Entro");
+                                    // Crea una lista de pares (waypoint, distancia)
+                                    List<Triple<Waypoint, Double, Boolean>> waypointDistances = new ArrayList<>();
+                                    for (GeoCoordinates punto : puntos) {
+                                        double distanceToStart = 0.0;
+                                        if(geoCoordinatesInicioRuta!=null){
+                                            distanceToStart = punto.distanceTo(geoCoordinatesInicioRuta);
+                                        }else{
+                                            distanceToStart = punto.distanceTo(startGeoCoordinates);
+                                        }
+                                        /*double distanceToDestination = punto.distanceTo(destinationGeoCoordinates);
+                                        double distanceToPolyne = Distances.distanceToPolyline(punto,polyline);
+                                        if (distanceToPolyne <= threshold || distanceToStart <= threshold || distanceToDestination <= threshold) {
+                                            //addCircleMapMarker(punto, R.drawable.red_dot);
+                                            waypointDistances.add(new Pair<>(new Waypoint(punto), distanceToStart));
+                                        }*/
+                                        waypointDistances.add(new Triple<>(new Waypoint(punto), distanceToStart,true));
                                     }
-                                    /*double distanceToDestination = punto.distanceTo(destinationGeoCoordinates);
-                                    double distanceToPolyne = Distances.distanceToPolyline(punto,polyline);
-                                    if (distanceToPolyne <= threshold || distanceToStart <= threshold || distanceToDestination <= threshold) {
-                                        //addCircleMapMarker(punto, R.drawable.red_dot);
+                                    if(geoCoordinatesPOI!=null){
+                                        double distanceToStartPoi = geoCoordinatesPOI.distanceTo(startGeoCoordinates);
+                                        waypointDistances.add(new Triple<>(new Waypoint(geoCoordinatesPOI), distanceToStartPoi,false));
+                                    }
+                                    // Ordena la lista de pares por distancia al punto intermedio
+                                    waypointDistances.sort((p1, p2) -> Double.compare(p1.second, p2.second));
+                                    if(geoCoordinatesInicioRuta != null){
+                                        waypointsFinales.add(new Waypoint(geoCoordinatesInicioRuta));
+                                    }
+                                    int cont =0;
+                                    // Agrega los waypoints ordenados a la lista final
+                                    for (Triple<Waypoint, Double, Boolean> triple : waypointDistances) {
+                                        if(!triple.third){
+                                            waypointsFinales.add(triple.first);
+                                        }else{
+                                            Log.e("Prueba","Entro: "+puntos.get(cont).latitude+","+puntos.get(cont).longitude);
+                                            waypointsFinales.add(new Waypoint(puntos.get(cont)));
+                                        }
+                                        cont++;
+                                    }
+                                    waypointsFinales.add(new Waypoint(destinationGeoCoordinates));
+                                }else{
+                                    List<Pair<Waypoint, Double>> waypointDistances = new ArrayList<>();
+                                    for (GeoCoordinates punto : puntos) {
+                                        double distanceToStart = 0.0;
+                                        if(geoCoordinatesInicioRuta!=null){
+                                            distanceToStart = punto.distanceTo(geoCoordinatesInicioRuta);
+                                        }else{
+                                            distanceToStart = punto.distanceTo(startGeoCoordinates);
+                                        }
+                                        /*double distanceToDestination = punto.distanceTo(destinationGeoCoordinates);
+                                        double distanceToPolyne = Distances.distanceToPolyline(punto,polyline);
+                                        if (distanceToPolyne <= threshold || distanceToStart <= threshold || distanceToDestination <= threshold) {
+                                            //addCircleMapMarker(punto, R.drawable.red_dot);
+                                            waypointDistances.add(new Pair<>(new Waypoint(punto), distanceToStart));
+                                        }*/
                                         waypointDistances.add(new Pair<>(new Waypoint(punto), distanceToStart));
-                                    }*/
-                                    waypointDistances.add(new Pair<>(new Waypoint(punto), distanceToStart));
+                                    }
+                                    if(geoCoordinatesPOI!=null){
+                                        double distanceToStartPoi = geoCoordinatesPOI.distanceTo(startGeoCoordinates);
+                                        waypointDistances.add(new Pair<>(new Waypoint(geoCoordinatesPOI), distanceToStartPoi));
+                                    }
+                                    // Ordena la lista de pares por distancia al punto intermedio
+                                    waypointDistances.sort((p1, p2) -> Double.compare(p1.second, p2.second));
+                                    if(geoCoordinatesInicioRuta != null){
+                                        waypointsFinales.add(new Waypoint(geoCoordinatesInicioRuta));
+                                    }
+                                    // Agrega los waypoints ordenados a la lista final
+                                    for (Pair<Waypoint, Double> pair : waypointDistances) {
+                                        waypointsFinales.add(pair.first);
+                                    }
+                                    waypointsFinales.add(new Waypoint(destinationGeoCoordinates));
                                 }
-                                if(geoCoordinatesPOI!=null){
-                                    double distanceToStartPoi = geoCoordinatesPOI.distanceTo(startGeoCoordinates);
-                                    waypointDistances.add(new Pair<>(new Waypoint(geoCoordinatesPOI), distanceToStartPoi));
-                                }
-                                // Ordena la lista de pares por distancia al punto intermedio
-                                waypointDistances.sort((p1, p2) -> Double.compare(p1.second, p2.second));
-                                if(geoCoordinatesInicioRuta != null){
-                                    waypointsFinales.add(new Waypoint(geoCoordinatesInicioRuta));
-                                }
-                                // Agrega los waypoints ordenados a la lista final
-                                for (Pair<Waypoint, Double> pair : waypointDistances) {
-                                    waypointsFinales.add(pair.first);
-                                }
-                                waypointsFinales.add(new Waypoint(destinationGeoCoordinates));
                             } else {
                                 if(geoCoordinatesInicioRuta != null){
                                     waypointsFinales = new ArrayList<>(Arrays.asList(new Waypoint(startGeoCoordinates), new Waypoint(geoCoordinatesInicioRuta), new Waypoint(destinationGeoCoordinates)));
@@ -240,6 +287,15 @@ public class RoutingExample {
                                                         addCircleMapMarker(waypointsList.get(i).coordinates, R.drawable.waypoint);
                                                     }
                                                 }
+                                                // Calcular la extensión de la ruta
+                                                GeoBox geoBox = calculateRouteGeoBox(route);
+                                                // Calcular el centro del GeoBox
+                                                GeoCoordinates center = calculateGeoBoxCenter(route);
+                                                // Configurar la cámara para que se ajuste a la extensión de la ruta
+                                                mainActivity.mapView.getCamera().lookAt(geoBox, new GeoOrientationUpdate(center.latitude, center.longitude));
+                                                // Ajustar el nivel de zoom para que toda la ruta sea visible en el mapa
+                                                //mainActivity.mapView.getCamera().zoomTo(adjustZoomLevel(route));
+                                                //animateZoom(adjustZoomLevel(route));
                                             } else {
                                                 String errorMessage = (routingError != null) ? routingError.toString() : "No se encontró una ruta";
                                                 showDialog("Error al calcular la ruta", errorMessage);
@@ -418,5 +474,130 @@ public class RoutingExample {
 
     public interface RouteCallback {
         void onRouteCalculated(Route route);
+    }
+
+    private GeoBox calculateRouteGeoBox(Route route) {
+        // Tomamos los puntos de inicio y fin de la ruta
+        List<GeoCoordinates> coordinates = route.getGeometry().vertices;
+        double minLat = Double.MAX_VALUE, maxLat = -Double.MAX_VALUE;
+        double minLon = Double.MAX_VALUE, maxLon = -Double.MAX_VALUE;
+        // Iteramos sobre los puntos de inicio y fin de la ruta
+        for (GeoCoordinates coord : coordinates) {
+            if (coord.latitude < minLat) {
+                minLat = coord.latitude;
+            }
+            if (coord.latitude > maxLat) {
+                maxLat = coord.latitude;
+            }
+            if (coord.longitude < minLon) {
+                minLon = coord.longitude;
+            }
+            if (coord.longitude > maxLon) {
+                maxLon = coord.longitude;
+            }
+        }
+        // Añadimos un margen (ajusta el valor según tus necesidades)
+        double margin = 0.2; // Ejemplo: 0.01 grados
+        minLat -= margin;
+        maxLat += margin;
+        minLon -= margin;
+        maxLon += margin;
+        // Devolvemos el GeoBox calculado
+        return new GeoBox(
+                new GeoCoordinates(minLat, minLon),
+                new GeoCoordinates(maxLat, maxLon)
+        );
+    }
+
+    private GeoCoordinates calculateGeoBoxCenter(Route route){
+        // Tomamos los puntos de inicio y fin de la ruta
+        List<GeoCoordinates> coordinates = route.getGeometry().vertices;
+        double minLat = Double.MAX_VALUE, maxLat = -Double.MAX_VALUE;
+        double minLon = Double.MAX_VALUE, maxLon = -Double.MAX_VALUE;
+        // Iteramos sobre los puntos de inicio y fin de la ruta
+        for (GeoCoordinates coord : coordinates) {
+            if (coord.latitude < minLat) {
+                minLat = coord.latitude;
+            }
+            if (coord.latitude > maxLat) {
+                maxLat = coord.latitude;
+            }
+            if (coord.longitude < minLon) {
+                minLon = coord.longitude;
+            }
+            if (coord.longitude > maxLon) {
+                maxLon = coord.longitude;
+            }
+        }
+        // Añadimos un margen (ajusta el valor según tus necesidades)
+        double margin = 0.2; // Ejemplo: 0.01 grados
+        minLat -= margin;
+        maxLat += margin;
+        minLon -= margin;
+        maxLon += margin;
+        // Calcular el centro del GeoBox
+        double centerLat = (minLat + maxLat) / 2;
+        double centerLon = (minLon + maxLon) / 2;
+        // Devolver el centro del GeoBox
+        return new GeoCoordinates(centerLat, centerLon);
+    }
+
+    private double adjustZoomLevel(Route route) {
+        // Tomamos los puntos de inicio y fin de la ruta
+        List<GeoCoordinates> coordinates = route.getGeometry().vertices;
+        double minLat = Double.MAX_VALUE, maxLat = -Double.MAX_VALUE;
+        double minLon = Double.MAX_VALUE, maxLon = -Double.MAX_VALUE;
+        // Iteramos sobre los puntos de inicio y fin de la ruta
+        for (GeoCoordinates coord : coordinates) {
+            if (coord.latitude < minLat) {
+                minLat = coord.latitude;
+            }
+            if (coord.latitude > maxLat) {
+                maxLat = coord.latitude;
+            }
+            if (coord.longitude < minLon) {
+                minLon = coord.longitude;
+            }
+            if (coord.longitude > maxLon) {
+                maxLon = coord.longitude;
+            }
+        }
+        // Añadimos un margen (ajusta el valor según tus necesidades)
+        double margin = 0.2; // Ejemplo: 0.01 grados
+        minLat -= margin;
+        maxLat += margin;
+        minLon -= margin;
+        maxLon += margin;
+        // Ejemplo de cálculo basado en la latitud y longitud del GeoBox
+        double latDiff = maxLat - minLat;
+        double lonDiff = maxLon - minLon;
+        // La siguiente línea es un ejemplo y necesitarás ajustarla según cómo tu API maneje el zoom
+        double maxDiff = Math.max(latDiff, lonDiff);
+        // Calcular el nivel de zoom basado en el tamaño del GeoBox
+        double zoomLevel = (Math.log(360 / maxDiff) / Math.log(2)) - 0.5;
+        // Suponiendo que tu API de mapas tiene un método para ajustar el nivel de zoom basado en una GeoBox
+        return zoomLevel;
+    }
+
+    // Método para animar el zoom suavemente
+    private void animateZoom(double targetZoomLevel) {
+        // Toma el nivel de zoom actual
+        double currentZoomLevel = mainActivity.mapView.getCamera().getState().zoomLevel;
+        // Genera una animación de valor para el nivel de zoom del actual al que deberia llegar segun la animacion
+        ValueAnimator animator = ValueAnimator.ofFloat((float) currentZoomLevel, (float) targetZoomLevel);
+        // Establece la duración de la animación en milisegundos
+        animator.setDuration(zoomAnimationDuration);
+        // Añadimos un oyente en la animación para actualizar del nivel de zoom
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                // Toma el valor actual de la animación
+                float animatedValue = (float) valueAnimator.getAnimatedValue();
+                // Establece el nuevo nivel de zoom
+                mainActivity.mapView.getCamera().setDistanceToTarget(animatedValue);
+            }
+        });
+        // Inicia la animación
+        animator.start();
     }
 }

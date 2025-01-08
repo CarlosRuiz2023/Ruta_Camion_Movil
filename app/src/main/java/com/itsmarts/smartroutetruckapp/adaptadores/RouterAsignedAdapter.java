@@ -19,8 +19,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.button.MaterialButton;
 import com.here.sdk.core.GeoCoordinates;
+import com.here.sdk.core.GeoCoordinatesUpdate;
+import com.here.sdk.mapview.MapCameraAnimation;
+import com.here.sdk.mapview.MapCameraAnimationFactory;
+import com.here.sdk.mapview.MapMeasure;
 import com.here.sdk.mapview.MapPolygon;
 import com.here.sdk.routing.Route;
+import com.here.time.Duration;
 import com.itsmarts.smartroutetruckapp.MainActivity;
 import com.itsmarts.smartroutetruckapp.R;
 import com.itsmarts.smartroutetruckapp.clases.RoutingExample;
@@ -86,12 +91,6 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
             routeCardView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    showRouteInfoDialog(getAdapterPosition());
-                }
-            });
-            btnStartRoute.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
                     alertDialogRutaMaster.dismiss();
                     View dialogView = mainActivity.getLayoutInflater().inflate(R.layout.ventana_seleccionar_tipo_ruta, null);
                     AlertDialog.Builder builder = new AlertDialog.Builder(mainActivity);
@@ -133,7 +132,12 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                 @Override
                                 public void run() {
                                     mainActivity.ruta=rutas.get(getAdapterPosition());
-                                    Log.d("Prueba", "orden_automatico: "+rutas.get(getAdapterPosition()).orden_automatico);
+                                    /*GeoCoordinatesUpdate geoCoordinatesUpdate = new GeoCoordinatesUpdate(mainActivity.currentGeoCoordinates);
+                                    MapMeasure mapMeasureZoom = new MapMeasure(MapMeasure.Kind.DISTANCE, 1000.0);
+                                    double bowFactor = 1;
+                                    MapCameraAnimation animation = MapCameraAnimationFactory.flyTo(
+                                            geoCoordinatesUpdate, mapMeasureZoom, bowFactor, Duration.ofSeconds(3));
+                                    mainActivity.mapView.getCamera().startAnimation(animation);*/
                                     alertDialogRuta.dismiss();
                                     List<GeoCoordinates> puntos_de_control = new ArrayList<>();
                                     List<MapPolygon> zonas = new ArrayList<>();
@@ -146,21 +150,17 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                         }
                                     }
                                     if(mainActivity.ruta.puntosIds!=null){
-                                        for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
-                                            boolean foundPuntoDeControl = false;
-                                            for (int id : mainActivity.ruta.puntosIds) {
+                                        for (int id : mainActivity.ruta.puntosIds) {
+                                            for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
                                                 if (id == mainActivity.controlPointsExample.pointsWithIds.get(i).id) {
-                                                    foundPuntoDeControl = true;
+                                                    if (mainActivity.controlPointsExample.pointsWithIds.get(i).status) {
+                                                        mainActivity.controlPointsExample.pointsWithIds.get(i).visibility=true;
+                                                        mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
+                                                        puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
+                                                        mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
+                                                        //mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
+                                                    }
                                                     break;
-                                                }
-                                            }
-                                            if (foundPuntoDeControl) {
-                                                if (mainActivity.controlPointsExample.pointsWithIds.get(i).status) {
-                                                    mainActivity.controlPointsExample.pointsWithIds.get(i).visibility=true;
-                                                    mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
-                                                    puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
-                                                    mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
-                                                    mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
                                                 }
                                             }
                                         }
@@ -187,15 +187,15 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                             }
                                         }
                                     }
-                                    mainActivity.mapView.getMapScene().addMapPolyline(mainActivity.ruta.polyline);
                                     mainActivity.geocercas.drawGeofenceAroundPolyline(mainActivity.ruta.polyline, 100.0);
+                                    mainActivity.mapView.getMapScene().addMapPolyline(mainActivity.ruta.polyline);
                                     mainActivity.llLoadingRoute.setVisibility(View.GONE);
                                     //mainActivity.likeImageView1.setVisibility(View.GONE);
                                     mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
                                     mainActivity.llGeocerca.setVisibility(VISIBLE);
                                     mainActivity.controlPointsExample.cleanPoint();
                                     mainActivity.avoidZonesExample.cleanPolygon();
-                                    mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,id_vehiculo, new RoutingExample.RouteCallback() {
+                                    mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,id_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
                                         @Override
                                         public void onRouteCalculated(Route route) {
                                             if (route != null) {
@@ -255,21 +255,17 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                         }
                                     }
                                     if(mainActivity.ruta.puntosIds!=null){
-                                        for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
-                                            boolean foundPuntoDeControl = false;
-                                            for (int id : mainActivity.ruta.puntosIds) {
+                                        for (int id : mainActivity.ruta.puntosIds) {
+                                            for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
                                                 if (id == mainActivity.controlPointsExample.pointsWithIds.get(i).id) {
-                                                    foundPuntoDeControl = true;
+                                                    if (mainActivity.controlPointsExample.pointsWithIds.get(i).status) {
+                                                        mainActivity.controlPointsExample.pointsWithIds.get(i).visibility=true;
+                                                        mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
+                                                        puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
+                                                        mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
+                                                        //mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
+                                                    }
                                                     break;
-                                                }
-                                            }
-                                            if (foundPuntoDeControl) {
-                                                if (mainActivity.controlPointsExample.pointsWithIds.get(i).status) {
-                                                    mainActivity.controlPointsExample.pointsWithIds.get(i).visibility=true;
-                                                    mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
-                                                    puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
-                                                    mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
-                                                    mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
                                                 }
                                             }
                                         }
@@ -303,7 +299,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                     mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
                                     mainActivity.controlPointsExample.cleanPoint();
                                     mainActivity.avoidZonesExample.cleanPolygon();
-                                    mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,id_vehiculo, new RoutingExample.RouteCallback() {
+                                    mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,id_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
                                         @Override
                                         public void onRouteCalculated(Route route) {
                                             if (route != null) {
@@ -346,6 +342,12 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                         }
                     });
                     alertDialogRuta.show();
+                }
+            });
+            btnStartRoute.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    showRouteInfoDialog(getAdapterPosition());
                 }
             });
             alertDialogRutaMaster.show();

@@ -110,21 +110,17 @@ public class Messages {
                             }
                         }
                         if(mainActivity.ruta.puntosIds!=null){
-                            for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
-                                boolean foundPuntoDeControl = false;
-                                for (int id : mainActivity.ruta.puntosIds) {
+                            for (int id : mainActivity.ruta.puntosIds) {
+                                for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
                                     if (id == mainActivity.controlPointsExample.pointsWithIds.get(i).id) {
-                                        foundPuntoDeControl = true;
+                                        if (mainActivity.controlPointsExample.pointsWithIds.get(i).status) {
+                                            mainActivity.controlPointsExample.pointsWithIds.get(i).visibility=true;
+                                            mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
+                                            puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
+                                            mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
+                                            //mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
+                                        }
                                         break;
-                                    }
-                                }
-                                if (foundPuntoDeControl) {
-                                    if (mainActivity.controlPointsExample.pointsWithIds.get(i).status) {
-                                        mainActivity.controlPointsExample.pointsWithIds.get(i).visibility=true;
-                                        mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
-                                        puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
-                                        mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
-                                        mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
                                     }
                                 }
                             }
@@ -151,7 +147,7 @@ public class Messages {
                                 }
                             }
                         }
-                        mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, geoCoordinatesPOI, mainActivity.ruta.coordinatesInicio,id_vehiculo, new RoutingExample.RouteCallback() {
+                        mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, geoCoordinatesPOI, mainActivity.ruta.coordinatesInicio,id_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
                             @Override
                             public void onRouteCalculated(Route route) {
                                 if (route != null) {
@@ -189,7 +185,7 @@ public class Messages {
                         mainActivity.clearMapMarkersPOIsAndCircle(true);
                         List<GeoCoordinates> puntos = new ArrayList<>();
                         List<MapPolygon> poligonos = new ArrayList<>();
-                        mainActivity.routingExample.addRoute(poligonos,puntos,mainActivity.currentGeoCoordinates,geoCoordinatesPOI, null, null,1, new RoutingExample.RouteCallback() {
+                        mainActivity.routingExample.addRoute(poligonos,puntos,mainActivity.currentGeoCoordinates,geoCoordinatesPOI, null, null,1,true, new RoutingExample.RouteCallback() {
                             @Override
                             public void onRouteCalculated(Route route) {
                                 if (route != null) {

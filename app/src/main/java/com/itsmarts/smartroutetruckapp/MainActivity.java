@@ -1302,7 +1302,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onDestroy() {
         try {
-            super.onDestroy();
+            //super.onDestroy();
             mapView.onDestroy();
             mMapHelper.disposeHERESDK();
             navigationExample.stopNavigation(false);
@@ -1656,6 +1656,26 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                 }
                 if(ruta.puntosIds!=null){
+                    for (int id : ruta.puntosIds) {
+                        for (int i = 0; i < controlPointsExample.pointsWithIds.size(); i++) {
+                            if (id == controlPointsExample.pointsWithIds.get(i).id) {
+                                if (controlPointsExample.pointsWithIds.get(i).status) {
+                                    for (int id_completado : navigationExample.getNavigationEventHandler().puntos_completados){
+                                        if (controlPointsExample.pointsWithIds.get(i).id != id_completado) {
+                                            controlPointsExample.pointsWithIds.get(i).visibility=true;
+                                            controlPointsExample.pointsWithIds.get(i).label=true;
+                                            puntos_de_control.add(controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
+                                            puntos.add(controlPointsExample.pointsWithIds.get(i));
+                                            //mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                if(ruta.puntosIds!=null){
                     for (int i = 0; i < controlPointsExample.pointsWithIds.size(); i++) {
                         boolean foundPuntoDeControl = false;
                         for (int id : ruta.puntosIds) {
@@ -1664,12 +1684,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 break;
                             }
                         }
-                        for (int id_completado : navigationExample.getNavigationEventHandler().puntos_completados){
-                            if (controlPointsExample.pointsWithIds.get(i).id == id_completado) {
-                                foundPuntoDeControl = false;
-                                break;
-                            }
-                        }
+
                         if (foundPuntoDeControl) {
                             if (controlPointsExample.pointsWithIds.get(i).status) {
                                 controlPointsExample.pointsWithIds.get(i).visibility=true;
@@ -1706,7 +1721,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if(navigationExample.getNavigationEventHandler().puntos_completados.size()==0){
                     coordenadasIniciales = ruta.coordinatesInicio;
                 }
-                routingExample.addRoute(zonas,puntos_de_control,currentGeoCoordinates, ruta.coordinatesFin, null,coordenadasIniciales, id_vehiculo, new RoutingExample.RouteCallback() {
+                routingExample.addRoute(zonas,puntos_de_control,currentGeoCoordinates, ruta.coordinatesFin, null,coordenadasIniciales, id_vehiculo,ruta.orden_automatico, new RoutingExample.RouteCallback() {
                     @Override
                     public void onRouteCalculated(Route route) {
                         if (route != null) {
@@ -1790,4 +1805,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    @Override
+    public void onBackPressed() {
+        //super.onBackPressed();
+        // Muestra un mensaje o realiza otra acción si no se permite regresar
+        Toast.makeText(this, "Para regresar a la pantalla de inicio debes cerrar sesion", Toast.LENGTH_SHORT).show();
+    }
 }

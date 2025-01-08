@@ -150,7 +150,21 @@
         android:textColor="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/btnTerminarRuta" />
+        app:layout_constraintTop_toBottomOf="@+id/btnTerminarRuta"/>
+
+    <!--<TextView
+        android:id="@+id/recalculateRouteButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:elevation="2dp"
+        android:textSize="20sp"
+        android:textAlignment="center"
+        android:textColor="@color/white"
+        android:visibility="visible"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />-->
 
     <TextView
         android:id="@+id/speedTextView"

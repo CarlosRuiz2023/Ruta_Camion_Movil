@@ -26,6 +26,7 @@ import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
@@ -33,8 +34,11 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 
 import com.here.sdk.core.GeoCoordinates;
+import com.here.sdk.core.GeoCoordinatesUpdate;
 import com.here.sdk.core.LanguageCode;
 import com.here.sdk.core.UnitSystem;
+import com.here.sdk.mapview.MapCameraAnimation;
+import com.here.sdk.mapview.MapCameraAnimationFactory;
 import com.here.sdk.mapview.MapMeasure;
 import com.here.sdk.mapview.MapPolygon;
 import com.here.sdk.navigation.AspectRatio;
@@ -111,6 +115,7 @@ import com.here.sdk.routing.RoadType;
 import com.here.sdk.routing.Route;
 import com.here.sdk.trafficawarenavigation.DynamicRoutingEngine;
 import com.here.sdk.transport.GeneralVehicleSpeedLimits;
+import com.here.time.Duration;
 import com.itsmarts.smartroutetruckapp.MainActivity;
 import com.itsmarts.smartroutetruckapp.R;
 import com.itsmarts.smartroutetruckapp.helpers.Messages;
@@ -353,7 +358,7 @@ public class NavigationEventHandler {
                         double distanceInMeters = 1000 * 0.5;
                         MapMeasure mapMeasureZoom = new MapMeasure(MapMeasure.Kind.DISTANCE, distanceInMeters);
                         mainActivity.mapView.getCamera().lookAt(currentNavigableLocation.originalLocation.coordinates, mapMeasureZoom);
-                        //mainActivity.mMapHelper.flyTo(mainActivity.currentGeoCoordinates);
+                        mainActivity.mMapHelper.flyTo(mainActivity.currentGeoCoordinates);
                     } else if (mainActivity.currentGeoCoordinates != currentNavigableLocation.originalLocation.coordinates) {
                         mainActivity.currentGeoCoordinates = currentNavigableLocation.originalLocation.coordinates;
                     }
@@ -430,11 +435,12 @@ public class NavigationEventHandler {
                                                     "Zona Prohibida",
                                                     "Has entrado en la zona prohibida " + polygonWithId.name + "."
                                             );
-                                            mainActivity.recalculateRouteButton.setBackgroundColor(R.color.red);
+                                            mainActivity.recalculateRouteButton.setBackgroundColor(mainActivity.getResources().getColor(R.color.red, null));
                                             mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
                                             mainActivity.recalculateRouteButton.setEnabled(false);
                                             mainActivity.recalculateRouteButton.setText("Has entrado en la zona prohibida " + polygonWithId.name + ".");
                                             validacionZona = true;
+                                            hasNotifiedForbiddenZoneEarly = true;
                                             break;
                                         }
                                     }
@@ -452,11 +458,12 @@ public class NavigationEventHandler {
                                                     "Zona Peligrosa",
                                                     "Has entrado en la zona peligrosa " + polygonWithId.name + "."
                                             );
-                                            mainActivity.recalculateRouteButton.setBackgroundColor(R.color.black);
+                                            mainActivity.recalculateRouteButton.setBackgroundColor(mainActivity.getResources().getColor(R.color.pressed_background, null));
                                             mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
                                             mainActivity.recalculateRouteButton.setEnabled(false);
                                             mainActivity.recalculateRouteButton.setText("Has entrado en la zona peligrosa " + polygonWithId.name + ".");
                                             validacionZona = true;
+                                            hasNotifiedForbiddenZoneEarly = true;
                                             break;
                                         }
                                     }
@@ -467,7 +474,7 @@ public class NavigationEventHandler {
                             mainActivity.recalculateRouteButton.setVisibility(View.GONE);
                         } else {
                             // Iniciar el temporizador al comienzo
-                            handler.postDelayed(resetFlagsRunnable, 60000);
+                            handler.postDelayed(resetFlagsRunnable, 3000);
                         }
                     }
 
@@ -512,7 +519,7 @@ public class NavigationEventHandler {
                     Log.d(TAG, "RouteDeviation in meters is " + distanceInMeters);
 
                     if (distanceInMeters > 50 && !validacionZona) {
-                        mainActivity.recalculateRouteButton.setBackgroundColor(R.color.naranja);
+                        mainActivity.recalculateRouteButton.setBackgroundColor(mainActivity.getResources().getColor(R.color.naranja, null));
                         mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
                         mainActivity.recalculateRouteButton.setEnabled(true);
                         mainActivity.recalculateRouteButton.setText("Desviación de: " + distanceInMeters + "m. Recalcular ruta");
