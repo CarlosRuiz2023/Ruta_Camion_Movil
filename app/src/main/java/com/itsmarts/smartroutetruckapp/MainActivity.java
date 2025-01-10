@@ -979,7 +979,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mapView.getMapScene().removeMapPolyline(ruta.polyline);
             ruta=null;
         }
-        if(geocercas!=null){
+        if(geocercas.geocercas!=null){
             mapView.getMapScene().removeMapPolygon(geocercas.geocercas);
         }
         if(!geocercas.geocercasControlPoint.isEmpty()){
@@ -1505,8 +1505,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         }
                                     }
                                     if(ruta_previa != null){
-                                        if(ruta_previa.fecha_ultima_modificacion==null){
-                                            continue;
+                                        if(ruta_previa.fecha_ultima_modificacion == null){
+                                            if(fechaUltimaModificacion == null){
+                                                continue;
+                                            }
                                         }
                                         else if(ruta_previa.fecha_ultima_modificacion.toString()==fechaUltimaModificacion.toString()){
                                             continue;
@@ -1666,7 +1668,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                             controlPointsExample.pointsWithIds.get(i).label=true;
                                             puntos_de_control.add(controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
                                             puntos.add(controlPointsExample.pointsWithIds.get(i));
-                                            //mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
+                                            geocercas.drawGecocercaControlPoint(controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
                                             break;
                                         }
                                     }

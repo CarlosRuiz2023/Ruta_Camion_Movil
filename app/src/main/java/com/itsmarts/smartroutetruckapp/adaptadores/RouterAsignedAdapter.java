@@ -158,7 +158,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                                         mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
                                                         puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
                                                         mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
-                                                        //mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
+                                                        mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
                                                     }
                                                     break;
                                                 }
@@ -263,7 +263,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                                         mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
                                                         puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
                                                         mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
-                                                        //mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
+                                                        mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
                                                     }
                                                     break;
                                                 }

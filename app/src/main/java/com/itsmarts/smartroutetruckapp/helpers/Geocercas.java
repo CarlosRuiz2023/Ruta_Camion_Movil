@@ -56,8 +56,6 @@ public class Geocercas {
         }
         denseCoordinates.add(originalCoordinates.get(originalCoordinates.size() - 1));
 
-        Log.e("Prueba",""+denseCoordinates.size());
-
         // Paso 2: Generar puntos del buffer
         for (int i = 0; i < denseCoordinates.size(); i++) {
             GeoCoordinates current = denseCoordinates.get(i);

@@ -205,7 +205,12 @@ public class NavigationEventHandler {
                     ManeuverAction action = nextManeuver.getAction();
                     String roadName = getRoadName(nextManeuver);
                     String spanishAction = translateActionToSpanish(action);
-                    String logMessage = spanishAction + " en " + roadName + " en " + nextManeuverProgress.remainingDistanceInMeters + " metros.";
+                    String logMessage="";
+                    if(roadName!=null){
+                        logMessage = spanishAction + " en " + roadName + " en " + nextManeuverProgress.remainingDistanceInMeters + " metros.";
+                    }else{
+                        logMessage = spanishAction + " en " + nextManeuverProgress.remainingDistanceInMeters + " metros.";
+                    }
 
                     Double turnAngle = nextManeuver.getTurnAngleInDegrees();
                     if (turnAngle != null) {
@@ -474,7 +479,7 @@ public class NavigationEventHandler {
                             mainActivity.recalculateRouteButton.setVisibility(View.GONE);
                         } else {
                             // Iniciar el temporizador al comienzo
-                            handler.postDelayed(resetFlagsRunnable, 3000);
+                            handler.postDelayed(resetFlagsRunnable, 5000);
                         }
                     }
 
