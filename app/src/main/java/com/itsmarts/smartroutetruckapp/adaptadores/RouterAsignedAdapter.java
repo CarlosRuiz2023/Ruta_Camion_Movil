@@ -2,6 +2,8 @@ package com.itsmarts.smartroutetruckapp.adaptadores;
 
 import static android.view.View.VISIBLE;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,9 +13,12 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
+import androidx.fragment.app.DialogFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,7 +33,13 @@ import com.here.sdk.routing.Route;
 import com.here.time.Duration;
 import com.itsmarts.smartroutetruckapp.MainActivity;
 import com.itsmarts.smartroutetruckapp.R;
+import com.itsmarts.smartroutetruckapp.api.ApiService;
+import com.itsmarts.smartroutetruckapp.api.RetrofitClient;
 import com.itsmarts.smartroutetruckapp.clases.RoutingExample;
+import com.itsmarts.smartroutetruckapp.fragments.ErrorDialogFragment;
+import com.itsmarts.smartroutetruckapp.helpers.Internet;
+import com.itsmarts.smartroutetruckapp.modelos.HistorialRequest;
+import com.itsmarts.smartroutetruckapp.modelos.LoginRequest;
 import com.itsmarts.smartroutetruckapp.modelos.PointWithId;
 import com.itsmarts.smartroutetruckapp.modelos.PolygonWithId;
 import com.itsmarts.smartroutetruckapp.modelos.RoutesWithId;
@@ -37,6 +48,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdapter.RouteViewHolder> {
     private static int position=0;
@@ -214,6 +230,31 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                                     mainActivity.routeSuccessfullyProcessed = true;
                                                 } catch (Exception e) {
                                                     mainActivity.routeSuccessfullyProcessed = false;
+                                                }
+                                                // Create a LoginRequest object with the provided username and password
+                                                if(Internet.isNetworkConnected()){
+                                                    SharedPreferences sharedPreferences = mainActivity.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                                                    int id_usuario = sharedPreferences.getInt("id_usuario", 0);
+                                                    HistorialRequest historialRequest = new HistorialRequest(mainActivity.ruta.id, id_usuario);
+
+                                                    // Use Retrofit to make the POST request
+                                                    ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+                                                    Call<ResponseBody> call1 = apiService.mandarHistorial(historialRequest);
+
+                                                    call1.enqueue(new Callback<ResponseBody>() {
+                                                        @Override
+                                                        public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                                                            Toast.makeText(mainActivity.getApplicationContext(), "Uso de la ruta #"+mainActivity.ruta.id+" registrado", Toast.LENGTH_SHORT).show();
+                                                        }
+
+                                                        @Override
+                                                        public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                                                            Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
+                                                        }
+                                                    });
+                                                }else {
+                                                    DialogFragment errorDialog = new ErrorDialogFragment();
+                                                    errorDialog.show(mainActivity.getSupportFragmentManager(), "errorDialog");
                                                 }
                                             } else {
                                                 mainActivity.messages.showCustomToast("No se pudo calcular la ruta");

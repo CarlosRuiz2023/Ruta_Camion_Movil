@@ -1,5 +1,6 @@
 package com.itsmarts.smartroutetruckapp.api;
 
+import com.itsmarts.smartroutetruckapp.modelos.HistorialRequest;
 import com.itsmarts.smartroutetruckapp.modelos.LoginRequest;
 import com.itsmarts.smartroutetruckapp.modelos.PointWithId;
 import com.itsmarts.smartroutetruckapp.modelos.RecuperarContraseniaRequest;
@@ -43,5 +44,8 @@ public interface ApiService {
 
     @POST("api/usuarios/desloguear/{id}")
     Call<ResponseBody> getDesloguearUsuario(@Path("id") int id);
+
+    @POST("api/analisis-de-uso-ruta/agregar")
+    Call<ResponseBody> mandarHistorial(@Body HistorialRequest historialRequest);
 }
 

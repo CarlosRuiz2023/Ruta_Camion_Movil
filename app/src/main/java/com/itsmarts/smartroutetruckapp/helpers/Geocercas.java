@@ -73,7 +73,7 @@ public class Geocercas {
             if(denseCoordinates.size()>150){
                 boolean validacion_erronea = false;
                 if(i<=150){
-                    for (int j = i; j < i+100; j=j+6) {
+                    for (int j = i; j < i+150; j=j+6) {
                         if (leftPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
                     }
                     for (int j = 0; j < i; j=j+6) {
