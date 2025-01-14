@@ -1436,7 +1436,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                                 status
                                         );
                                     } catch (Exception e) {
-                                        Log.e("Database", "Error al guardar el punto: " + e.getMessage());
+                                        Log.e("Database", "Error al guardar la ruta "+id+" : " + e.getMessage());
                                     }
                                 }
                             } else {
@@ -1507,14 +1507,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     if(ruta_previa != null){
                                         if(ruta_previa.fecha_ultima_modificacion == null){
                                             if(fechaUltimaModificacion == null){
+                                                Log.e("Prueba","Id ruta: (continue 1) "+id);
                                                 continue;
                                             }
                                         }
-                                        else if(ruta_previa.fecha_ultima_modificacion.toString()==fechaUltimaModificacion.toString()){
+                                        else if(ruta_previa.fecha_ultima_modificacion.toString().equalsIgnoreCase(fechaUltimaModificacion.toString())){
+                                            Log.e("Prueba","Id ruta: (continue 2) "+id);
                                             continue;
+                                        }else{
+                                            Log.e("Prueba","Id ruta: (delete) "+id);
+                                            dbHelper.deleteRoute(id);
                                         }
-                                        dbHelper.deleteRoute(id);
                                     }
+                                    Log.e("Prueba","Id ruta: (save) "+id);
                                     String nombre = rutaObject.optString("nombre", "Sin nombre");
                                     String direccion_inicio = rutaObject.optString("direccion_inicio", "Sin direccion");
                                     double latitud_inicio = rutaObject.optDouble("latitud_inicio", 0.0);

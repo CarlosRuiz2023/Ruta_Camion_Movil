@@ -159,6 +159,12 @@ public class NavigationEventHandler {
             validacionZona = false;
         }
     };
+    private Runnable limpiarMapa = new Runnable() {
+        @Override
+        public void run() {
+            mainActivity.limpiezaTotal();
+        }
+    };
 
     public NavigationEventHandler(MainActivity mainActivity, TextView messageView) {
         this.context = mainActivity.getApplicationContext();
@@ -250,14 +256,13 @@ public class NavigationEventHandler {
             @Override
             public void onDestinationReached() {
                 try{
-                    //mainActivity.btnMomentoViaje.setVisibility(View.GONE);
                     String message = "Ha llegado a su destino";
                     messageView.setText(message);
-                    //mainActivity.dbHelper.updateStatusRoute(mainActivity.ruta.id,2);
-                    //mainActivity.ruta.setStatus(2);
-                    if (destinationReachedListener != null) {
+                    // Iniciar el temporizador al comienzo
+                    handler.postDelayed(limpiarMapa, 2000);
+                    /*if (destinationReachedListener != null) {
                         destinationReachedListener.onDestinationReached();
-                    }
+                    }*/
                 }catch (Exception e){
                     Messages.showErrorDetail(mainActivity, e);
                 }
@@ -1148,7 +1153,7 @@ public class NavigationEventHandler {
         return msg;
     }
 
-    private boolean isPointInPolygon(GeoCoordinates point, List<GeoCoordinates> polygon) {
+    /*private boolean isPointInPolygon(GeoCoordinates point, List<GeoCoordinates> polygon) {
         int intersectCount = 0;
         try{
             for (int j = 0; j < polygon.size() - 1; j++) {
@@ -1179,5 +1184,44 @@ public class NavigationEventHandler {
             Messages.showErrorDetail(mainActivity, e);
         }
         return false;
+    }*/
+    private boolean isPointInPolygon(GeoCoordinates point, List<GeoCoordinates> polygon) {
+        if (polygon == null || polygon.size() < 3) {
+            // Un polígono válido debe tener al menos 3 vértices.
+            return false;
+        }
+
+        int intersectCount = 0;
+        int vertexCount = polygon.size();
+
+        for (int i = 0; i < vertexCount; i++) {
+            // Obtener vértices consecutivos del polígono (cierre automático si es el último vértice).
+            GeoCoordinates vertex1 = polygon.get(i);
+            GeoCoordinates vertex2 = polygon.get((i + 1) % vertexCount);
+
+            if (doesRayIntersect(point, vertex1, vertex2)) {
+                intersectCount++;
+            }
+        }
+
+        // Un número impar de intersecciones significa que el punto está dentro del polígono.
+        return intersectCount % 2 == 1;
     }
+
+    private boolean doesRayIntersect(GeoCoordinates point, GeoCoordinates vertex1, GeoCoordinates vertex2) {
+        // Verificar si el rayo cruza el segmento [vertex1, vertex2]
+        if ((vertex1.latitude > point.latitude) != (vertex2.latitude > point.latitude)) {
+            // Calcular la coordenada X del punto de intersección en el eje del segmento
+            double intersectLongitude = vertex1.longitude +
+                    (point.latitude - vertex1.latitude) *
+                            (vertex2.longitude - vertex1.longitude) /
+                            (vertex2.latitude - vertex1.latitude);
+
+            // Verificar si el punto está a la izquierda del rayo.
+            return point.longitude < intersectLongitude;
+        }
+
+        return false;
+    }
+
 }

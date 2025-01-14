@@ -596,41 +596,45 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Guarda una coordenada en la base de datos
     public void saveRuta(int id,String name, String direccion_inicio, GeoCoordinates coordinateInicial , String direccion_fin , GeoCoordinates coordinateFinal, MapPolyline poligoline, int distancia, int tiempo, String fechaCreacion, String fechaUltimaModificacion, int[] truckSpecIds, int[] puntosIds, int[] zonasIds, boolean ordenar_automaticamente, int status) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_ID, id);
-        values.put(COLUMN_NAME, name);
-        values.put(COLUMN_DIRECCION_INICIO, direccion_inicio);
-        values.put(COLUMN_LATITUDE_INICIO, coordinateInicial.latitude);
-        values.put(COLUMN_LONGITUDE_INICIO, coordinateInicial.longitude);
-        values.put(COLUMN_DIRECCION_FIN, direccion_fin);
-        values.put(COLUMN_LATITUDE_FIN, coordinateFinal.latitude);
-        values.put(COLUMN_LONGITUDE_FIN, coordinateFinal.longitude);
-        //values.put(COLUMN_FECHA_CREACION, System.currentTimeMillis());
-        values.put(COLUMN_POLIGOLINE, serializePolyline(poligoline));
-        values.put(COLUMN_DISTANCIA, distancia);
-        values.put(COLUMN_TIEMPO, tiempo);
-        values.put(COLUMN_FECHA_CREACION, fechaCreacion);
-        values.put(COLUMN_FECHA_ULTIMA_MODIFICACION, fechaUltimaModificacion);
-        String[] truckSpecIdsStringArray = Arrays.stream(truckSpecIds)
-                .mapToObj(String::valueOf)
-                .toArray(String[]::new);
-        String truckSpecIdsString = TextUtils.join(",", truckSpecIdsStringArray);
-        values.put(COLUMN_TUCKSPEC_IDS, truckSpecIdsString);
-        String[] puntosIdsStringArray = Arrays.stream(puntosIds)
-                .mapToObj(String::valueOf)
-                .toArray(String[]::new);
-        String puntosIdsString = TextUtils.join(",", puntosIdsStringArray);
-        values.put(COLUMN_PUNTOS_IDS, puntosIdsString);
-        String[] zonasIdsStringArray = Arrays.stream(zonasIds)
-                .mapToObj(String::valueOf)
-                .toArray(String[]::new);
-        String zonasIdsString = TextUtils.join(",", zonasIdsStringArray);
-        values.put(COLUMN_ZONAS_IDS, zonasIdsString);
-        values.put(COLUMN_ORDEN_AUTOMATICO, ordenar_automaticamente ? 1 : 0);
-        values.put(COLUMN_STATUS, status);
-        db.insert(TABLE_ROUTES, null, values);
-        db.close();
+         try{
+             SQLiteDatabase db = this.getWritableDatabase();
+             ContentValues values = new ContentValues();
+             values.put(COLUMN_ID, id);
+             values.put(COLUMN_NAME, name);
+             values.put(COLUMN_DIRECCION_INICIO, direccion_inicio);
+             values.put(COLUMN_LATITUDE_INICIO, coordinateInicial.latitude);
+             values.put(COLUMN_LONGITUDE_INICIO, coordinateInicial.longitude);
+             values.put(COLUMN_DIRECCION_FIN, direccion_fin);
+             values.put(COLUMN_LATITUDE_FIN, coordinateFinal.latitude);
+             values.put(COLUMN_LONGITUDE_FIN, coordinateFinal.longitude);
+             //values.put(COLUMN_FECHA_CREACION, System.currentTimeMillis());
+             values.put(COLUMN_POLIGOLINE, serializePolyline(poligoline));
+             values.put(COLUMN_DISTANCIA, distancia);
+             values.put(COLUMN_TIEMPO, tiempo);
+             values.put(COLUMN_FECHA_CREACION, fechaCreacion);
+             values.put(COLUMN_FECHA_ULTIMA_MODIFICACION, fechaUltimaModificacion);
+             String[] truckSpecIdsStringArray = Arrays.stream(truckSpecIds)
+                     .mapToObj(String::valueOf)
+                     .toArray(String[]::new);
+             String truckSpecIdsString = TextUtils.join(",", truckSpecIdsStringArray);
+             values.put(COLUMN_TUCKSPEC_IDS, truckSpecIdsString);
+             String[] puntosIdsStringArray = Arrays.stream(puntosIds)
+                     .mapToObj(String::valueOf)
+                     .toArray(String[]::new);
+             String puntosIdsString = TextUtils.join(",", puntosIdsStringArray);
+             values.put(COLUMN_PUNTOS_IDS, puntosIdsString);
+             String[] zonasIdsStringArray = Arrays.stream(zonasIds)
+                     .mapToObj(String::valueOf)
+                     .toArray(String[]::new);
+             String zonasIdsString = TextUtils.join(",", zonasIdsStringArray);
+             values.put(COLUMN_ZONAS_IDS, zonasIdsString);
+             values.put(COLUMN_ORDEN_AUTOMATICO, ordenar_automaticamente ? 1 : 0);
+             values.put(COLUMN_STATUS, status);
+             db.insert(TABLE_ROUTES, null, values);
+             db.close();
+         }catch (Exception e){
+             Log.e(TAG,e.getMessage());
+         }
     }
 
 
@@ -653,8 +657,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Recupera todas las coordenadas de la base de datos
     public List<RoutesWithId> getAllRoutes() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         List<RoutesWithId> routesWithIds = new ArrayList<>();
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
         SQLiteDatabase db = this.getReadableDatabase();
         String selectQuery = "SELECT * FROM " + TABLE_ROUTES;
         Cursor cursor = db.rawQuery(selectQuery, null);

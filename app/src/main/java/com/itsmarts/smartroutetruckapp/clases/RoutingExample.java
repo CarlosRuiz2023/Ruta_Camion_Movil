@@ -17,15 +17,25 @@ package com.itsmarts.smartroutetruckapp.clases;
  * SPDX-License-Identifier: Apache-2.0
  * License-Filename: LICENSE
  */
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.AnimatorSet;
+import android.animation.TimeInterpolator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.util.Log;
 import android.util.Pair;
+import android.view.Display;
+import android.view.Surface;
+import android.view.WindowManager;
+import android.view.animation.DecelerateInterpolator;
+
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import com.here.sdk.core.Color;
 import com.here.sdk.core.GeoBox;
 import com.here.sdk.core.GeoCoordinates;
+import com.here.sdk.core.GeoOrientation;
 import com.here.sdk.core.GeoOrientationUpdate;
 import com.here.sdk.core.GeoPolygon;
 import com.here.sdk.core.GeoPolyline;
@@ -137,12 +147,6 @@ public class RoutingExample {
             waypointsList.add(new Waypoint(geoCoordinatesInicioRuta));
         }
         if(puntos.size() > 0 || geoCoordinatesPOI != null) {
-            /*double routeLength = route.getLengthInMeters();
-            GeoPolyline polyline = route.getGeometry();
-            double threshold = routeLength * 0.5; // 50% de la longitud de la ruta
-            if(threshold > 10000) {
-                threshold = 10000;
-            }*/
             if(!orden_automatico) {
                 // Crea una lista de pares (waypoint, distancia)
                 List < Triple < Waypoint, Double, Boolean >> waypointDistances = new ArrayList < > ();
@@ -231,10 +235,35 @@ public class RoutingExample {
             public void onRouteCalculated(@Nullable RoutingError routingError, @Nullable List < Route > routes) {
                 // Check if route calculation was successful
                 if(routingError == null) {
-					/*List<Waypoint> waypointsFinales = new ArrayList<>();
-					waypointsFinales.add(new Waypoint(startGeoCoordinates));*/
                     // Get the first route from the list
                     Route route = routes.get(0);
+                    // Calcular la extensión de la ruta
+                    GeoBox geoBox = route.getBoundingBox();
+                    // Calcular el centro del GeoBox
+                    double centerLat = (geoBox.southWestCorner.latitude + geoBox.northEastCorner.latitude) / 2;
+                    double centerLon = (geoBox.southWestCorner.longitude + geoBox.northEastCorner.longitude) / 2;
+                    // Devolver el centro del GeoBox
+                    GeoCoordinates center = new GeoCoordinates(centerLat, centerLon);
+                    // Obtener el nivel de zoom actual
+                    double currentZoomLevel = mainActivity.mapView.getCamera().getState().zoomLevel;
+                    // Establecer manualmente un nivel de zoom objetivo basado en la extensión del GeoBox
+                    double targetZoomLevel = calculateTargetZoomLevel(geoBox);
+                    // Configurar el desplazamiento inicial de la cámara para evitar que la ruta no sea visible al inicio
+                    mainActivity.mapView.getCamera().lookAt(geoBox, new GeoOrientationUpdate(center.latitude, center.longitude));
+                    // Crear un ValueAnimator para interpolar entre el nivel de zoom actual y el objetivo
+                    ValueAnimator zoomAnimator = ValueAnimator.ofFloat((float) currentZoomLevel, (float) targetZoomLevel);
+                    // Configurar la duración de la animación
+                    int animationDuration = 3000; // Duración en milisegundos
+                    zoomAnimator.setDuration(animationDuration);
+                    // Agregar un oyente para actualizar el nivel de zoom durante la animación
+                    zoomAnimator.addUpdateListener(valueAnimator -> {
+                        float animatedZoom = (float) valueAnimator.getAnimatedValue();
+                        // Actualizar el nivel de zoom en la cámara
+                        mainActivity.mapView.getCamera().setDistanceToTarget(animatedZoom);
+                    });
+                    // Iniciar la animación
+                    zoomAnimator.start();
+                    // Crear un ValueAnimator para interpolar entre el nivel de zoom actual y el objetivo
                     showRouteOnMap(route);
                     logRouteSectionDetails(route);
                     logRouteViolations(route);
@@ -248,61 +277,11 @@ public class RoutingExample {
                             }
                         }
                     }
-                    // Calcular la extensión de la ruta
-                    GeoBox geoBox = calculateRouteGeoBox(route);
-                    // Calcular el centro del GeoBox
-                    GeoCoordinates center = calculateGeoBoxCenter(route);
-                    // Configurar la cámara para que se ajuste a la extensión de la ruta
-                    mainActivity.mapView.getCamera().lookAt(geoBox, new GeoOrientationUpdate(center.latitude, center.longitude));
-                    // Ajustar el nivel de zoom para que toda la ruta sea visible en el mapa
-                    //mainActivity.mapView.getCamera().zoomTo(adjustZoomLevel(route));
-                    //animateZoom(adjustZoomLevel(route));
                 } else {
                     String errorMessage = (routingError != null) ? routingError.toString() : "No se encontró una ruta";
                     showDialog("Error al calcular la ruta", errorMessage);
                     callback.onRouteCalculated(null);
                 }
-                // Calculate the route
-				/*routingInterface.calculateRoute(
-				        waypointsFinales,
-				        truckOptions,
-				        new CalculateRouteCallback() {
-				            @Override
-				            public void onRouteCalculated(@Nullable RoutingError routingError, @Nullable List<Route> routes) {
-				                // Check if route calculation was successful
-				                if (routingError == null && routes != null && !routes.isEmpty()) {
-				                    Route route = routes.get(0);
-				                    showRouteOnMap(route);
-				                    logRouteSectionDetails(route);
-				                    logRouteViolations(route);
-				                    logTollDetails(route);
-				                    processCalculatedRoute(route);
-				                    callback.onRouteCalculated(route);
-				                    for (int i = 1; i < waypointsList.size() - 1; i++) {
-				                        if(!waypointsList.get(i).coordinates.equals(geoCoordinatesPOI)){
-				                            addCircleMapMarker(waypointsList.get(i).coordinates, R.drawable.waypoint);
-				                        }
-				                    }
-				                    // Calcular la extensión de la ruta
-				                    GeoBox geoBox = calculateRouteGeoBox(route);
-				                    // Calcular el centro del GeoBox
-				                    GeoCoordinates center = calculateGeoBoxCenter(route);
-				                    // Configurar la cámara para que se ajuste a la extensión de la ruta
-				                    mainActivity.mapView.getCamera().lookAt(geoBox, new GeoOrientationUpdate(center.latitude, center.longitude));
-				                    // Ajustar el nivel de zoom para que toda la ruta sea visible en el mapa
-				                    //mainActivity.mapView.getCamera().zoomTo(adjustZoomLevel(route));
-				                    //animateZoom(adjustZoomLevel(route));
-				                } else {
-				                    String errorMessage = (routingError != null) ? routingError.toString() : "No se encontró una ruta";
-				                    showDialog("Error al calcular la ruta", errorMessage);
-				                    callback.onRouteCalculated(null);
-				                }
-				            }
-				        });*/
-				/*} else {
-				    // Show error message
-				    showDialog("Error mientras se calculaba la primer ruta:", routingError.toString());
-				}*/
             }
         });
     }
@@ -424,134 +403,43 @@ public class RoutingExample {
         }
         return Color.valueOf(0, 0, 0, 0.63f);
     }
+
     public void addCircleMapMarker(GeoCoordinates geoCoordinates, int resourceId) {
         MapImage mapImage = MapImageFactory.fromResource(context.getResources(), resourceId);
         MapMarker mapMarker = new MapMarker(geoCoordinates, mapImage);
         mapView.getMapScene().addMapMarker(mapMarker);
         mapMarkerList.add(mapMarker);
     }
+
     private void showDialog(String title, String message) {
         new AlertDialog.Builder(context).setTitle(title).setMessage(message).setPositiveButton("OK", null).show();
     }
+
     public interface RouteCallback {
         void onRouteCalculated(Route route);
     }
-    private GeoBox calculateRouteGeoBox(Route route) {
-        // Tomamos los puntos de inicio y fin de la ruta
-        List < GeoCoordinates > coordinates = route.getGeometry().vertices;
-        double minLat = Double.MAX_VALUE, maxLat = -Double.MAX_VALUE;
-        double minLon = Double.MAX_VALUE, maxLon = -Double.MAX_VALUE;
-        // Iteramos sobre los puntos de inicio y fin de la ruta
-        for(GeoCoordinates coord: coordinates) {
-            if(coord.latitude < minLat) {
-                minLat = coord.latitude;
-            }
-            if(coord.latitude > maxLat) {
-                maxLat = coord.latitude;
-            }
-            if(coord.longitude < minLon) {
-                minLon = coord.longitude;
-            }
-            if(coord.longitude > maxLon) {
-                maxLon = coord.longitude;
-            }
-        }
-        // Añadimos un margen (ajusta el valor según tus necesidades)
-        double margin = 0.2; // Ejemplo: 0.01 grados
-        minLat -= margin;
-        maxLat += margin;
-        minLon -= margin;
-        maxLon += margin;
-        // Devolvemos el GeoBox calculado
-        return new GeoBox(new GeoCoordinates(minLat, minLon), new GeoCoordinates(maxLat, maxLon));
-    }
-    private GeoCoordinates calculateGeoBoxCenter(Route route) {
-        // Tomamos los puntos de inicio y fin de la ruta
-        List < GeoCoordinates > coordinates = route.getGeometry().vertices;
-        double minLat = Double.MAX_VALUE, maxLat = -Double.MAX_VALUE;
-        double minLon = Double.MAX_VALUE, maxLon = -Double.MAX_VALUE;
-        // Iteramos sobre los puntos de inicio y fin de la ruta
-        for(GeoCoordinates coord: coordinates) {
-            if(coord.latitude < minLat) {
-                minLat = coord.latitude;
-            }
-            if(coord.latitude > maxLat) {
-                maxLat = coord.latitude;
-            }
-            if(coord.longitude < minLon) {
-                minLon = coord.longitude;
-            }
-            if(coord.longitude > maxLon) {
-                maxLon = coord.longitude;
-            }
-        }
-        // Añadimos un margen (ajusta el valor según tus necesidades)
-        double margin = 0.2; // Ejemplo: 0.01 grados
-        minLat -= margin;
-        maxLat += margin;
-        minLon -= margin;
-        maxLon += margin;
-        // Calcular el centro del GeoBox
-        double centerLat = (minLat + maxLat) / 2;
-        double centerLon = (minLon + maxLon) / 2;
-        // Devolver el centro del GeoBox
-        return new GeoCoordinates(centerLat, centerLon);
-    }
-    private double adjustZoomLevel(Route route) {
-        // Tomamos los puntos de inicio y fin de la ruta
-        List < GeoCoordinates > coordinates = route.getGeometry().vertices;
-        double minLat = Double.MAX_VALUE, maxLat = -Double.MAX_VALUE;
-        double minLon = Double.MAX_VALUE, maxLon = -Double.MAX_VALUE;
-        // Iteramos sobre los puntos de inicio y fin de la ruta
-        for(GeoCoordinates coord: coordinates) {
-            if(coord.latitude < minLat) {
-                minLat = coord.latitude;
-            }
-            if(coord.latitude > maxLat) {
-                maxLat = coord.latitude;
-            }
-            if(coord.longitude < minLon) {
-                minLon = coord.longitude;
-            }
-            if(coord.longitude > maxLon) {
-                maxLon = coord.longitude;
-            }
-        }
-        // Añadimos un margen (ajusta el valor según tus necesidades)
-        double margin = 0.2; // Ejemplo: 0.01 grados
-        minLat -= margin;
-        maxLat += margin;
-        minLon -= margin;
-        maxLon += margin;
-        // Ejemplo de cálculo basado en la latitud y longitud del GeoBox
-        double latDiff = maxLat - minLat;
-        double lonDiff = maxLon - minLon;
-        // La siguiente línea es un ejemplo y necesitarás ajustarla según cómo tu API maneje el zoom
-        double maxDiff = Math.max(latDiff, lonDiff);
-        // Calcular el nivel de zoom basado en el tamaño del GeoBox
-        double zoomLevel = (Math.log(360 / maxDiff) / Math.log(2)) - 0.5;
-        // Suponiendo que tu API de mapas tiene un método para ajustar el nivel de zoom basado en una GeoBox
-        return zoomLevel;
-    }
-    // Método para animar el zoom suavemente
-    private void animateZoom(double targetZoomLevel) {
-        // Toma el nivel de zoom actual
-        double currentZoomLevel = mainActivity.mapView.getCamera().getState().zoomLevel;
-        // Genera una animación de valor para el nivel de zoom del actual al que deberia llegar segun la animacion
-        ValueAnimator animator = ValueAnimator.ofFloat((float) currentZoomLevel, (float) targetZoomLevel);
-        // Establece la duración de la animación en milisegundos
-        animator.setDuration(zoomAnimationDuration);
-        // Añadimos un oyente en la animación para actualizar del nivel de zoom
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                // Toma el valor actual de la animación
-                float animatedValue = (float) valueAnimator.getAnimatedValue();
-                // Establece el nuevo nivel de zoom
-                mainActivity.mapView.getCamera().setDistanceToTarget(animatedValue);
-            }
-        });
-        // Inicia la animación
-        animator.start();
+
+    /**
+     * Calcula un nivel de zoom objetivo para mostrar completamente el GeoBox.
+     *
+     * @param geoBox El GeoBox que contiene la ruta.
+     * @return El nivel de zoom calculado.
+     */
+    private double calculateTargetZoomLevel(GeoBox geoBox) {
+        // Dimensiones del GeoBox
+        double geoBoxWidth = geoBox.northEastCorner.longitude - geoBox.southWestCorner.longitude;
+        double geoBoxHeight = geoBox.northEastCorner.latitude - geoBox.southWestCorner.latitude;
+
+        // Estimación del nivel de zoom basado en las dimensiones del GeoBox
+        double maxDimension = Math.max(geoBoxWidth, geoBoxHeight);
+
+        GeoCoordinates Top = new GeoCoordinates(geoBox.northEastCorner.latitude, geoBox.northEastCorner.longitude);
+        GeoCoordinates Bottom = new GeoCoordinates(geoBox.southWestCorner.latitude, geoBox.southWestCorner.longitude);
+
+        // Estimación del nivel de zoom basado en las dimensiones del GeoBox
+        double zoomFactor = Top.distanceTo(Bottom) * 2.8;
+        //double zoomFactor = 10.0;
+
+        return zoomFactor - Math.log10(maxDimension);
     }
 }
