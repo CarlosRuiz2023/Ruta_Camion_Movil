@@ -21,15 +21,21 @@ package com.itsmarts.smartroutetruckapp.clases;
 
 import static android.view.View.VISIBLE;
 
+import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -150,6 +156,7 @@ public class NavigationEventHandler {
     private boolean hasNotifiedForbiddenZoneEarly = false;
     private boolean validacionZona = false;
     private Handler handler = new Handler();
+    private Dialog rutaFinalizadaDialog;
     private Runnable resetFlagsRunnable = new Runnable() {
         @Override
         public void run() {
@@ -163,6 +170,12 @@ public class NavigationEventHandler {
         @Override
         public void run() {
             mainActivity.limpiezaTotal();
+        }
+    };
+    private Runnable cerrarDialogRutaFinalizada = new Runnable() {
+        @Override
+        public void run() {
+            rutaFinalizadaDialog.dismiss();
         }
     };
 
@@ -261,7 +274,13 @@ public class NavigationEventHandler {
                     mainActivity.llegoAlDestino = true;
                     // Iniciar el temporizador al comienzo
                     handler.postDelayed(limpiarMapa, 2000);
-                    Messages.showInvalidCredentialsDialog("Ha llegado a su destino","Se ha terminado la ruta",mainActivity);
+                    //Messages.showInvalidCredentialsDialog("Ha llegado a su destino","Se ha terminado la ruta",mainActivity);
+                    rutaFinalizadaDialog = new Dialog(mainActivity);
+                    rutaFinalizadaDialog.setContentView(R.layout.ventana_ruta_finalizada);
+                    TextView tvMessage = rutaFinalizadaDialog.findViewById(R.id.tvMessage);
+                    tvMessage.setText(mainActivity.ruta.name+"\n"+mainActivity.ruta.direccion_fin);
+                    rutaFinalizadaDialog.show();
+                    handler.postDelayed(cerrarDialogRutaFinalizada, 2000);
                     /*if (destinationReachedListener != null) {
                         destinationReachedListener.onDestinationReached();
                     }*/
@@ -420,11 +439,12 @@ public class NavigationEventHandler {
                                 for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
                                     if (pointWithId.visibility && pointWithId.status) {
                                         if (lastMapMatchedLocation.coordinates.distanceTo(pointWithId.mapMarker.getCoordinates()) < 100 && id_punto_control != pointWithId.id) {
-                                            NotificationHelper.showNotification(
+                                            /*NotificationHelper.showNotification(
                                                     context,
                                                     "Punto de Control",
                                                     "Has pasado por el punto de control " + pointWithId.name + "."
-                                            );
+                                            );*/
+                                            mainActivity.messages.showCustomToast("Has pasado por el punto de control " + pointWithId.name + ".");
                                             hasNotifiedCheckpoint = true;
                                             id_punto_control = pointWithId.id;
                                             puntos_completados.add(id_punto_control);

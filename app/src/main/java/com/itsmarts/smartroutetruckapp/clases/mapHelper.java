@@ -231,4 +231,44 @@ public class mapHelper {
         });
     }
 
+    public void showGPSDisabledDialog(final Activity activity) {
+        if (gpsDialog != null && gpsDialog.isShowing()) {
+            return;
+        }
+
+        gpsDialog = new Dialog(activity);
+        gpsDialog.setContentView(R.layout.ventana_activar_gps);
+        gpsDialog.setCancelable(false);
+        gpsDialog.setCanceledOnTouchOutside(false);
+
+        Button btnEnableGPS = gpsDialog.findViewById(R.id.btnEnableGPS);
+        Button btnCancel = gpsDialog.findViewById(R.id.btnCancel);
+
+        btnEnableGPS.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS);
+                activity.startActivity(intent);
+                gpsDialog.dismiss();
+            }
+        });
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                gpsDialog.dismiss();
+                Toast.makeText(activity, "El GPS es necesario para usar esta app", Toast.LENGTH_LONG).show();
+
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (!isGPSEnabled(activity)) {
+                            showGPSDisabledDialog(activity);
+                        }
+                    }
+                }, 100);
+            }
+        });
+        gpsDialog.show();
+    }
 }

@@ -170,21 +170,6 @@
         app:layout_constraintBottom_toTopOf="@+id/imgVelocidad"
         app:layout_constraintStart_toStartOf="parent"/>
 
-    <!--<TextView
-        android:id="@+id/speedLabelTextView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:elevation="4dp"
-        android:hint="Velocidad"
-        android:layout_marginBottom="10dp"
-        android:textColor="@color/white"
-        android:textColorHint="@color/white"
-        android:textSize="8dp"
-        app:layout_constraintBottom_toBottomOf="@+id/speedTextView"
-        app:layout_constraintTop_toTopOf="@+id/imgVelocidad"
-        app:layout_constraintEnd_toEndOf="@+id/imgVelocidad"
-        app:layout_constraintStart_toStartOf="@+id/imgVelocidad" />-->
-
     <TextView
         android:id="@+id/speedTextView"
         android:layout_width="wrap_content"
@@ -290,11 +275,24 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginBottom="8dp"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/imgVelocidad"
-        android:layout_marginStart="16dp"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/llMapas"
+        android:layout_marginEnd="12dp"
         android:layout_marginTop="8dp"
-        android:visibility="gone">
+        android:visibility="gone"
+        tools:visibility="visible">
+
+        <TextView
+            android:id="@+id/txtEliminarPoi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="5dp"
+            android:layout_marginTop="15dp"
+            android:elevation="2dp"
+            android:text="Eliminar pois"
+            android:textColor="@color/deepOrange_800"
+            android:textSize="15dp"
+            android:textStyle="bold"/>
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fbEliminarPoi"
@@ -307,18 +305,6 @@
             android:src="@drawable/eliminar_direccion"
             app:tint="@android:color/white" />
 
-        <TextView
-            android:id="@+id/txtEliminarPoi"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="5dp"
-            android:layout_marginTop="15dp"
-            android:elevation="2dp"
-            android:text="Eliminar Pois"
-            android:textColor="@color/deepOrange_800"
-            android:textSize="15dp"
-            android:textStyle="bold" />
-
     </LinearLayout>
 
     <LinearLayout
@@ -327,7 +313,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/llMapas"
+        app:layout_constraintBottom_toTopOf="@+id/llPois"
         android:layout_marginEnd="12dp"
         android:layout_marginTop="8dp"
         android:visibility="gone"
@@ -374,14 +360,14 @@
             android:layout_marginEnd="5dp"
             android:layout_marginTop="20dp"
             android:elevation="2dp"
-            android:text="Cambiar estilo"
+            android:text="Cambiar mapa"
             android:textColor="@color/deepOrange_800"
             android:textSize="15dp"
             android:textStyle="bold" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/fbMapas"
-            android:layout_width="wrap_content"
+            android:layout_width="52dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:backgroundTint="@color/deepOrange_800"

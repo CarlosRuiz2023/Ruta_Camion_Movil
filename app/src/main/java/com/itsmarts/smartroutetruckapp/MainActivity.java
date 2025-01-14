@@ -194,7 +194,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         initializeBD();
         initializeSecondClass();
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            navigationExample.startLocationProvider();
+            if(mMapHelper.isGPSEnabled(MainActivity.this)){
+                navigationExample.startLocationProvider();
+            }else{
+                mMapHelper.showGPSDisabledDialog(MainActivity.this);
+            }
         }else{
             //mMapHelper.permisoLocalizacion(this, this);
             mMapHelper.handleAndroidPermissions();
@@ -1298,8 +1302,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         try {
             super.onResume();
             mapView.onResume();
-            mMapHelper.handleAndroidPermissions();
-            //mMapHelper.permisoLocalizacion(this, this);
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                if(mMapHelper.isGPSEnabled(MainActivity.this)){
+                    navigationExample.startLocationProvider();
+                }else{
+                    mMapHelper.showGPSDisabledDialog(MainActivity.this);
+                }
+            }else{
+                //mMapHelper.permisoLocalizacion(this, this);
+                mMapHelper.handleAndroidPermissions();
+            }
         }catch (Exception e){
             Messages.showErrorDetail(this, e);
         }
