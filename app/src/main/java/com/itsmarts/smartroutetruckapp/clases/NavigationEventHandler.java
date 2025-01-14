@@ -258,8 +258,10 @@ public class NavigationEventHandler {
                 try{
                     String message = "Ha llegado a su destino";
                     messageView.setText(message);
+                    mainActivity.llegoAlDestino = true;
                     // Iniciar el temporizador al comienzo
                     handler.postDelayed(limpiarMapa, 2000);
+                    Messages.showInvalidCredentialsDialog("Ha llegado a su destino","Se ha terminado la ruta",mainActivity);
                     /*if (destinationReachedListener != null) {
                         destinationReachedListener.onDestinationReached();
                     }*/
@@ -1000,7 +1002,7 @@ public class NavigationEventHandler {
     }
 
     private String translateActionToSpanish(ManeuverAction action) {
-        String msg = "Ruta: "+mainActivity.ruta.name+"\n";
+        String msg = "";
         switch (action) {
             case RIGHT_TURN:
                 msg = msg+ "Gire a la derecha";
@@ -1144,7 +1146,7 @@ public class NavigationEventHandler {
                 msg = msg+ "Giro leve a la derecha";
                 break;
             case ARRIVE:
-                msg = msg+ "Ha llegado a su destino";
+                msg = msg+ "Fin de la ruta";
                 break;
             default:
                 msg = msg+ "Continúe";

@@ -17,4 +17,5 @@
     <color name="colorPrimary">#06368b</color> <!-- COLOR WEB -->
     <color name="colorError">#B00020</color>
     <color name="naranja">#F57F17</color>
+    <color name="gris">#3B5D82</color>
 </resources>

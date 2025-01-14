@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public ControlPointsExample controlPointsExample;
     public List<RoutesWithId> rutas = new ArrayList<>(), rutasAsignadas = new ArrayList<>();
     public Animation rotateAnimation, cargaAnimacion, animSalida, animacionClick, animEntrada;
-    public boolean animacionEjecutada = false, isFirstClick = true, isMenuOpen = false, rutaGenerada = false, isTrackingCamera = false, isExactRouteEnabled = false, isSimularRutaVisible = false, isRutaVisible = false, isDialogShowing = false, routeSuccessfullyProcessed = false, activarGeocercas = true, mapOfflineMexDownload = false;
+    public boolean animacionEjecutada = false, isFirstClick = true, isMenuOpen = false, rutaGenerada = false, isTrackingCamera = false, isExactRouteEnabled = false, isSimularRutaVisible = false, isRutaVisible = false, isDialogShowing = false, routeSuccessfullyProcessed = false, activarGeocercas = true, mapOfflineMexDownload = false, llegoAlDestino = false;
     public RoutesWithId ruta,rutaPre;
     public ImageButton trackCamara, btnTerminarRuta;
     public ImageView imgVelocidad;
@@ -165,7 +165,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**Botton para comenzar la descarga de mapa*/
     public Button btnDescargar, btnBuscarActualizaciones, btnIniciarActualizacion, recalculateRouteButton;
     /** TextView para mosntrar como se descarga y el porcentaje de descarga del mapa*/
-    public TextView txtProcesoDescarga, txtDescargaTitulo, nav_header_name, nav_header_email;
+    public TextView txtProcesoDescarga, txtDescargaTitulo, nav_header_name, nav_header_email, routeTextView;
     public FloatingActionButton fbEliminarPoi, fbMapas, btnGeocercas;
     public int styleCounter=0;
     // INICIALIZACION DE LA VARIABLE TIPO MapScheme PARA EL ESTILO DEL MAPA POR DEFECTO
@@ -632,6 +632,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         recalculateRouteButton = findViewById(R.id.recalculateRouteButton);
         loading_spinner = findViewById(R.id.loading_spinner);
         llLoadingRoute = findViewById(R.id.llLoadingRoute);
+        routeTextView = findViewById(R.id.routeTextView);
         // Infla el layout del encabezado
         View headerView = nmd.inflateHeaderView(R.layout.nav_header);
         nav_header_name = headerView.findViewById(R.id.nav_header_name);
@@ -945,7 +946,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         coordenada2 = null;
 
         navigationExample.stopNavigation(true);
-        messages.showCustomToast("Se ha terminado la ruta");
+        if(!llegoAlDestino){
+            messages.showCustomToast("Se ha terminado la ruta");
+        }else{
+            llegoAlDestino = false;
+        }
         messageView.setText("Indicaciones");
         detallesRuta.startAnimation(animSalida);
         detallesRuta.setVisibility(View.GONE);
@@ -1063,6 +1068,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mapView.getMapScene().removeMapPolygon(geocercas.mapPolygon);
         }
         llPois.setVisibility(View.GONE);
+        routeTextView.setVisibility(View.GONE);
     }
 
     private void setTapGestureHandler() {
@@ -1647,10 +1653,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void recalculateRoute() {
         try {
             recalculateRouteButton.setVisibility(View.GONE);
-            if(isTrackingCamera){
-                isTrackingCamera=false;
-                trackCamara.setImageResource(R.drawable.track_on);
-            }
             if (currentGeoCoordinates != null && destinationGeoCoordinates != null) {
                 List<GeoCoordinates> puntos_de_control = new ArrayList<>();
                 List<MapPolygon> zonas = new ArrayList<>();
@@ -1736,6 +1738,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 try {
                                     navigationExample.startNavigation(route, false, false);
                                     recalculateRouteButton.setVisibility(View.GONE);
+                                    if(isTrackingCamera){
+                                        navigationExample.startCameraTracking();
+                                    }
                                 } catch (Exception e) {
                                     Log.e("MainActivity", "Error starting navigation: ", e);
                                 }

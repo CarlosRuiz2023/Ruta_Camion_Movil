@@ -237,32 +237,34 @@ public class RoutingExample {
                 if(routingError == null) {
                     // Get the first route from the list
                     Route route = routes.get(0);
-                    // Calcular la extensión de la ruta
-                    GeoBox geoBox = route.getBoundingBox();
-                    // Calcular el centro del GeoBox
-                    double centerLat = (geoBox.southWestCorner.latitude + geoBox.northEastCorner.latitude) / 2;
-                    double centerLon = (geoBox.southWestCorner.longitude + geoBox.northEastCorner.longitude) / 2;
-                    // Devolver el centro del GeoBox
-                    GeoCoordinates center = new GeoCoordinates(centerLat, centerLon);
-                    // Obtener el nivel de zoom actual
-                    double currentZoomLevel = mainActivity.mapView.getCamera().getState().zoomLevel;
-                    // Establecer manualmente un nivel de zoom objetivo basado en la extensión del GeoBox
-                    double targetZoomLevel = calculateTargetZoomLevel(geoBox);
-                    // Configurar el desplazamiento inicial de la cámara para evitar que la ruta no sea visible al inicio
-                    mainActivity.mapView.getCamera().lookAt(geoBox, new GeoOrientationUpdate(center.latitude, center.longitude));
-                    // Crear un ValueAnimator para interpolar entre el nivel de zoom actual y el objetivo
-                    ValueAnimator zoomAnimator = ValueAnimator.ofFloat((float) currentZoomLevel, (float) targetZoomLevel);
-                    // Configurar la duración de la animación
-                    int animationDuration = 3000; // Duración en milisegundos
-                    zoomAnimator.setDuration(animationDuration);
-                    // Agregar un oyente para actualizar el nivel de zoom durante la animación
-                    zoomAnimator.addUpdateListener(valueAnimator -> {
-                        float animatedZoom = (float) valueAnimator.getAnimatedValue();
-                        // Actualizar el nivel de zoom en la cámara
-                        mainActivity.mapView.getCamera().setDistanceToTarget(animatedZoom);
-                    });
-                    // Iniciar la animación
-                    zoomAnimator.start();
+                    if(!mainActivity.rutaGenerada){
+                        // Calcular la extensión de la ruta
+                        GeoBox geoBox = route.getBoundingBox();
+                        // Calcular el centro del GeoBox
+                        double centerLat = (geoBox.southWestCorner.latitude + geoBox.northEastCorner.latitude) / 2;
+                        double centerLon = (geoBox.southWestCorner.longitude + geoBox.northEastCorner.longitude) / 2;
+                        // Devolver el centro del GeoBox
+                        GeoCoordinates center = new GeoCoordinates(centerLat, centerLon);
+                        // Obtener el nivel de zoom actual
+                        double currentZoomLevel = mainActivity.mapView.getCamera().getState().zoomLevel;
+                        // Establecer manualmente un nivel de zoom objetivo basado en la extensión del GeoBox
+                        double targetZoomLevel = calculateTargetZoomLevel(geoBox);
+                        // Configurar el desplazamiento inicial de la cámara para evitar que la ruta no sea visible al inicio
+                        mainActivity.mapView.getCamera().lookAt(geoBox, new GeoOrientationUpdate(center.latitude, center.longitude));
+                        // Crear un ValueAnimator para interpolar entre el nivel de zoom actual y el objetivo
+                        ValueAnimator zoomAnimator = ValueAnimator.ofFloat((float) currentZoomLevel, (float) targetZoomLevel);
+                        // Configurar la duración de la animación
+                        int animationDuration = 3000; // Duración en milisegundos
+                        zoomAnimator.setDuration(animationDuration);
+                        // Agregar un oyente para actualizar el nivel de zoom durante la animación
+                        zoomAnimator.addUpdateListener(valueAnimator -> {
+                            float animatedZoom = (float) valueAnimator.getAnimatedValue();
+                            // Actualizar el nivel de zoom en la cámara
+                            mainActivity.mapView.getCamera().setDistanceToTarget(animatedZoom);
+                        });
+                        // Iniciar la animación
+                        zoomAnimator.start();
+                    }
                     // Crear un ValueAnimator para interpolar entre el nivel de zoom actual y el objetivo
                     showRouteOnMap(route);
                     logRouteSectionDetails(route);
