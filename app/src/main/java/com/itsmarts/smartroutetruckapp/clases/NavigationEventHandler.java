@@ -1174,7 +1174,7 @@ public class NavigationEventHandler {
                 msg = msg+ "Giro leve a la derecha";
                 break;
             case ARRIVE:
-                msg = msg+ "Fin de la ruta";
+                msg = msg+ "Continúe";
                 break;
             default:
                 msg = msg+ "Continúe";
@@ -1183,38 +1183,6 @@ public class NavigationEventHandler {
         return msg;
     }
 
-    /*private boolean isPointInPolygon(GeoCoordinates point, List<GeoCoordinates> polygon) {
-        int intersectCount = 0;
-        try{
-            for (int j = 0; j < polygon.size() - 1; j++) {
-                if (doesRayIntersect(point, polygon.get(j), polygon.get(j + 1))) {
-                    intersectCount++;
-                }
-            }
-        }catch(Exception e){
-            Messages.showErrorDetail(mainActivity, e);
-        }
-        return intersectCount % 2 == 1;
-    }
-
-    private boolean doesRayIntersect(GeoCoordinates point, GeoCoordinates polyStart, GeoCoordinates polyEnd) {
-        try{
-            // Condición para verificar si el punto está en el rango de latitud del segmento
-            if ((polyStart.latitude > point.latitude) != (polyEnd.latitude > point.latitude)) {
-                // Calcula la intersección x del rayo horizontal
-                double intersectX = polyStart.longitude +
-                        (point.latitude - polyStart.latitude) *
-                                (polyEnd.longitude - polyStart.longitude) /
-                                (polyEnd.latitude - polyStart.latitude);
-
-                // Verifica si el punto está a la izquierda de la intersección
-                return point.longitude < intersectX;
-            }
-        }catch(Exception e){
-            Messages.showErrorDetail(mainActivity, e);
-        }
-        return false;
-    }*/
     private boolean isPointInPolygon(GeoCoordinates point, List<GeoCoordinates> polygon) {
         if (polygon == null || polygon.size() < 3) {
             // Un polígono válido debe tener al menos 3 vértices.

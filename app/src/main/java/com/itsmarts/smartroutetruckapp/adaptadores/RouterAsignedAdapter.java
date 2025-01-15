@@ -211,6 +211,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                     mainActivity.llGeocerca.setVisibility(VISIBLE);
                                     mainActivity.controlPointsExample.cleanPoint();
                                     mainActivity.avoidZonesExample.cleanPolygon();
+                                    mainActivity.rutaGenerada = true;
                                     mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,id_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
                                         @Override
                                         public void onRouteCalculated(Route route) {
@@ -224,7 +225,6 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                                 mainActivity.distanceTextView.setVisibility(VISIBLE);
                                                 mainActivity.timeTextView.setVisibility(VISIBLE);
 
-                                                mainActivity.rutaGenerada = true;
                                                 try {
                                                     mainActivity.navigationExample.startNavigation(route, false, false);
                                                     mainActivity.routeSuccessfullyProcessed = true;
@@ -340,6 +340,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                     mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
                                     mainActivity.controlPointsExample.cleanPoint();
                                     mainActivity.avoidZonesExample.cleanPolygon();
+                                    mainActivity.rutaGenerada = true;
                                     mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,id_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
                                         @Override
                                         public void onRouteCalculated(Route route) {
@@ -352,8 +353,6 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                                 mainActivity.detallesRuta.setVisibility(VISIBLE);
                                                 mainActivity.distanceTextView.setVisibility(VISIBLE);
                                                 mainActivity.timeTextView.setVisibility(VISIBLE);
-
-                                                mainActivity.rutaGenerada = true;
                                                 try {
                                                     mainActivity.navigationExample.startNavigation(route, true, false);
                                                     mainActivity.routeSuccessfullyProcessed = true;

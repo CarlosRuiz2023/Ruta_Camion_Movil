@@ -139,28 +139,22 @@ public class NavigationExample {
             mainActivity.txtNavegacion.setVisibility(View.VISIBLE);
             GeoCoordinates startGeoCoordinates = route.getGeometry().vertices.get(0);
             prefetchMapData(startGeoCoordinates);
-
             // Set the route and maneuver arrow color.
             customizeVisualNavigatorColors();
-
             visualNavigator.setCameraBehavior(new DynamicCameraBehavior());
-
             visualNavigator.setRoute(route);
-
+            if(mainActivity.rutaGenerada){
+                mainActivity.routeTextView.setVisibility(View.VISIBLE);
+                mainActivity.routeTextView.setText(String.format("%s", mainActivity.ruta.name));
+            }
             if (isSimulated) {
                 enableRoutePlayback(route);
                 mainActivity.messageView.setText("Starting simulated navgation.");
             } else {
                 enableDevicePositioning();
-                if(mainActivity.rutaGenerada){
-                    mainActivity.routeTextView.setVisibility(View.VISIBLE);
-                    mainActivity.routeTextView.setText(String.format("%s", mainActivity.ruta.name));
-                }
                 mainActivity.messageView.setText("Iniciando navegación...");
             }
-
             startDynamicSearchForBetterRoutes(route);
-
             updateCameraTracking(isCameraTrackingEnabled);
         }catch (Exception e){
             Messages.showErrorDetail(mainActivity, e);
@@ -290,14 +284,12 @@ public class NavigationExample {
             Color routeAheadOutlineColor = Color.valueOf(android.graphics.Color.YELLOW);
             Color routeBehindOutlineColor = Color.valueOf(android.graphics.Color.DKGRAY);
             Color maneuverArrowColor = Color.valueOf(android.graphics.Color.GREEN);
-
             VisualNavigatorColors visualNavigatorColors = VisualNavigatorColors.dayColors();
             RouteProgressColors routeProgressColors = new RouteProgressColors(
                     routeAheadColor,
                     routeBehindColor,
                     routeAheadOutlineColor,
                     routeBehindOutlineColor);
-
             // Sets the color used to draw maneuver arrows.
             visualNavigatorColors.setManeuverArrowColor(maneuverArrowColor);
             // Sets route color for a single transport mode. Other modes are kept using defaults.
