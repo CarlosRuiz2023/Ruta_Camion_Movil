@@ -138,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     DrawerLayout drawerLayout;
     public Messages messages;
     public NavigationExample navigationExample;
-    public TextView messageView, txtNavegacion, speedTextView, txtTerminarRuta, distanceTextView, timeTextView, txtDescargaInfo, txtProcesoActualizacion;
+    public TextView messageView, txtNavegacion, speedTextView, txtTerminarRuta, distanceTextView, timeTextView, txtDescargaInfo, txtProcesoActualizacion, speedLabeltextView;
     public GeoCoordinates currentGeoCoordinates, coordenadasDestino, coordenada1, coordenada2, geoCoordinatesPOI = null, destinationGeoCoordinates;
     public AvoidZonesExample avoidZonesExample;
     public ControlPointsExample controlPointsExample;
@@ -181,410 +181,438 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        //EdgeToEdge.enable(this);
-        initializeFirstsClass();
-        mMapHelper.initializeHERESDK(this);
-        setContentView(R.layout.activity_main);
-        initializeComponents();
-        mapView.onCreate(savedInstanceState);
-        mMapHelper.loadMapScene(mapView, this);
-        mMapHelper.tiltMap(mapView);
-        setTapGestureHandler();
-        initializeBD();
-        initializeSecondClass();
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            if(mMapHelper.isGPSEnabled(MainActivity.this)){
-                navigationExample.startLocationProvider();
+        try{
+            super.onCreate(savedInstanceState);
+            //EdgeToEdge.enable(this);
+            initializeFirstsClass();
+            mMapHelper.initializeHERESDK(this);
+            setContentView(R.layout.activity_main);
+            initializeComponents();
+            mapView.onCreate(savedInstanceState);
+            mMapHelper.loadMapScene(mapView, this);
+            mMapHelper.tiltMap(mapView);
+            setTapGestureHandler();
+            initializeBD();
+            initializeSecondClass();
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                if(mMapHelper.isGPSEnabled(MainActivity.this)){
+                    navigationExample.startLocationProvider();
+                }else{
+                    mMapHelper.showGPSDisabledDialog(MainActivity.this);
+                }
             }else{
-                mMapHelper.showGPSDisabledDialog(MainActivity.this);
+                //mMapHelper.permisoLocalizacion(this, this);
+                mMapHelper.handleAndroidPermissions();
             }
-        }else{
-            //mMapHelper.permisoLocalizacion(this, this);
-            mMapHelper.handleAndroidPermissions();
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
         }
     }
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        String title = ""+item.getTitle();
-        Animation animSalida = null;
-        View dialogView = null;
-        AlertDialog.Builder builder = null;
-        switch (title) {
-            case "Obtener Ruta":
-                if(ruta==null){
-                    // Inicializar UI
-                    rutasAsignadas = new ArrayList<>();
-                    dialogView = getLayoutInflater().inflate(R.layout.ventana_seleccionar_ruta, null);
-                    builder = new AlertDialog.Builder(MainActivity.this);
-                    builder.setView(dialogView);
-                    final AlertDialog alertDialogRuta = builder.create();
+        try{
+            String title = ""+item.getTitle();
+            Animation animSalida = null;
+            View dialogView = null;
+            AlertDialog.Builder builder = null;
+            switch (title) {
+                case "Obtener Ruta":
+                    if(ruta==null){
+                        // Inicializar UI
+                        rutasAsignadas = new ArrayList<>();
+                        dialogView = getLayoutInflater().inflate(R.layout.ventana_seleccionar_ruta, null);
+                        builder = new AlertDialog.Builder(MainActivity.this);
+                        builder.setView(dialogView);
+                        final AlertDialog alertDialogRuta = builder.create();
 
-                    // Configurar vistas
-                    TextView textView10 = dialogView.findViewById(R.id.textView10);
-                    final Button btnCancelarRuta = dialogView.findViewById(R.id.btnCancelar);
-                    LinearLayout linearLayout = dialogView.findViewById(R.id.linearLayout);
-                    RecyclerView recyclerView = dialogView.findViewById(R.id.routesRecyclerView);
-                    TextView sinRutasTextView = dialogView.findViewById(R.id.sinRutasTextView);
-                    ScrollView scrollView = dialogView.findViewById(R.id.scrollView);
+                        // Configurar vistas
+                        TextView textView10 = dialogView.findViewById(R.id.textView10);
+                        final Button btnCancelarRuta = dialogView.findViewById(R.id.btnCancelar);
+                        LinearLayout linearLayout = dialogView.findViewById(R.id.linearLayout);
+                        RecyclerView recyclerView = dialogView.findViewById(R.id.routesRecyclerView);
+                        TextView sinRutasTextView = dialogView.findViewById(R.id.sinRutasTextView);
+                        ScrollView scrollView = dialogView.findViewById(R.id.scrollView);
 
-                    // Configurar estado inicial
-                    scrollView.setVisibility(View.GONE);
-                    sinRutasTextView.setText("Cargando rutas...");
-                    sinRutasTextView.setVisibility(View.VISIBLE);
+                        // Configurar estado inicial
+                        scrollView.setVisibility(View.GONE);
+                        sinRutasTextView.setText("Cargando rutas...");
+                        sinRutasTextView.setVisibility(View.VISIBLE);
 
-                    // Configurar botón cancelar
-                    btnCancelarRuta.setOnClickListener(v -> {
-                        btnCancelarRuta.startAnimation(animacionClick);
-                        handler.postDelayed(alertDialogRuta::dismiss, 400);
-                    });
+                        // Configurar botón cancelar
+                        btnCancelarRuta.setOnClickListener(v -> {
+                            btnCancelarRuta.startAnimation(animacionClick);
+                            handler.postDelayed(alertDialogRuta::dismiss, 400);
+                        });
 
-                    // Mostrar diálogo
-                    alertDialogRuta.show();
+                        // Mostrar diálogo
+                        alertDialogRuta.show();
 
-                    if(Internet.isNetworkConnected()){
-                        // Iniciar descargas
-                        futures = new ArrayList<>();
-                        futures.add(descargarRutasFaltantes());
-                        futures.add(controlPointsExample.descargarPuntosDeControlFaltantes());
-                        futures.add(avoidZonesExample.descargarZonasPeligrosasFaltantes());
-                        futures.add(avoidZonesExample.descargarZonasProhibidasFaltantes());
+                        if(Internet.isNetworkConnected()){
+                            // Iniciar descargas
+                            futures = new ArrayList<>();
+                            futures.add(descargarRutasFaltantes());
+                            futures.add(controlPointsExample.descargarPuntosDeControlFaltantes());
+                            futures.add(avoidZonesExample.descargarZonasPeligrosasFaltantes());
+                            futures.add(avoidZonesExample.descargarZonasProhibidasFaltantes());
 
-                        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                                .whenComplete((result, ex) -> {
-                                    runOnUiThread(() -> {
-                                        if (ex != null) {
-                                            Log.e(TAG, "Error during downloads", ex);
-                                            sinRutasTextView.setText("Error al cargar rutas");
-                                            return;
-                                        }
-                                        rutas = dbHelper.getAllRoutes();
-                                        controlPointsExample.pointsWithIds = dbHelper.getAllPuntos();
-                                        avoidZonesExample.polygonWithIds = dbHelper.getAllZonas();
+                            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                                    .whenComplete((result, ex) -> {
+                                        runOnUiThread(() -> {
+                                            if (ex != null) {
+                                                Log.e(TAG, "Error during downloads", ex);
+                                                sinRutasTextView.setText("Error al cargar rutas");
+                                                return;
+                                            }
+                                            rutas = dbHelper.getAllRoutes();
+                                            controlPointsExample.pointsWithIds = dbHelper.getAllPuntos();
+                                            avoidZonesExample.polygonWithIds = dbHelper.getAllZonas();
 
-                                        // Iniciar descargas
-                                        futures = new ArrayList<>();
-                                        futures.add(obtenerAsignaciones());
+                                            // Iniciar descargas
+                                            futures = new ArrayList<>();
+                                            futures.add(obtenerAsignaciones());
 
-                                        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                                                .whenComplete((result1, ex1) -> {
-                                                    runOnUiThread(() -> {
-                                                        if (ex1 != null) {
-                                                            Log.e(TAG, "Error during downloads", ex1);
-                                                            sinRutasTextView.setText("Error al cargar rutas");
-                                                            return;
-                                                        }
+                                            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                                                    .whenComplete((result1, ex1) -> {
+                                                        runOnUiThread(() -> {
+                                                            if (ex1 != null) {
+                                                                Log.e(TAG, "Error during downloads", ex1);
+                                                                sinRutasTextView.setText("Error al cargar rutas");
+                                                                return;
+                                                            }
 
-                                                        adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
+                                                            adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
 
-                                                        if (adapterAsignedRoutes.getItemCount() == 0) {
-                                                            scrollView.setVisibility(View.GONE);
-                                                            sinRutasTextView.setText("No hay rutas disponibles");
-                                                            sinRutasTextView.setVisibility(View.VISIBLE);
-                                                        } else {
-                                                            recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
-                                                            recyclerView.setAdapter(adapterAsignedRoutes);
-                                                            scrollView.setVisibility(View.VISIBLE);
-                                                            sinRutasTextView.setVisibility(View.GONE);
-                                                        }
+                                                            if (adapterAsignedRoutes.getItemCount() == 0) {
+                                                                scrollView.setVisibility(View.GONE);
+                                                                sinRutasTextView.setText("No hay rutas disponibles");
+                                                                sinRutasTextView.setVisibility(View.VISIBLE);
+                                                            } else {
+                                                                recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
+                                                                recyclerView.setAdapter(adapterAsignedRoutes);
+                                                                scrollView.setVisibility(View.VISIBLE);
+                                                                sinRutasTextView.setVisibility(View.GONE);
+                                                            }
+                                                        });
                                                     });
-                                                });
+                                        });
                                     });
-                                });
-                    }else{
-                        sinRutasTextView.setText("Verifique su conexion a internet.");
-                    }
-                }else{
-                    Messages.showInvalidCredentialsDialog("Ya se tiene una ruta activa.","Es necesario terminar la ruta activa antes de seleccionar otra ruta.",MainActivity.this);
-                }
-                break;
-            case "Puntos Cercanos":
-                avoidZonesExample.cleanPolygon();
-                controlPointsExample.cleanPoint();
-                setTapGestureHandler();
-                isTrackingCamera = false;
-                trackCamara.setImageResource(R.drawable.track_on);
-                navigationExample.stopCameraTracking();
-                clearMapMarkersPOIsAndCircle(true);
-
-                dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.ventana_buscar_poi, null);
-
-                final Dialog dialogPoi = new Dialog(MainActivity.this);
-                dialogPoi.setContentView(dialogView);
-                dialogPoi.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-
-                Spinner spinnerPoiType = dialogView.findViewById(R.id.spinnerPoiType);
-                EditText editTextRadius = dialogView.findViewById(R.id.editTextRadius);
-                Button btnBuscar = dialogView.findViewById(R.id.btnBuscar);
-                final Button btnCancelarPoi = dialogView.findViewById(R.id.btnCancelar);
-
-                // Configurar el spinner con los tipos de POI
-                ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(MainActivity.this,
-                        R.array.poi_types_array, android.R.layout.simple_spinner_item);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinnerPoiType.setAdapter(adapter);
-
-                btnBuscar.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        String selectedPoiType = spinnerPoiType.getSelectedItem().toString();
-                        String radiusStr = editTextRadius.getText().toString().trim();
-                        if (!radiusStr.isEmpty() && Integer.parseInt(radiusStr)!=0 && Integer.parseInt(radiusStr)>=1000) {
-                            int radius = Integer.parseInt(radiusStr);
-                            // Llamar a la función para buscar el POI más cercano
-                            searchNearestPoi(selectedPoiType, radius);
-                            llPois.setVisibility(VISIBLE);
-                            dialogPoi.dismiss();
-
-                        } else {
-                            Toast.makeText(MainActivity.this, "Por favor, ingrese un radio válido", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-
-                btnCancelarPoi.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialogPoi.dismiss();
-                    }
-                });
-
-                dialogPoi.show();
-                break;
-            case "Puntos de Control":
-                trackCamara.setImageResource(R.drawable.track_on);
-                navigationExample.stopCameraTracking();
-                avoidZonesExample.cleanPolygon();
-                controlPointsExample.cleanPoint();
-                mapView.getGestures().setTapListener(null);
-                animSalida = AnimationUtils.loadAnimation(MainActivity.this, R.anim.salida2);
-                clearMapMarkersPOIsAndCircle(true);
-                controlPointsExample.getModalBottomSheetFullScreenFragment().show(getSupportFragmentManager(), ModalBottomSheetFullScreenFragmentPuntos.TAG);
-                break;
-            case "Zonas Prohibidas":
-                trackCamara.setImageResource(R.drawable.track_on);
-                navigationExample.stopCameraTracking();
-                controlPointsExample.cleanPoint();
-                avoidZonesExample.cleanPolygon();
-                mapView.getGestures().setTapListener(null);
-                animSalida = AnimationUtils.loadAnimation(MainActivity.this, R.anim.salida2);
-                clearMapMarkersPOIsAndCircle(true);
-                avoidZonesExample.getModalBottomSheetFullScreenFragment().show(getSupportFragmentManager(), ModalBottomSheetFullScreenFragmentZonas.TAG);
-                break;
-            case "Descargar Mapa":
-                avoidZonesExample.cleanPolygon();
-                controlPointsExample.cleanPoint();
-
-                LayoutInflater inflater = getLayoutInflater();
-                dialogView = inflater.inflate(R.layout.ventana_descargar_mapa, null);
-
-                builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setView(dialogView);
-
-                final AlertDialog alertDialogOffline = builder.create();
-
-                Button btnConsultar = dialogView.findViewById(R.id.btnConsultarDescarga);
-                btnDescargar = dialogView.findViewById(R.id.btnDescargarMapa);
-                txtDescargaTitulo = dialogView.findViewById(R.id.txtDescargaInfo);
-                txtProcesoDescarga =  dialogView.findViewById(R.id.txtProcesoDescarga);
-                btnConsultar.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        btnDescargar.setEnabled(true);
-                        offlineMap.onDownloadMexicoRegionClicked();
-                    }
-                });
-
-                btnDescargar.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        if (btnDescargar.getText().equals(getString(R.string.descargar))){
-                            txtProcesoDescarga.setVisibility(VISIBLE);
-                            offlineMap.onDownloadMapMexicoClicked();
-                            btnConsultar.setEnabled(false);
-                            btnDescargar.setText(getString(R.string.cancelar_descarga));
                         }else{
-                            btnDescargar.setText(getString(R.string.descargar));
-                            btnConsultar.setEnabled(true);
-                            offlineMap.onCancelMapDownloadClicked();
-
+                            sinRutasTextView.setText("Verifique su conexion a internet.");
                         }
+                    }else{
+                        Messages.showInvalidCredentialsDialog("Ya se tiene una ruta activa.","Es necesario terminar la ruta activa antes de seleccionar otra ruta.",MainActivity.this);
                     }
-                });
+                    break;
+                case "Puntos Cercanos":
+                    avoidZonesExample.cleanPolygon();
+                    controlPointsExample.cleanPoint();
+                    setTapGestureHandler();
+                    isTrackingCamera = false;
+                    trackCamara.setImageResource(R.drawable.track_on);
+                    navigationExample.stopCameraTracking();
+                    clearMapMarkersPOIsAndCircle(true);
 
-                alertDialogOffline.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                    @Override
-                    public void onCancel(DialogInterface dialog) {
-                        boolean response = offlineMap.onCancelMapDownloadFromDismiss();
-                        if (response) {
-                            Toast.makeText(MainActivity.this, "La descarga del mapa fue cancelada", Toast.LENGTH_SHORT).show();
-                        }
+                    dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.ventana_buscar_poi, null);
 
-                    }
+                    final Dialog dialogPoi = new Dialog(MainActivity.this);
+                    dialogPoi.setContentView(dialogView);
+                    dialogPoi.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-                });
+                    Spinner spinnerPoiType = dialogView.findViewById(R.id.spinnerPoiType);
+                    EditText editTextRadius = dialogView.findViewById(R.id.editTextRadius);
+                    Button btnBuscar = dialogView.findViewById(R.id.btnBuscar);
+                    final Button btnCancelarPoi = dialogView.findViewById(R.id.btnCancelar);
 
-                alertDialogOffline.show();
-                break;
-            case "Vehiculo":
-                avoidZonesExample.cleanPolygon();
-                controlPointsExample.cleanPoint();
-                mapView.getGestures().setTapListener(null);
-                truckConfig.mostrarMenu();
-                break;
-            case "Cerrar Sesion":
-                if(Internet.isNetworkConnected()){
-                    SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-                    String token = sharedPreferences.getString("token", "");
-                    // Use Retrofit to make the POST request
-                    ApiService apiService = RetrofitClient.getInstance(token).create(ApiService.class);
-                    Call<ResponseBody> call = apiService.desloguearse();
+                    // Configurar el spinner con los tipos de POI
+                    ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(MainActivity.this,
+                            R.array.poi_types_array, android.R.layout.simple_spinner_item);
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerPoiType.setAdapter(adapter);
 
-                    call.enqueue(new Callback<ResponseBody>() {
+                    btnBuscar.setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
-                            if (response.isSuccessful() && response.body() != null) {
-                                try {
-                                    // Obtener el JSON como string
-                                    String jsonResponse = response.body().string();
-                                    // Convierte la respuesta en un objeto JSON
-                                    JSONObject jsonObject = new JSONObject(jsonResponse);
-                                    // Verifica si la operación fue exitosa
-                                    boolean success = jsonObject.getBoolean("success");
-                                    JSONObject resultObject = null;
-                                    if (success) {
-                                        // Remove credentials from SharedPreferences
-                                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                                        editor.remove("token");  // Remove username key
-                                        editor.remove("id_usuario");  // Remove password key (if stored directly)
-                                        editor.remove("nombres");  // Remove password key (if stored directly)
-                                        editor.remove("apellido_paterno");  // Remove password key (if stored directly)
-                                        editor.remove("apellido_materno");  // Remove password key (if stored directly)
-                                        editor.remove("telefono");  // Remove password key (if stored directly)
-                                        editor.remove("id_rol");  // Remove password key (if stored directly)
-                                        editor.apply(); // Apply changes to SharedPreferences
+                        public void onClick(View v) {
+                            String selectedPoiType = spinnerPoiType.getSelectedItem().toString();
+                            String radiusStr = editTextRadius.getText().toString().trim();
+                            if (!radiusStr.isEmpty() && Integer.parseInt(radiusStr)!=0 && Integer.parseInt(radiusStr)>=1000) {
+                                int radius = Integer.parseInt(radiusStr);
+                                // Llamar a la función para buscar el POI más cercano
+                                searchNearestPoi(selectedPoiType, radius);
+                                llPois.setVisibility(VISIBLE);
+                                dialogPoi.dismiss();
 
-                                        // - Redirect to login activity
-                                        Intent intent = new Intent(MainActivity.this, InicioSesionActivity.class); // Assuming your login activity is LoginActivity
-                                        startActivity(intent);
-                                        // Obtén el objeto "result"
-                                        Toast.makeText(getApplicationContext(), "Usuario deslogueado con exito", Toast.LENGTH_SHORT).show();
-                                        finish();
-                                    }
-                                } catch (Exception e) {
-                                    Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
-                                }
                             } else {
-                                Toast.makeText(getApplicationContext(), "No se pudo desloguear al usuario", Toast.LENGTH_SHORT).show();
+                                Toast.makeText(MainActivity.this, "Por favor, ingrese un radio válido", Toast.LENGTH_SHORT).show();
                             }
                         }
+                    });
 
+                    btnCancelarPoi.setOnClickListener(new View.OnClickListener() {
                         @Override
-                        public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
-                            Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
+                        public void onClick(View v) {
+                            dialogPoi.dismiss();
                         }
                     });
+
+                    dialogPoi.show();
+                    break;
+                case "Puntos de Control":
+                    trackCamara.setImageResource(R.drawable.track_on);
+                    navigationExample.stopCameraTracking();
+                    avoidZonesExample.cleanPolygon();
+                    controlPointsExample.cleanPoint();
+                    mapView.getGestures().setTapListener(null);
+                    animSalida = AnimationUtils.loadAnimation(MainActivity.this, R.anim.salida2);
+                    clearMapMarkersPOIsAndCircle(true);
+                    controlPointsExample.getModalBottomSheetFullScreenFragment().show(getSupportFragmentManager(), ModalBottomSheetFullScreenFragmentPuntos.TAG);
+                    break;
+                case "Zonas Prohibidas":
+                    trackCamara.setImageResource(R.drawable.track_on);
+                    navigationExample.stopCameraTracking();
+                    controlPointsExample.cleanPoint();
+                    avoidZonesExample.cleanPolygon();
+                    mapView.getGestures().setTapListener(null);
+                    animSalida = AnimationUtils.loadAnimation(MainActivity.this, R.anim.salida2);
+                    clearMapMarkersPOIsAndCircle(true);
+                    avoidZonesExample.getModalBottomSheetFullScreenFragment().show(getSupportFragmentManager(), ModalBottomSheetFullScreenFragmentZonas.TAG);
+                    break;
+                case "Descargar Mapa":
+                    avoidZonesExample.cleanPolygon();
+                    controlPointsExample.cleanPoint();
+
+                    LayoutInflater inflater = getLayoutInflater();
+                    dialogView = inflater.inflate(R.layout.ventana_descargar_mapa, null);
+
+                    builder = new AlertDialog.Builder(MainActivity.this);
+                    builder.setView(dialogView);
+
+                    final AlertDialog alertDialogOffline = builder.create();
+
+                    Button btnConsultar = dialogView.findViewById(R.id.btnConsultarDescarga);
+                    btnDescargar = dialogView.findViewById(R.id.btnDescargarMapa);
+                    txtDescargaTitulo = dialogView.findViewById(R.id.txtDescargaInfo);
+                    txtProcesoDescarga =  dialogView.findViewById(R.id.txtProcesoDescarga);
+                    btnConsultar.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            btnDescargar.setEnabled(true);
+                            offlineMap.onDownloadMexicoRegionClicked();
+                        }
+                    });
+
+                    btnDescargar.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (btnDescargar.getText().equals(getString(R.string.descargar))){
+                                txtProcesoDescarga.setVisibility(VISIBLE);
+                                offlineMap.onDownloadMapMexicoClicked();
+                                btnConsultar.setEnabled(false);
+                                btnDescargar.setText(getString(R.string.cancelar_descarga));
+                            }else{
+                                btnDescargar.setText(getString(R.string.descargar));
+                                btnConsultar.setEnabled(true);
+                                offlineMap.onCancelMapDownloadClicked();
+
+                            }
+                        }
+                    });
+
+                    alertDialogOffline.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialog) {
+                            boolean response = offlineMap.onCancelMapDownloadFromDismiss();
+                            if (response) {
+                                Toast.makeText(MainActivity.this, "La descarga del mapa fue cancelada", Toast.LENGTH_SHORT).show();
+                            }
+
+                        }
+
+                    });
+
+                    alertDialogOffline.show();
+                    break;
+                case "Vehiculo":
+                    avoidZonesExample.cleanPolygon();
+                    controlPointsExample.cleanPoint();
+                    mapView.getGestures().setTapListener(null);
+                    truckConfig.mostrarMenu();
+                    break;
+                case "Cerrar Sesion":
+                    if(Internet.isNetworkConnected()){
+                        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                        String token = sharedPreferences.getString("token", "");
+                        // Use Retrofit to make the POST request
+                        ApiService apiService = RetrofitClient.getInstance(token).create(ApiService.class);
+                        Call<ResponseBody> call = apiService.desloguearse();
+
+                        call.enqueue(new Callback<ResponseBody>() {
+                            @Override
+                            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                                if (response.isSuccessful() && response.body() != null) {
+                                    try {
+                                        // Obtener el JSON como string
+                                        String jsonResponse = response.body().string();
+                                        // Convierte la respuesta en un objeto JSON
+                                        JSONObject jsonObject = new JSONObject(jsonResponse);
+                                        // Verifica si la operación fue exitosa
+                                        boolean success = jsonObject.getBoolean("success");
+                                        JSONObject resultObject = null;
+                                        if (success) {
+                                            /*// Remove credentials from SharedPreferences
+                                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                                            editor.remove("token");  // Remove username key
+                                            editor.remove("id_usuario");  // Remove password key (if stored directly)
+                                            editor.remove("nombres");  // Remove password key (if stored directly)
+                                            editor.remove("apellido_paterno");  // Remove password key (if stored directly)
+                                            editor.remove("apellido_materno");  // Remove password key (if stored directly)
+                                            editor.remove("telefono");  // Remove password key (if stored directly)
+                                            editor.remove("id_rol");  // Remove password key (if stored directly)
+                                            editor.apply(); // Apply changes to SharedPreferences*/
+
+                                            // - Redirect to login activity
+                                            Intent intent = new Intent(MainActivity.this, InicioSesionActivity.class); // Assuming your login activity is LoginActivity
+                                            startActivity(intent);
+                                            // Obtén el objeto "result"
+                                            Toast.makeText(getApplicationContext(), "Usuario deslogueado con exito", Toast.LENGTH_SHORT).show();
+                                            //finish();
+                                        }
+                                    } catch (Exception e) {
+                                        Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                                    }
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "No se pudo desloguear al usuario", Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                                Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
+                            }
+                        });
                     }else{
-                    DialogFragment errorDialog = new ErrorDialogFragment();
-                    errorDialog.show(getSupportFragmentManager(), "errorDialog");
-                }
-                break;
-            default:
-                String msg = item.getTitle().toString();
-                Toast.makeText(this,msg,Toast.LENGTH_SHORT).show();
-                break;
+                        DialogFragment errorDialog = new ErrorDialogFragment();
+                        errorDialog.show(getSupportFragmentManager(), "errorDialog");
+                    }
+                    break;
+                default:
+                    String msg = item.getTitle().toString();
+                    Toast.makeText(this,msg,Toast.LENGTH_SHORT).show();
+                    break;
+            }
+            drawerLayout.closeDrawer(GravityCompat.START);
+            return true;
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
+            return false;
         }
-        drawerLayout.closeDrawer(GravityCompat.START);
-        return true;
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_bottom_nav, menu);
-        return super.onCreateOptionsMenu(menu);
+        try{
+            MenuInflater inflater = getMenuInflater();
+            inflater.inflate(R.menu.menu_bottom_nav, menu);
+            return super.onCreateOptionsMenu(menu);
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
+            return false;
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        int id = item.getItemId();
-        String name = item.getTitle().toString();
+        try{
+            int id = item.getItemId();
+            String name = item.getTitle().toString();
 
-        // Handle other menu items you have defined in your menu resource file
-        switch (name) {
-            case "GPS preciso":
-                // Code to handle settings selection
-                Toast.makeText(this, name+" selected", Toast.LENGTH_SHORT).show();
-                isExactRouteEnabled = !item.isChecked();
-                if(!isExactRouteEnabled){
-                    item.setChecked(false);
-                }else{
-                    item.setChecked(true);
-                }
-                restartLocationUpdates();
-                break;
-            case "Mapa offline":
-                // Code to handle refresh selection
-                Toast.makeText(this, name+" selected", Toast.LENGTH_SHORT).show();
-                if(item.isChecked()){
-                    item.setChecked(false);
-                    offlineMap.onSwitchOfflineButtonClicked();
-                }else{
-                    item.setChecked(true);
-                    offlineMap.onSwitchOnlineButtonClicked();
-                }
-                break;
-            default:
-                // Code to handle other menu items
-                Toast.makeText(this, name+" selected", Toast.LENGTH_SHORT).show();
-                break;
+            // Handle other menu items you have defined in your menu resource file
+            switch (name) {
+                case "GPS preciso":
+                    // Code to handle settings selection
+                    Toast.makeText(this, name+" selected", Toast.LENGTH_SHORT).show();
+                    isExactRouteEnabled = !item.isChecked();
+                    if(!isExactRouteEnabled){
+                        item.setChecked(false);
+                    }else{
+                        item.setChecked(true);
+                    }
+                    restartLocationUpdates();
+                    break;
+                case "Mapa offline":
+                    // Code to handle refresh selection
+                    Toast.makeText(this, name+" selected", Toast.LENGTH_SHORT).show();
+                    if(item.isChecked()){
+                        item.setChecked(false);
+                        offlineMap.onSwitchOfflineButtonClicked();
+                    }else{
+                        item.setChecked(true);
+                        offlineMap.onSwitchOnlineButtonClicked();
+                    }
+                    break;
+                default:
+                    // Code to handle other menu items
+                    Toast.makeText(this, name+" selected", Toast.LENGTH_SHORT).show();
+                    break;
+            }
+
+            // If the ID doesn't match any handled items, return false to allow system handling
+            return super.onOptionsItemSelected(item);
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
+            return false;
         }
-
-        // If the ID doesn't match any handled items, return false to allow system handling
-        return super.onOptionsItemSelected(item);
     }
 
     private void initializeFirstsClass(){
-        mMapHelper = new mapHelper(this);
-        messages = new Messages(this);
-        geocercas = new Geocercas(this);
-        likeAnimator = new AnimatorNew();
+        try{
+            mMapHelper = new mapHelper(this);
+            messages = new Messages(this);
+            geocercas = new Geocercas(this);
+            likeAnimator = new AnimatorNew();
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
+        }
     }
     private void initializeSecondClass(){
-        routingExample = new RoutingExample(this);
-        offlineMap = new OfflineMap(this);
-        truckConfig = new TruckConfig(this);
-        navigationExample = new NavigationExample(this, mapView, messageView);
-        navigationExample.getNavigationEventHandler().setSpeedUpdateListener(this);
-        navigationExample.getNavigationEventHandler().setDestinationDistanceListener(this);
-        navigationExample.getNavigationEventHandler().setDestinationReachedListener(this);
-        avoidZonesExample = new AvoidZonesExample(this,mapView,getLayoutInflater(),dbHelper);
-        controlPointsExample = new ControlPointsExample(this,mapView,getLayoutInflater(),dbHelper);
         try{
-            searchEngine = new SearchEngine();
-            offlineSearchEngine = new OfflineSearchEngine();
-        } catch (InstantiationErrorException e) {
-            Log.e(TAG, "Fallo al inicializar el motor de búsqueda: " + e.error.name());
+            routingExample = new RoutingExample(this);
+            offlineMap = new OfflineMap(this);
+            truckConfig = new TruckConfig(this);
+            navigationExample = new NavigationExample(this);
+            navigationExample.getNavigationEventHandler().setSpeedUpdateListener(this);
+            navigationExample.getNavigationEventHandler().setDestinationDistanceListener(this);
+            navigationExample.getNavigationEventHandler().setDestinationReachedListener(this);
+            avoidZonesExample = new AvoidZonesExample(this,mapView,getLayoutInflater(),dbHelper);
+            controlPointsExample = new ControlPointsExample(this,mapView,getLayoutInflater(),dbHelper);
+            try{
+                searchEngine = new SearchEngine();
+                offlineSearchEngine = new OfflineSearchEngine();
+            } catch (InstantiationErrorException e) {
+                Log.e(TAG, "Fallo al inicializar el motor de búsqueda: " + e.error.name());
+            }
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
         }
     }
 
     private void initializeBD(){
-        dbHelper = new DatabaseHelper(this);
-        rutas = dbHelper.getAllRoutes();
-        if(rutas.size() == 0){
-            futures.add(descargarRutas());
-            // Espera a que todos los futures terminen
-            CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-            allOf.whenComplete((result, ex) -> {
-                if (ex != null) {
-                    // Manejo de errores, si es necesario
-                    Log.e(TAG, "Error during downloads", ex);
-                }
-                // Recupera la lista de polígonos de la base de datos
-                rutas = dbHelper.getAllRoutes();
-            });
-        }/*else{
+        try{
+            dbHelper = new DatabaseHelper(this);
+            rutas = dbHelper.getAllRoutes();
+            if(rutas.size() == 0){
+                futures.add(descargarRutas());
+                // Espera a que todos los futures terminen
+                CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+                allOf.whenComplete((result, ex) -> {
+                    if (ex != null) {
+                        // Manejo de errores, si es necesario
+                        Log.e(TAG, "Error during downloads", ex);
+                    }
+                    // Recupera la lista de polígonos de la base de datos
+                    rutas = dbHelper.getAllRoutes();
+                });
+            }/*else{
             // Agrega todas las llamadas a los métodos de descarga
             futures.add(descargarRutasFaltantes());
             // Espera a que todos los futures terminen
@@ -598,692 +626,748 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 rutas = dbHelper.getAllRoutes();
             });
         }*/
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
+        }
     }
 
     private void initializeComponents(){
-        // Inicializar animaciones
-        animSalida = AnimationUtils.loadAnimation(this, R.anim.salida2);
-        animacionClick = AnimationUtils.loadAnimation(this, R.anim.click);
-        cargaAnimacion = AnimationUtils.loadAnimation(this, R.anim.fade_in);
-        rotateAnimation = AnimationUtils.loadAnimation(this, R.anim.rotate);
-        animEntrada = AnimationUtils.loadAnimation(this, R.anim.entrada2);
+        try{
+            // Inicializar animaciones
+            animSalida = AnimationUtils.loadAnimation(this, R.anim.salida2);
+            animacionClick = AnimationUtils.loadAnimation(this, R.anim.click);
+            cargaAnimacion = AnimationUtils.loadAnimation(this, R.anim.fade_in);
+            rotateAnimation = AnimationUtils.loadAnimation(this, R.anim.rotate);
+            animEntrada = AnimationUtils.loadAnimation(this, R.anim.entrada2);
 
-        // Inicializar componentes
-        hideable_content = findViewById(R.id.hideable_content);
-        home_content = findViewById(R.id.home_content);
-        mapView = findViewById(R.id.map_view);
-        messageView = findViewById(R.id.messageView);
-        nmd = findViewById(R.id.nmd);
-        toolbar = findViewById(R.id.toolbar);
-        drawerLayout = findViewById(R.id.drawer_layout);
-        trackCamara = findViewById(R.id.trackCamara);
-        txtNavegacion = findViewById(R.id.txtNavegacion);
-        speedTextView = findViewById(R.id.speedTextView);
-        imgVelocidad = findViewById(R.id.imgVelocidad);
-        btnTerminarRuta = findViewById(R.id.btnTerminarRuta);
-        txtTerminarRuta = findViewById(R.id.txtTerminarRuta);
-        detallesRuta = findViewById(R.id.detallesRuta);
-        distanceTextView = findViewById(R.id.distanceTextView);
-        timeTextView = findViewById(R.id.timeTextView);
-        llGeocerca = findViewById(R.id.llGeocerca);
-        btnGeocercas = findViewById(R.id.btnGeocercas);
-        llPois = findViewById(R.id.llPois);
-        fbEliminarPoi = findViewById(R.id.fbEliminarPoi);
-        llMapas = findViewById(R.id.llMapas);
-        fbMapas = findViewById(R.id.fbMapas);
-        truck_config_content = findViewById(R.id.truck_config_content);
-        likeImageView = findViewById(R.id.likeImageView);
-        recalculateRouteButton = findViewById(R.id.recalculateRouteButton);
-        loading_spinner = findViewById(R.id.loading_spinner);
-        llLoadingRoute = findViewById(R.id.llLoadingRoute);
-        routeTextView = findViewById(R.id.routeTextView);
-        // Infla el layout del encabezado
-        View headerView = nmd.inflateHeaderView(R.layout.nav_header);
-        nav_header_name = headerView.findViewById(R.id.nav_header_name);
-        nav_header_email = headerView.findViewById(R.id.nav_header_email);
-        //likeImageView1 = findViewById(R.id.likeImageView1);
+            // Inicializar componentes
+            hideable_content = findViewById(R.id.hideable_content);
+            home_content = findViewById(R.id.home_content);
+            mapView = findViewById(R.id.map_view);
+            messageView = findViewById(R.id.messageView);
+            nmd = findViewById(R.id.nmd);
+            toolbar = findViewById(R.id.toolbar);
+            drawerLayout = findViewById(R.id.drawer_layout);
+            trackCamara = findViewById(R.id.trackCamara);
+            txtNavegacion = findViewById(R.id.txtNavegacion);
+            speedTextView = findViewById(R.id.speedTextView);
+            imgVelocidad = findViewById(R.id.imgVelocidad);
+            btnTerminarRuta = findViewById(R.id.btnTerminarRuta);
+            txtTerminarRuta = findViewById(R.id.txtTerminarRuta);
+            detallesRuta = findViewById(R.id.detallesRuta);
+            distanceTextView = findViewById(R.id.distanceTextView);
+            timeTextView = findViewById(R.id.timeTextView);
+            llGeocerca = findViewById(R.id.llGeocerca);
+            btnGeocercas = findViewById(R.id.btnGeocercas);
+            llPois = findViewById(R.id.llPois);
+            fbEliminarPoi = findViewById(R.id.fbEliminarPoi);
+            llMapas = findViewById(R.id.llMapas);
+            fbMapas = findViewById(R.id.fbMapas);
+            truck_config_content = findViewById(R.id.truck_config_content);
+            likeImageView = findViewById(R.id.likeImageView);
+            recalculateRouteButton = findViewById(R.id.recalculateRouteButton);
+            loading_spinner = findViewById(R.id.loading_spinner);
+            llLoadingRoute = findViewById(R.id.llLoadingRoute);
+            routeTextView = findViewById(R.id.routeTextView);
+            speedLabeltextView = findViewById(R.id.speedLabeltextView);
+            // Infla el layout del encabezado
+            View headerView = nmd.inflateHeaderView(R.layout.nav_header);
+            nav_header_name = headerView.findViewById(R.id.nav_header_name);
+            nav_header_email = headerView.findViewById(R.id.nav_header_email);
+            //likeImageView1 = findViewById(R.id.likeImageView1);
 
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        String nombres = sharedPreferences.getString("nombres", "").trim();
-        String correo = sharedPreferences.getString("correo", "");
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            String nombres = sharedPreferences.getString("nombres", "").trim();
+            String correo = sharedPreferences.getString("correo", "");
 
-        nav_header_name.setText(String.format("¡Bienvenido, %s!", nombres));
-        nav_header_email.setText(String.format("%s", correo));
+            nav_header_name.setText(String.format("¡Bienvenido, %s!", nombres));
+            nav_header_email.setText(String.format("%s", correo));
 
-        //Animacion de cargando
-        likeAnimator.beginAnimation(likeImageView,R.raw.loading_2,R.raw.loading_5);
-        //likeAnimator.beginAnimation(likeImageView1,R.raw.loading_2,R.raw.loading_5);
+            //Animacion de cargando
+            likeAnimator.beginAnimation(likeImageView,R.raw.loading_2,R.raw.loading_5);
+            //likeAnimator.beginAnimation(likeImageView1,R.raw.loading_2,R.raw.loading_5);
 
-        // Set the toolbar as the action bar
-        this.setSupportActionBar(toolbar);
-        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this,drawerLayout,toolbar,R.string.dialog_ok,R.string.dialog_cancel);
-        drawerLayout.addDrawerListener(toggle);
-        toggle.syncState();
-        // Set the navigation view as the content view
-        nmd.setNavigationItemSelectedListener(this);
+            // Set the toolbar as the action bar
+            this.setSupportActionBar(toolbar);
+            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this,drawerLayout,toolbar,R.string.dialog_ok,R.string.dialog_cancel);
+            drawerLayout.addDrawerListener(toggle);
+            toggle.syncState();
+            // Set the navigation view as the content view
+            nmd.setNavigationItemSelectedListener(this);
 
-        initializeListeners();
+            initializeListeners();
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
+        }
     }
     private void initializeListeners(){
-        // Inicializar animaciones
-        trackCamara.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                trackCamara.startAnimation(animacionClick);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (isTrackingCamera) {
-                            trackCamara.setImageResource(R.drawable.track_on);
-                            navigationExample.stopCameraTracking();
-                        } else {
-                            trackCamara.setImageResource(R.drawable.track_off);
-                            navigationExample.startCameraTracking();
-                        }
-                        isTrackingCamera = !isTrackingCamera;
-                    }
-                }, 400);
-            }
-        });
-        btnGeocercas.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(activarGeocercas){
-                    mapView.getMapScene().removeMapPolygon(geocercas.geocercas);
-                    activarGeocercas = false;
-                    btnGeocercas.setImageResource(R.drawable.ic_add_road);
-                }else{
-                    mapView.getMapScene().addMapPolygon(geocercas.geocercas);
-                    activarGeocercas = true;
-                    btnGeocercas.setImageResource(R.drawable.ic_remove_road);
-                }
-            }
-        });
-        btnTerminarRuta.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                btnTerminarRuta.startAnimation(animacionClick);
-                new Handler().postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        LayoutInflater inflater = getLayoutInflater();
-                        View dialogView = inflater.inflate(R.layout.ventana_terminar_ruta, null);
-
-                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                        builder.setView(dialogView);
-
-                        final AlertDialog dialog = builder.create();
-
-                        Button positiveButton = dialogView.findViewById(R.id.positiveButton);
-                        Button negativeButton = dialogView.findViewById(R.id.negativeButton);
-
-                        positiveButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                positiveButton.startAnimation(animacionClick);
-                                new Handler().postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        limpiezaTotal();
-                                        dialog.dismiss();
-                                    }
-                                }, 400);
-                            }
-                        });
-
-                        negativeButton.setOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                negativeButton.startAnimation(animacionClick);
-                                new Handler().postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        messages.showCustomToast("La ruta sigue");
-                                        dialog.dismiss();
-                                    }
-                                }, 400);
-                            }
-                        });
-
-                        dialog.show();
-                        //recalculateRouteButton.setVisibility(View.GONE);
-                    }
-                }, 400);
-            }
-        });
-        fbEliminarPoi.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                clearMapMarkersPOIsAndCircle(true);
-                messages.showCustomToast("Se eliminaron los poi");
-                llPois.setVisibility(View.GONE);
-            }
-        });
-        fbMapas.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                avoidZonesExample.cleanPolygon();
-                controlPointsExample.cleanPoint();
-                messages.showCustomToast("Cambiando estilo del mapa");
-                String filename="";
-                // AUMENTAMOS EL CONTADOR DE ESTILOS
-                styleCounter++;
-                // VERIFICAMOS EL CONTADOR DE ESTILOS NO SALGA DEL RANGO
-                if(styleCounter==7)styleCounter=0;
-                // VALIDAMOS POR EL CONTADOR DE ESTILOS
-                switch (styleCounter) {
-                    case 0:
-                        // CAMBIAMOS EL ESTILO
-                        style = MapScheme.NORMAL_DAY;
-                        break;
-                    case 1:
-                        // CAMBIAMOS EL ESTILO
-                        style = MapScheme.NORMAL_NIGHT;
-                        break;
-                    case 2:
-                        // CAMBIAMOS EL ESTILO A NULO
-                        style = null;
-                        // TOMAMOS EL NOMBRE DEL ARCHIVO JSON
-                        filename = "custom-dark-style-neon-rds.json";
-                        break;
-                    case 3:
-                        // CAMBIAMOS EL ESTILO A NULO
-                        style = null;
-                        // TOMAMOS EL NOMBRE DEL ARCHIVO JSON
-                        filename = "Day.json";
-                        break;
-                    case 4:
-                        // CAMBIAMOS EL ESTILO A NULO
-                        style = null;
-                        // TOMAMOS EL NOMBRE DEL ARCHIVO JSON
-                        filename = "prueba.json";
-                        break;
-                    case 5:
-                        // CAMBIAMOS EL ESTILO
-                        style = MapScheme.HYBRID_DAY;
-                        break;
-                    case 6:
-                        // CAMBIAMOS EL ESTILO A NULO
-                        style = MapScheme.SATELLITE;
-                        break;
-                }
-                // TOMAMOS LOS ASSETS DEL PROYECTO
-                AssetManager assetManager = getApplicationContext().getAssets();
-                try {
-                    // CARGAMOS EL ARCHIVO JSON
-                    assetManager.open(filename);
-                } catch (Exception e) {
-                    // MANDAMOS UN MENSAJE DE ERROR
-                    Log.e("Error", e.getMessage());
-                }
-                // VERIFICAMOS SI EL ESTYLO ES NULO
-                if(style==null){
-                    // CARGAMOS EL ESTILO POR DEFECTO
-                    mapView.getMapScene().loadScene(""+filename, new MapScene.LoadSceneCallback() {
+        try{
+            // Inicializar animaciones
+            trackCamara.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    trackCamara.startAnimation(animacionClick);
+                    new Handler().postDelayed(new Runnable() {
                         @Override
-                        public void onLoadScene(@Nullable MapError errorCode) {
-                            if (errorCode == null) {
+                        public void run() {
+                            if (isTrackingCamera) {
+                                trackCamara.setImageResource(R.drawable.track_on);
+                                navigationExample.stopCameraTracking();
                             } else {
-                                // Style loading failed
+                                trackCamara.setImageResource(R.drawable.track_off);
+                                navigationExample.startCameraTracking();
                             }
+                            isTrackingCamera = !isTrackingCamera;
                         }
-                    });
-                }else{
-                    // CARGAMOS ALGUNO DE LOS ESTILOS PREDETERMINADOS DE LA SDK
-                    mapView.getMapScene().loadScene(style, new MapScene.LoadSceneCallback() {
+                    }, 400);
+                }
+            });
+            btnGeocercas.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(activarGeocercas){
+                        mapView.getMapScene().removeMapPolygon(geocercas.geocercas);
+                        activarGeocercas = false;
+                        btnGeocercas.setImageResource(R.drawable.ic_add_road);
+                    }else{
+                        mapView.getMapScene().addMapPolygon(geocercas.geocercas);
+                        activarGeocercas = true;
+                        btnGeocercas.setImageResource(R.drawable.ic_remove_road);
+                    }
+                }
+            });
+            btnTerminarRuta.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    btnTerminarRuta.startAnimation(animacionClick);
+                    new Handler().postDelayed(new Runnable() {
                         @Override
-                        public void onLoadScene(@Nullable MapError errorCode) {
-                            if (errorCode == null) {
-                                // VERIFICAMOS SI ESTA ACTIVADO EL TRAFICO
+                        public void run() {
+                            LayoutInflater inflater = getLayoutInflater();
+                            View dialogView = inflater.inflate(R.layout.ventana_terminar_ruta, null);
+
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            builder.setView(dialogView);
+
+                            final AlertDialog dialog = builder.create();
+
+                            Button positiveButton = dialogView.findViewById(R.id.positiveButton);
+                            Button negativeButton = dialogView.findViewById(R.id.negativeButton);
+
+                            positiveButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    positiveButton.startAnimation(animacionClick);
+                                    new Handler().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            limpiezaTotal();
+                                            dialog.dismiss();
+                                        }
+                                    }, 400);
+                                }
+                            });
+
+                            negativeButton.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    negativeButton.startAnimation(animacionClick);
+                                    new Handler().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            messages.showCustomToast("La ruta sigue");
+                                            dialog.dismiss();
+                                        }
+                                    }, 400);
+                                }
+                            });
+
+                            dialog.show();
+                            //recalculateRouteButton.setVisibility(View.GONE);
+                        }
+                    }, 400);
+                }
+            });
+            fbEliminarPoi.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    clearMapMarkersPOIsAndCircle(true);
+                    messages.showCustomToast("Se eliminaron los poi");
+                    llPois.setVisibility(View.GONE);
+                }
+            });
+            fbMapas.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    avoidZonesExample.cleanPolygon();
+                    controlPointsExample.cleanPoint();
+                    messages.showCustomToast("Cambiando estilo del mapa");
+                    String filename="";
+                    // AUMENTAMOS EL CONTADOR DE ESTILOS
+                    styleCounter++;
+                    // VERIFICAMOS EL CONTADOR DE ESTILOS NO SALGA DEL RANGO
+                    if(styleCounter==7)styleCounter=0;
+                    // VALIDAMOS POR EL CONTADOR DE ESTILOS
+                    switch (styleCounter) {
+                        case 0:
+                            // CAMBIAMOS EL ESTILO
+                            style = MapScheme.NORMAL_DAY;
+                            break;
+                        case 1:
+                            // CAMBIAMOS EL ESTILO
+                            style = MapScheme.NORMAL_NIGHT;
+                            break;
+                        case 2:
+                            // CAMBIAMOS EL ESTILO A NULO
+                            style = null;
+                            // TOMAMOS EL NOMBRE DEL ARCHIVO JSON
+                            filename = "custom-dark-style-neon-rds.json";
+                            break;
+                        case 3:
+                            // CAMBIAMOS EL ESTILO A NULO
+                            style = null;
+                            // TOMAMOS EL NOMBRE DEL ARCHIVO JSON
+                            filename = "Day.json";
+                            break;
+                        case 4:
+                            // CAMBIAMOS EL ESTILO A NULO
+                            style = null;
+                            // TOMAMOS EL NOMBRE DEL ARCHIVO JSON
+                            filename = "prueba.json";
+                            break;
+                        case 5:
+                            // CAMBIAMOS EL ESTILO
+                            style = MapScheme.HYBRID_DAY;
+                            break;
+                        case 6:
+                            // CAMBIAMOS EL ESTILO A NULO
+                            style = MapScheme.SATELLITE;
+                            break;
+                    }
+                    // TOMAMOS LOS ASSETS DEL PROYECTO
+                    AssetManager assetManager = getApplicationContext().getAssets();
+                    try {
+                        // CARGAMOS EL ARCHIVO JSON
+                        assetManager.open(filename);
+                    } catch (Exception e) {
+                        // MANDAMOS UN MENSAJE DE ERROR
+                        Log.e("Error", e.getMessage());
+                    }
+                    // VERIFICAMOS SI EL ESTYLO ES NULO
+                    if(style==null){
+                        // CARGAMOS EL ESTILO POR DEFECTO
+                        mapView.getMapScene().loadScene(""+filename, new MapScene.LoadSceneCallback() {
+                            @Override
+                            public void onLoadScene(@Nullable MapError errorCode) {
+                                if (errorCode == null) {
+                                } else {
+                                    // Style loading failed
+                                }
+                            }
+                        });
+                    }else{
+                        // CARGAMOS ALGUNO DE LOS ESTILOS PREDETERMINADOS DE LA SDK
+                        mapView.getMapScene().loadScene(style, new MapScene.LoadSceneCallback() {
+                            @Override
+                            public void onLoadScene(@Nullable MapError errorCode) {
+                                if (errorCode == null) {
+                                    // VERIFICAMOS SI ESTA ACTIVADO EL TRAFICO
                                 /*if(isActiveTraffic) {
                                     // ACTIVAMOS EL TRAFICO
                                     trafficExample.enableAll();
                                 }*/
-                            } else {
-                                // Style loading failed
+                                } else {
+                                    // Style loading failed
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
-            }
-        });
-        recalculateRouteButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                recalculateRouteButton.setVisibility(View.GONE);
-                recalculateRoute();
-            }
-        });
+            });
+            recalculateRouteButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    recalculateRouteButton.setVisibility(View.GONE);
+                    recalculateRoute();
+                }
+            });
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
+        }
     }
 
     private void restartLocationUpdates() {
-        if (navigationExample.herePositioningProvider != null) {
-            navigationExample.herePositioningProvider.stopLocating();
+        try{
+            if (navigationExample.herePositioningProvider != null) {
+                navigationExample.herePositioningProvider.stopLocating();
+            }
+            navigationExample.locationAccuracy = isExactRouteEnabled ? LocationAccuracy.NAVIGATION : LocationAccuracy.BEST_AVAILABLE;
+            navigationExample.startLocationProvider();
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
         }
-        navigationExample.locationAccuracy = isExactRouteEnabled ? LocationAccuracy.NAVIGATION : LocationAccuracy.BEST_AVAILABLE;
-        navigationExample.startLocationProvider();
     }
 
     @Override
     public void onSpeedUpdated(double speed) {
-        runOnUiThread(() -> {
-            int speedKmh = (int) Math.round(speed * 3.6);
-            speedTextView.setText(String.format("%d", speedKmh));
-        });
+        try{
+            runOnUiThread(() -> {
+                int speedKmh = (int) Math.round(speed * 3.6);
+                speedTextView.setText(String.format("%d", speedKmh));
+            });
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
+        }
     }
 
     @Override
     public void onDestinationReached() {
-        Animation animSalida = AnimationUtils.loadAnimation(MainActivity.this, R.anim.salida2);
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                btnTerminarRuta.startAnimation(animSalida);
-                messageView.startAnimation(animSalida);
-                detallesRuta.startAnimation(animSalida);
-                speedTextView.startAnimation(animSalida);
-                distanceTextView.startAnimation(animSalida);
-                txtTerminarRuta.startAnimation(animSalida);
-                txtNavegacion.startAnimation(animSalida);
+        try{
+            Animation animSalida = AnimationUtils.loadAnimation(MainActivity.this, R.anim.salida2);
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    btnTerminarRuta.startAnimation(animSalida);
+                    messageView.startAnimation(animSalida);
+                    detallesRuta.startAnimation(animSalida);
+                    speedTextView.startAnimation(animSalida);
+                    distanceTextView.startAnimation(animSalida);
+                    txtTerminarRuta.startAnimation(animSalida);
+                    txtNavegacion.startAnimation(animSalida);
 
-                btnTerminarRuta.setVisibility(View.GONE);
-                messageView.setVisibility(View.GONE);
-                detallesRuta.setVisibility(View.GONE);
-                speedTextView.setVisibility(View.GONE);
-                distanceTextView.setVisibility(View.GONE);
-                txtTerminarRuta.setVisibility(View.GONE);
-                txtNavegacion.setVisibility(View.GONE);
-                //recalculateRouteButton.setVisibility(View.GONE);
+                    btnTerminarRuta.setVisibility(View.GONE);
+                    messageView.setVisibility(View.GONE);
+                    detallesRuta.setVisibility(View.GONE);
+                    speedTextView.setVisibility(View.GONE);
+                    distanceTextView.setVisibility(View.GONE);
+                    txtTerminarRuta.setVisibility(View.GONE);
+                    txtNavegacion.setVisibility(View.GONE);
+                    //recalculateRouteButton.setVisibility(View.GONE);
 
-                trackCamara.setImageResource(R.drawable.track_off);
-                navigationExample.stopCameraTracking();
-            }
-        });
+                    trackCamara.setImageResource(R.drawable.track_off);
+                    navigationExample.stopCameraTracking();
+                }
+            });
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
+        }
     }
 
     @Override
     public void onDestinationInfoUpdated(int distanceInMeters, int timeInSeconds) {
-        runOnUiThread(() -> {
-            String distanceString;
-            if (distanceInMeters >= 1000) {
-                double distanceInKm = distanceInMeters / 1000.0;
-                distanceString = String.format("Distancia: %.1f km", distanceInKm);
-            } else {
-                distanceString = String.format("Distancia: %d m", distanceInMeters);
-            }
-            distanceTextView.setText(distanceString);
+        try{
+            runOnUiThread(() -> {
+                String distanceString;
+                if (distanceInMeters >= 1000) {
+                    double distanceInKm = distanceInMeters / 1000.0;
+                    distanceString = String.format("Distancia: %.1f km", distanceInKm);
+                } else {
+                    distanceString = String.format("Distancia: %d m", distanceInMeters);
+                }
+                distanceTextView.setText(distanceString);
 
-            int hours = timeInSeconds / 3600;
-            int minutes = (timeInSeconds % 3600) / 60;
-            int seconds = timeInSeconds % 60;
-            String timeString;
-            if (hours > 0) {
-                timeString = String.format("Tiempo: %d:%02d:%02d", hours, minutes, seconds);
-            } else {
-                timeString = String.format("Tiempo: %02d:%02d", minutes, seconds);
-            }
-            timeTextView.setText(timeString);
-        });
+                int hours = timeInSeconds / 3600;
+                int minutes = (timeInSeconds % 3600) / 60;
+                int seconds = timeInSeconds % 60;
+                String timeString;
+                if (hours > 0) {
+                    timeString = String.format("Tiempo: %d:%02d:%02d", hours, minutes, seconds);
+                } else {
+                    timeString = String.format("Tiempo: %02d:%02d", minutes, seconds);
+                }
+                timeTextView.setText(timeString);
+            });
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
+        }
     }
     public void limpiezaTotal() {
-        List<MapMarker> startEndMarkers = new ArrayList<>();
-        for (MapMarker marker : routingExample.mapMarkerList) {
-            if (marker.getCoordinates().equals(coordenada1) || marker.getCoordinates().equals(coordenada2)) {
-                startEndMarkers.add(marker);
-            }
-        }
-
-        for (MapMarker marker : routingExample.mapMarkerList) {
-            if (!startEndMarkers.contains(marker)) {
-                mapView.getMapScene().removeMapMarker(marker);
-            }
-        }
-        routingExample.mapMarkerList.clear();
-        routingExample.mapMarkerList.addAll(startEndMarkers);
-
-        for (MapPolyline polyline : routingExample.mapPolylines) {
-            mapView.getMapScene().removeMapPolyline(polyline);
-        }
-        routingExample.mapPolylines.clear();
-
-        coordenada1 = null;
-        coordenada2 = null;
-
-        navigationExample.stopNavigation(true);
-        if(!llegoAlDestino){
-            messages.showCustomToast("Se ha terminado la ruta");
-        }else{
-            llegoAlDestino = false;
-        }
-        messageView.setText("Indicaciones");
-        detallesRuta.startAnimation(animSalida);
-        detallesRuta.setVisibility(View.GONE);
-        timeTextView.startAnimation(animSalida);
-        timeTextView.setVisibility(View.GONE);
-        distanceTextView.setVisibility(View.GONE);
-        distanceTextView.startAnimation(animSalida);
-        messageView.setVisibility(View.GONE);
-        messageView.startAnimation(animSalida);
-        timeTextView.setText("");
-        distanceTextView.setText("");
-        int yOffsetPx = Math.round(10 * getResources().getDisplayMetrics().density);
-        mapView.setWatermarkLocation(new Anchor2D(0.5, 1), new Point2D(0, -yOffsetPx));
-        navigationExample.stopCameraTracking();
-        messageView.setText("Indicaciones");
-        btnTerminarRuta.startAnimation(animSalida);
-        btnTerminarRuta.setVisibility(View.GONE);
-        txtTerminarRuta.startAnimation(animSalida);
-        txtTerminarRuta.setVisibility(View.GONE);
-
-        rutaGenerada = false;
-        coordenadasDestino = null;
-        clearMapPolylines();
-        routingExample.clearMap();
-        clearMapMarkersPOIsAndCircle(false);
-        clearMapPolylines();
-        routingExample.clearMap();
-        clearMapMarkersPOIsAndCircle(false);
-        if(ruta!=null){
-            llGeocerca.setVisibility(View.GONE);
-            mapView.getMapScene().removeMapPolyline(ruta.polyline);
-            ruta=null;
-        }
-        if(geocercas.geocercas!=null){
-            mapView.getMapScene().removeMapPolygon(geocercas.geocercas);
-        }
-        if(!geocercas.geocercasControlPoint.isEmpty()){
-            for (MapPolygon mapPolygon : geocercas.geocercasControlPoint) {
-                mapView.getMapScene().removeMapPolygon(mapPolygon);
-            }
-        }
-        for (int i = 0; i < controlPointsExample.pointsWithIds.size(); i++) {
-            for (PointWithId pointWithId : puntos) {
-                if(pointWithId.id==controlPointsExample.pointsWithIds.get(i).id){
-                    controlPointsExample.pointsWithIds.get(i).visibility=false;
-                    controlPointsExample.pointsWithIds.get(i).label=false;
+        try{
+            List<MapMarker> startEndMarkers = new ArrayList<>();
+            for (MapMarker marker : routingExample.mapMarkerList) {
+                if (marker.getCoordinates().equals(coordenada1) || marker.getCoordinates().equals(coordenada2)) {
+                    startEndMarkers.add(marker);
                 }
             }
-        }
-        puntos.clear();
-        controlPointsExample.cleanPoint();
-        for (int i = 0; i < avoidZonesExample.polygonWithIds.size(); i++) {
-            for (PolygonWithId polygonWithId : poligonos) {
-                if(polygonWithId.id==avoidZonesExample.polygonWithIds.get(i).id) {
-                    avoidZonesExample.polygonWithIds.get(i).visibility = false;
-                    avoidZonesExample.polygonWithIds.get(i).label = false;
+
+            for (MapMarker marker : routingExample.mapMarkerList) {
+                if (!startEndMarkers.contains(marker)) {
+                    mapView.getMapScene().removeMapMarker(marker);
                 }
             }
+            routingExample.mapMarkerList.clear();
+            routingExample.mapMarkerList.addAll(startEndMarkers);
+
+            for (MapPolyline polyline : routingExample.mapPolylines) {
+                mapView.getMapScene().removeMapPolyline(polyline);
+            }
+            routingExample.mapPolylines.clear();
+
+            coordenada1 = null;
+            coordenada2 = null;
+
+            navigationExample.stopNavigation(true);
+            if(!llegoAlDestino){
+                messages.showCustomToast("Se ha terminado la ruta");
+            }else{
+                llegoAlDestino = false;
+            }
+            messageView.setText("Indicaciones");
+            detallesRuta.startAnimation(animSalida);
+            detallesRuta.setVisibility(View.GONE);
+            timeTextView.startAnimation(animSalida);
+            timeTextView.setVisibility(View.GONE);
+            distanceTextView.setVisibility(View.GONE);
+            distanceTextView.startAnimation(animSalida);
+            messageView.setVisibility(View.GONE);
+            messageView.startAnimation(animSalida);
+            timeTextView.setText("");
+            distanceTextView.setText("");
+            int yOffsetPx = Math.round(10 * getResources().getDisplayMetrics().density);
+            mapView.setWatermarkLocation(new Anchor2D(0.5, 1), new Point2D(0, -yOffsetPx));
+            navigationExample.stopCameraTracking();
+            messageView.setText("Indicaciones");
+            btnTerminarRuta.startAnimation(animSalida);
+            btnTerminarRuta.setVisibility(View.GONE);
+            txtTerminarRuta.startAnimation(animSalida);
+            txtTerminarRuta.setVisibility(View.GONE);
+
+            rutaGenerada = false;
+            coordenadasDestino = null;
+            clearMapPolylines();
+            routingExample.clearMap();
+            clearMapMarkersPOIsAndCircle(false);
+            clearMapPolylines();
+            routingExample.clearMap();
+            clearMapMarkersPOIsAndCircle(false);
+            if(ruta!=null){
+                llGeocerca.setVisibility(View.GONE);
+                mapView.getMapScene().removeMapPolyline(ruta.polyline);
+                ruta=null;
+            }
+            if(geocercas.geocercas!=null){
+                mapView.getMapScene().removeMapPolygon(geocercas.geocercas);
+            }
+            if(!geocercas.geocercasControlPoint.isEmpty()){
+                for (MapPolygon mapPolygon : geocercas.geocercasControlPoint) {
+                    mapView.getMapScene().removeMapPolygon(mapPolygon);
+                }
+            }
+            for (int i = 0; i < controlPointsExample.pointsWithIds.size(); i++) {
+                for (PointWithId pointWithId : puntos) {
+                    if(pointWithId.id==controlPointsExample.pointsWithIds.get(i).id){
+                        controlPointsExample.pointsWithIds.get(i).visibility=false;
+                        controlPointsExample.pointsWithIds.get(i).label=false;
+                    }
+                }
+            }
+            puntos.clear();
+            controlPointsExample.cleanPoint();
+            for (int i = 0; i < avoidZonesExample.polygonWithIds.size(); i++) {
+                for (PolygonWithId polygonWithId : poligonos) {
+                    if(polygonWithId.id==avoidZonesExample.polygonWithIds.get(i).id) {
+                        avoidZonesExample.polygonWithIds.get(i).visibility = false;
+                        avoidZonesExample.polygonWithIds.get(i).label = false;
+                    }
+                }
+            }
+            poligonos.clear();
+            avoidZonesExample.cleanPolygon();
+            recalculateRouteButton.setVisibility(View.GONE);
+            navigationExample.getNavigationEventHandler().puntos_completados = new ArrayList<Integer>();
+            navigationExample.getNavigationEventHandler().id_punto_control = 0;
+            trackCamara.setVisibility(View.GONE);
+            txtNavegacion.setVisibility(View.GONE);
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
         }
-        poligonos.clear();
-        avoidZonesExample.cleanPolygon();
-        recalculateRouteButton.setVisibility(View.GONE);
-        navigationExample.getNavigationEventHandler().puntos_completados = new ArrayList<Integer>();
-        navigationExample.getNavigationEventHandler().id_punto_control = 0;
-        trackCamara.setVisibility(View.GONE);
-        txtNavegacion.setVisibility(View.GONE);
     }
 
     public void clearMapPolylines() {
-        for (MapPolyline polyline : routingExample.mapPolylines) {
-            mapView.getMapScene().removeMapPolyline(polyline);
+        try{
+            for (MapPolyline polyline : routingExample.mapPolylines) {
+                mapView.getMapScene().removeMapPolyline(polyline);
+            }
+            routingExample.mapPolylines.clear();
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
         }
-        routingExample.mapPolylines.clear();
     }
 
     public void clearMapMarkersPOIsAndCircle(Boolean dejarPoiActivo) {
-        if(dejarPoiActivo){
-            // Eliminar los marcadores del mapa
-            for (MapMarker marker : new ArrayList<>(mapMarkersPOIs)) { // Iterar sobre una copia de la lista
-                if (!marker.getCoordinates().equals(geoCoordinatesPOI)) {
+        try{
+            if(dejarPoiActivo){
+                // Eliminar los marcadores del mapa
+                for (MapMarker marker : new ArrayList<>(mapMarkersPOIs)) { // Iterar sobre una copia de la lista
+                    if (!marker.getCoordinates().equals(geoCoordinatesPOI)) {
+                        mapView.getMapScene().removeMapMarker(marker);
+                        mapMarkersPOIs.remove(marker); // Eliminar de la lista
+                    }
+                }
+            }else{
+                // Eliminar los marcadores del mapa
+                for (MapMarker marker : new ArrayList<>(mapMarkersPOIs)) { // Iterar sobre una copia de la lista
                     mapView.getMapScene().removeMapMarker(marker);
                     mapMarkersPOIs.remove(marker); // Eliminar de la lista
                 }
+                geoCoordinatesPOI = null;
             }
-        }else{
-            // Eliminar los marcadores del mapa
-            for (MapMarker marker : new ArrayList<>(mapMarkersPOIs)) { // Iterar sobre una copia de la lista
-                mapView.getMapScene().removeMapMarker(marker);
-                mapMarkersPOIs.remove(marker); // Eliminar de la lista
-            }
-            geoCoordinatesPOI = null;
-        }
-        // Eliminar todas las vistas de pin y los places correspondientes
-        List<MapView.ViewPin> mapViewPins = mapView.getViewPins();
-        for (MapView.ViewPin viewPin : new ArrayList<>(mapViewPins)) { // Iterar sobre una copia de la lista
-            for (Place place : new ArrayList<>(placesList)) { // Iterar sobre una copia de la lista
-                if (geoCoordinatesPOI != null) {
-                    if (place.getGeoCoordinates().latitude == viewPin.getGeoCoordinates().latitude && place.getGeoCoordinates().longitude == viewPin.getGeoCoordinates().longitude) {
-                        if(viewPin.getGeoCoordinates().latitude == geoCoordinatesPOI.latitude && viewPin.getGeoCoordinates().longitude == geoCoordinatesPOI.longitude){
-                        }else{
+            // Eliminar todas las vistas de pin y los places correspondientes
+            List<MapView.ViewPin> mapViewPins = mapView.getViewPins();
+            for (MapView.ViewPin viewPin : new ArrayList<>(mapViewPins)) { // Iterar sobre una copia de la lista
+                for (Place place : new ArrayList<>(placesList)) { // Iterar sobre una copia de la lista
+                    if (geoCoordinatesPOI != null) {
+                        if (place.getGeoCoordinates().latitude == viewPin.getGeoCoordinates().latitude && place.getGeoCoordinates().longitude == viewPin.getGeoCoordinates().longitude) {
+                            if(viewPin.getGeoCoordinates().latitude == geoCoordinatesPOI.latitude && viewPin.getGeoCoordinates().longitude == geoCoordinatesPOI.longitude){
+                            }else{
+                                viewPin.unpin();
+                                placesList.remove(place); // Eliminar de la lista
+                            }
+                        }
+                    }else {
+                        if (place.getGeoCoordinates().latitude == viewPin.getGeoCoordinates().latitude &&
+                                place.getGeoCoordinates().longitude == viewPin.getGeoCoordinates().longitude) {
                             viewPin.unpin();
                             placesList.remove(place); // Eliminar de la lista
                         }
                     }
-                }else {
-                    if (place.getGeoCoordinates().latitude == viewPin.getGeoCoordinates().latitude &&
-                            place.getGeoCoordinates().longitude == viewPin.getGeoCoordinates().longitude) {
-                        viewPin.unpin();
-                        placesList.remove(place); // Eliminar de la lista
-                    }
                 }
             }
+            if(geocercas.mapPolygon!=null){
+                mapView.getMapScene().removeMapPolygon(geocercas.mapPolygon);
+            }
+            llPois.setVisibility(View.GONE);
+            routeTextView.setVisibility(View.GONE);
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
         }
-        if(geocercas.mapPolygon!=null){
-            mapView.getMapScene().removeMapPolygon(geocercas.mapPolygon);
-        }
-        llPois.setVisibility(View.GONE);
-        routeTextView.setVisibility(View.GONE);
     }
 
     private void setTapGestureHandler() {
-        mapView.getGestures().setTapListener(touchPoint -> pickCartoPois(touchPoint));
+        try{
+            mapView.getGestures().setTapListener(touchPoint -> pickCartoPois(touchPoint));
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
+        }
     }
 
     private void pickCartoPois(final Point2D touchPoint) {
-        Rectangle2D rectangle2D = new Rectangle2D(touchPoint, new Size2D(50, 50));
-        ArrayList<MapScene.MapPickFilter.ContentType> contentTypesToPickFrom = new ArrayList<>();
-        contentTypesToPickFrom.add(MapScene.MapPickFilter.ContentType.MAP_CONTENT);
-        MapScene.MapPickFilter filter = new MapScene.MapPickFilter(contentTypesToPickFrom);
-        mapView.pick(filter, rectangle2D, mapPickResult -> {
-            if (mapPickResult == null) {
-                return;
-            }
-            PickMapContentResult pickedMapContent = mapPickResult.getMapContent();
-            List<PickedPlace> cartoPOIList = pickedMapContent.getPickedPlaces();
-            List<PickMapContentResult.TrafficIncidentResult> trafficPOIList = pickedMapContent.getTrafficIncidents();
-            List<PickMapContentResult.VehicleRestrictionResult> vehicleRestrictionResultList = pickedMapContent.getVehicleRestrictions();
+        try{
+            Rectangle2D rectangle2D = new Rectangle2D(touchPoint, new Size2D(50, 50));
+            ArrayList<MapScene.MapPickFilter.ContentType> contentTypesToPickFrom = new ArrayList<>();
+            contentTypesToPickFrom.add(MapScene.MapPickFilter.ContentType.MAP_CONTENT);
+            MapScene.MapPickFilter filter = new MapScene.MapPickFilter(contentTypesToPickFrom);
+            mapView.pick(filter, rectangle2D, mapPickResult -> {
+                if (mapPickResult == null) {
+                    return;
+                }
+                PickMapContentResult pickedMapContent = mapPickResult.getMapContent();
+                List<PickedPlace> cartoPOIList = pickedMapContent.getPickedPlaces();
+                List<PickMapContentResult.TrafficIncidentResult> trafficPOIList = pickedMapContent.getTrafficIncidents();
+                List<PickMapContentResult.VehicleRestrictionResult> vehicleRestrictionResultList = pickedMapContent.getVehicleRestrictions();
 
-            if (!cartoPOIList.isEmpty()) {
-                PickedPlace pickedPlace = cartoPOIList.get(0);
-                Log.d("Carto POI picked: ", pickedPlace.name + ", Place category: " + pickedPlace.placeCategoryId);
-                if(offlineMap.isMexicoMapDownload){
-                    offlineSearchEngine.searchPickedPlace(pickedPlace, LanguageCode.ES_MX, new PlaceIdSearchCallback() {
-                        @Override
-                        public void onPlaceIdSearchCompleted(@Nullable SearchError searchError, @Nullable Place place) {
-                            if (searchError == null) {
-                                String address = place.getAddress().addressText;
-                                StringBuilder categoriesBuilder = new StringBuilder();
-                                for (PlaceCategory category : place.getDetails().categories) {
-                                    String name = category.getName();
-                                    if (name != null) {
-                                        if (categoriesBuilder.length() > 0) {
-                                            categoriesBuilder.append(", ");
+                if (!cartoPOIList.isEmpty()) {
+                    PickedPlace pickedPlace = cartoPOIList.get(0);
+                    Log.d("Carto POI picked: ", pickedPlace.name + ", Place category: " + pickedPlace.placeCategoryId);
+                    if(offlineMap.isMexicoMapDownload){
+                        offlineSearchEngine.searchPickedPlace(pickedPlace, LanguageCode.ES_MX, new PlaceIdSearchCallback() {
+                            @Override
+                            public void onPlaceIdSearchCompleted(@Nullable SearchError searchError, @Nullable Place place) {
+                                if (searchError == null) {
+                                    String address = place.getAddress().addressText;
+                                    StringBuilder categoriesBuilder = new StringBuilder();
+                                    for (PlaceCategory category : place.getDetails().categories) {
+                                        String name = category.getName();
+                                        if (name != null) {
+                                            if (categoriesBuilder.length() > 0) {
+                                                categoriesBuilder.append(", ");
+                                            }
+                                            categoriesBuilder.append(name);
                                         }
-                                        categoriesBuilder.append(name);
                                     }
+                                    messages.showDialog("Información de lugar", address, categoriesBuilder.toString(), "Lugar de interés", null);
+                                } else {
+                                    Log.e(TAG, "searchPickedPlace() resulted in an error: " + searchError.name());
                                 }
-                                messages.showDialog("Información de lugar", address, categoriesBuilder.toString(), "Lugar de interés", null);
-                            } else {
-                                Log.e(TAG, "searchPickedPlace() resulted in an error: " + searchError.name());
                             }
-                        }
-                    });
-                }else {
-                    searchEngine.searchPickedPlace(pickedPlace, LanguageCode.ES_MX, new PlaceIdSearchCallback() {
-                        @Override
-                        public void onPlaceIdSearchCompleted(@Nullable SearchError searchError, @Nullable Place place) {
-                            if (searchError == null) {
-                                String address = place.getAddress().addressText;
-                                StringBuilder categoriesBuilder = new StringBuilder();
-                                for (PlaceCategory category : place.getDetails().categories) {
-                                    String name = category.getName();
-                                    if (name != null) {
-                                        if (categoriesBuilder.length() > 0) {
-                                            categoriesBuilder.append(", ");
+                        });
+                    }else {
+                        searchEngine.searchPickedPlace(pickedPlace, LanguageCode.ES_MX, new PlaceIdSearchCallback() {
+                            @Override
+                            public void onPlaceIdSearchCompleted(@Nullable SearchError searchError, @Nullable Place place) {
+                                if (searchError == null) {
+                                    String address = place.getAddress().addressText;
+                                    StringBuilder categoriesBuilder = new StringBuilder();
+                                    for (PlaceCategory category : place.getDetails().categories) {
+                                        String name = category.getName();
+                                        if (name != null) {
+                                            if (categoriesBuilder.length() > 0) {
+                                                categoriesBuilder.append(", ");
+                                            }
+                                            categoriesBuilder.append(name);
                                         }
-                                        categoriesBuilder.append(name);
                                     }
+                                    messages.showDialog("Información de lugar", address, categoriesBuilder.toString(), "Lugar de interés", null);
+                                } else {
+                                    Log.e(TAG, "searchPickedPlace() resulted in an error: " + searchError.name());
                                 }
-                                messages.showDialog("Información de lugar", address, categoriesBuilder.toString(), "Lugar de interés", null);
-                            } else {
-                                Log.e(TAG, "searchPickedPlace() resulted in an error: " + searchError.name());
+                            }
+                        });
+                    }
+                } else if (!trafficPOIList.isEmpty()) {
+                    PickMapContentResult.TrafficIncidentResult topmostContent = trafficPOIList.get(0);
+                    messages.showDialog("Incidente de tráfico", "" + topmostContent.getType().name(), "", "Incidente de tráfico",null);
+                } else if (!vehicleRestrictionResultList.isEmpty()) {
+                    PickMapContentResult.VehicleRestrictionResult topmostContent = vehicleRestrictionResultList.get(0);
+                    String restrictionType = topmostContent.restrictionType != null ? topmostContent.restrictionType : "No especificado";
+                    messages.showDialog("Restricción de vehículo",
+                            ""+ restrictionType,
+                            "",
+                            "",
+                            null);
+                }
+                else {
+                    // Establece el radio en metros
+                    float radiusInPixel = 2;
+                    // Obtener las coordenadas del punto del toque
+                    mapView.pickMapItems(touchPoint, radiusInPixel, new MapViewBase.PickMapItemsCallback() {
+                        @Override
+                        public void onPickMapItems(@Nullable PickMapItemsResult pickMapItemsResult) {
+                            try {
+                                // Verificar si se ha seleccionado un MapMarker
+                                if (pickMapItemsResult == null) {
+                                    return;
+                                }
+                                // Obtener el MapMarker seleccionado
+                                MapMarker topmostMapMarker = pickMapItemsResult.getMarkers().get(0);
+                                // Verificar si el MapMarker es nulo
+                                if (topmostMapMarker == null) {
+                                    return;
+                                }
+                                // Obtener la metadata del MapMarker
+                                int index = mapMarkersPOIs.indexOf(topmostMapMarker);
+                                if (index >= 0 && index < placesList.size()) {
+                                    Place place = placesList.get(index);
+                                    String address = place.getAddress().addressText;
+                                    StringBuilder categoriesBuilder = new StringBuilder();
+                                    for (PlaceCategory category : place.getDetails().categories) {
+                                        String name = category.getName();
+                                        if (name != null) {
+                                            if (categoriesBuilder.length() > 0) {
+                                                categoriesBuilder.append(", ");
+                                            }
+                                            categoriesBuilder.append(name);
+                                        }
+                                    }
+                                    if(geoCoordinatesPOI == null){
+                                        GeoCoordinates geoCoordinates = place.getGeoCoordinates();
+                                        messages.showDialog("Información de lugar", address, categoriesBuilder.toString(), "Lugar de interés",geoCoordinates);
+                                        return;
+                                    }
+                                    if(place.getGeoCoordinates().latitude !=geoCoordinatesPOI.latitude && place.getGeoCoordinates().longitude != geoCoordinatesPOI.longitude){
+                                        GeoCoordinates geoCoordinates = place.getGeoCoordinates();
+                                        messages.showDialog("Información de lugar", address, categoriesBuilder.toString(), "Lugar de interés",geoCoordinates);
+                                        return;
+                                    }
+                                    messages.showDialog("Información de lugar", address, categoriesBuilder.toString(), "Lugar de interés",null);
+                                }
+                            } catch (Exception e) {
+                                //Toast.makeText(MainActivity.this, "No POIs o marcadores encontrados en la ubicación tocada", Toast.LENGTH_SHORT).show();
+                                //throw new RuntimeException(e);
                             }
                         }
                     });
                 }
-            } else if (!trafficPOIList.isEmpty()) {
-                PickMapContentResult.TrafficIncidentResult topmostContent = trafficPOIList.get(0);
-                messages.showDialog("Incidente de tráfico", "" + topmostContent.getType().name(), "", "Incidente de tráfico",null);
-            } else if (!vehicleRestrictionResultList.isEmpty()) {
-                PickMapContentResult.VehicleRestrictionResult topmostContent = vehicleRestrictionResultList.get(0);
-                String restrictionType = topmostContent.restrictionType != null ? topmostContent.restrictionType : "No especificado";
-                messages.showDialog("Restricción de vehículo",
-                        ""+ restrictionType,
-                        "",
-                        "",
-                        null);
-            }
-            else {
-                // Establece el radio en metros
-                float radiusInPixel = 2;
-                // Obtener las coordenadas del punto del toque
-                mapView.pickMapItems(touchPoint, radiusInPixel, new MapViewBase.PickMapItemsCallback() {
+            });
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
+        }
+    }
+    private void searchNearestPoi(String poiType, int radius) {
+        try{
+            // Configurar la búsqueda de lugares con el SDK de HERE
+            // TextQuery textQuery = new TextQuery(poiType, new TextQuery.Area(currentGeoCoordinates));
+            // Dibujar un círculo de 5km de radio en el mapa
+            geocercas.drawCircle(currentGeoCoordinates, radius);
+
+            // Configurar la búsqueda de lugares con el SDK de HERE
+            TextQuery textQuery = new TextQuery(poiType, new TextQuery.Area(new GeoCircle(currentGeoCoordinates,radius)));
+
+            SearchOptions searchOptions = new SearchOptions();
+            searchOptions.maxItems = 100;
+
+            if(offlineMap.isMexicoMapDownload){
+                offlineSearchEngine.search(textQuery, searchOptions, new SearchCallback() {
                     @Override
-                    public void onPickMapItems(@Nullable PickMapItemsResult pickMapItemsResult) {
-                        try {
-                            // Verificar si se ha seleccionado un MapMarker
-                            if (pickMapItemsResult == null) {
-                                return;
+                    public void onSearchCompleted(@Nullable SearchError searchError, @Nullable List<Place> list) {
+                        if (searchError == null && list != null && !list.isEmpty()) {
+                            for (Place place : list) {
+                                // Obtener las coordenadas de cada POI
+                                GeoCoordinates poiCoordinates = place.getGeoCoordinates();
+
+                                // Mostrar el POI en el mapa o realizar cualquier acción necesaria
+                                showPoiOnMap(poiCoordinates,place);
                             }
-                            // Obtener el MapMarker seleccionado
-                            MapMarker topmostMapMarker = pickMapItemsResult.getMarkers().get(0);
-                            // Verificar si el MapMarker es nulo
-                            if (topmostMapMarker == null) {
-                                return;
+                        } else {
+                            Toast.makeText(MainActivity.this, "No se encontraron POIs cercanos", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+            }else{
+                searchEngine.search(textQuery, searchOptions, new SearchCallback() {
+                    @Override
+                    public void onSearchCompleted(@Nullable SearchError searchError, @Nullable List<Place> list) {
+                        if (searchError == null && list != null && !list.isEmpty()) {
+                            for (Place place : list) {
+                                // Obtener las coordenadas de cada POI
+                                GeoCoordinates poiCoordinates = place.getGeoCoordinates();
+
+                                // Mostrar el POI en el mapa o realizar cualquier acción necesaria
+                                showPoiOnMap(poiCoordinates,place);
                             }
-                            // Obtener la metadata del MapMarker
-                            int index = mapMarkersPOIs.indexOf(topmostMapMarker);
-                            if (index >= 0 && index < placesList.size()) {
-                                Place place = placesList.get(index);
-                                String address = place.getAddress().addressText;
-                                StringBuilder categoriesBuilder = new StringBuilder();
-                                for (PlaceCategory category : place.getDetails().categories) {
-                                    String name = category.getName();
-                                    if (name != null) {
-                                        if (categoriesBuilder.length() > 0) {
-                                            categoriesBuilder.append(", ");
-                                        }
-                                        categoriesBuilder.append(name);
-                                    }
-                                }
-                                if(geoCoordinatesPOI == null){
-                                    GeoCoordinates geoCoordinates = place.getGeoCoordinates();
-                                    messages.showDialog("Información de lugar", address, categoriesBuilder.toString(), "Lugar de interés",geoCoordinates);
-                                    return;
-                                }
-                                if(place.getGeoCoordinates().latitude !=geoCoordinatesPOI.latitude && place.getGeoCoordinates().longitude != geoCoordinatesPOI.longitude){
-                                    GeoCoordinates geoCoordinates = place.getGeoCoordinates();
-                                    messages.showDialog("Información de lugar", address, categoriesBuilder.toString(), "Lugar de interés",geoCoordinates);
-                                    return;
-                                }
-                                messages.showDialog("Información de lugar", address, categoriesBuilder.toString(), "Lugar de interés",null);
-                            }
-                        } catch (Exception e) {
-                            //Toast.makeText(MainActivity.this, "No POIs o marcadores encontrados en la ubicación tocada", Toast.LENGTH_SHORT).show();
-                            //throw new RuntimeException(e);
+                        } else {
+                            Toast.makeText(MainActivity.this, "No se encontraron POIs cercanos", Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
             }
-        });
-    }
-    private void searchNearestPoi(String poiType, int radius) {
-        // Configurar la búsqueda de lugares con el SDK de HERE
-        // TextQuery textQuery = new TextQuery(poiType, new TextQuery.Area(currentGeoCoordinates));
-        // Dibujar un círculo de 5km de radio en el mapa
-        geocercas.drawCircle(currentGeoCoordinates, radius);
-
-        // Configurar la búsqueda de lugares con el SDK de HERE
-        TextQuery textQuery = new TextQuery(poiType, new TextQuery.Area(new GeoCircle(currentGeoCoordinates,radius)));
-
-        SearchOptions searchOptions = new SearchOptions();
-        searchOptions.maxItems = 100;
-
-        if(offlineMap.isMexicoMapDownload){
-            offlineSearchEngine.search(textQuery, searchOptions, new SearchCallback() {
-                @Override
-                public void onSearchCompleted(@Nullable SearchError searchError, @Nullable List<Place> list) {
-                    if (searchError == null && list != null && !list.isEmpty()) {
-                        for (Place place : list) {
-                            // Obtener las coordenadas de cada POI
-                            GeoCoordinates poiCoordinates = place.getGeoCoordinates();
-
-                            // Mostrar el POI en el mapa o realizar cualquier acción necesaria
-                            showPoiOnMap(poiCoordinates,place);
-                        }
-                    } else {
-                        Toast.makeText(MainActivity.this, "No se encontraron POIs cercanos", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
-        }else{
-            searchEngine.search(textQuery, searchOptions, new SearchCallback() {
-                @Override
-                public void onSearchCompleted(@Nullable SearchError searchError, @Nullable List<Place> list) {
-                    if (searchError == null && list != null && !list.isEmpty()) {
-                        for (Place place : list) {
-                            // Obtener las coordenadas de cada POI
-                            GeoCoordinates poiCoordinates = place.getGeoCoordinates();
-
-                            // Mostrar el POI en el mapa o realizar cualquier acción necesaria
-                            showPoiOnMap(poiCoordinates,place);
-                        }
-                    } else {
-                        Toast.makeText(MainActivity.this, "No se encontraron POIs cercanos", Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
         }
     }
     private void showPoiOnMap(GeoCoordinates poiCoordinates,Place place) {
-        // Crear un marcador en la ubicación del POI
-        MapImage mapImage = MapImageFactory.fromResource(getResources(), R.drawable.ic_poi); // Usa un icono de marcador apropiado
-        MapMarker mapMarker = new MapMarker(poiCoordinates, mapImage);
+        try{
+            // Crear un marcador en la ubicación del POI
+            MapImage mapImage = MapImageFactory.fromResource(getResources(), R.drawable.ic_poi); // Usa un icono de marcador apropiado
+            MapMarker mapMarker = new MapMarker(poiCoordinates, mapImage);
 
-        // Crea un TextView para la etiqueta
-        boolean found = false;
-        for (Place place1 : placesList){
-            if(place1.getGeoCoordinates().latitude==poiCoordinates.latitude && place1.getGeoCoordinates().longitude==poiCoordinates.longitude){
-                return;
+            // Crea un TextView para la etiqueta
+            boolean found = false;
+            for (Place place1 : placesList){
+                if(place1.getGeoCoordinates().latitude==poiCoordinates.latitude && place1.getGeoCoordinates().longitude==poiCoordinates.longitude){
+                    return;
+                }
             }
+            placesList.add(place); // Asociar el POI con el marcador
+            // Agregar el marcador al mapa
+            mapView.getMapScene().addMapMarker(mapMarker);
+            mapMarkersPOIs.add(mapMarker);
+            TextView textView = new TextView(this);
+            textView.setTextColor(android.graphics.Color.parseColor("#03B1AF"));
+            textView.setText(place.getTitle());
+            textView.setTypeface(Typeface.DEFAULT_BOLD);
+
+            // Crea un LinearLayout para contener el TextView y agregar padding
+            LinearLayout linearLayout = new LinearLayout(this);
+            //linearLayout.setBackgroundResource(R.color.colorAccent);
+            linearLayout.setPadding(0, 0, 0, 130);
+            linearLayout.addView(textView);
+
+            // Usar el punto medio para anclar la vista
+            mapView.pinView(linearLayout, poiCoordinates);
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
         }
-        placesList.add(place); // Asociar el POI con el marcador
-        // Agregar el marcador al mapa
-        mapView.getMapScene().addMapMarker(mapMarker);
-        mapMarkersPOIs.add(mapMarker);
-        TextView textView = new TextView(this);
-        textView.setTextColor(android.graphics.Color.parseColor("#03B1AF"));
-        textView.setText(place.getTitle());
-        textView.setTypeface(Typeface.DEFAULT_BOLD);
-
-        // Crea un LinearLayout para contener el TextView y agregar padding
-        LinearLayout linearLayout = new LinearLayout(this);
-        //linearLayout.setBackgroundResource(R.color.colorAccent);
-        linearLayout.setPadding(0, 0, 0, 130);
-        linearLayout.addView(textView);
-
-        // Usar el punto medio para anclar la vista
-        mapView.pinView(linearLayout, poiCoordinates);
     }
 
     @Override
@@ -1293,7 +1377,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mapView.onPause();
             mMapHelper.handleAndroidPermissions();
         }catch (Exception e){
-            Messages.showErrorDetail(this, e);
+            Messages.showErrorDetail(MainActivity.this, e);
         }
     }
 
@@ -1313,7 +1397,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mMapHelper.handleAndroidPermissions();
             }
         }catch (Exception e){
-            Messages.showErrorDetail(this, e);
+            Messages.showErrorDetail(MainActivity.this, e);
         }
     }
 
@@ -1339,7 +1423,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             editor.remove("id_rol");  // Remove password key (if stored directly)
             editor.apply(); // Apply changes to SharedPreferences*/
         }catch (Exception e){
-            Messages.showErrorDetail(this, e);
+            Messages.showErrorDetail(MainActivity.this, e);
         }
     }
 
@@ -1478,7 +1562,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             });
             return future;
         } catch (Error e) {
-            Log.e(TAG, "Error en la solicitud de los puntos de control: ", e);
+            Log.e(TAG, "Error en la solicitud de las rutas: ", e);
             return CompletableFuture.failedFuture(e);
         }
     }
@@ -1657,7 +1741,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             });
             return future;
         } catch (Error e) {
-            Log.e(TAG, "Error en la solicitud de los puntos de control: ", e);
+            Log.e(TAG, "Error en la solicitud de las rutas faltantes: ", e);
             return CompletableFuture.failedFuture(e);
         }
     }
@@ -1766,8 +1850,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
             }
         } catch (Exception e) {
-            Log.e("MainActivity", "Error recalculating route: ", e);
-            Toast.makeText(this, "Error al recalcular la ruta", Toast.LENGTH_SHORT).show();
+            Messages.showErrorDetail(MainActivity.this, e);
         }
     }
 
@@ -1824,15 +1907,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             });
             return future;
         } catch (Error e) {
-            Log.e(TAG, "Error en la solicitud de los puntos de control: ", e);
+            Log.e(TAG, "Error en la solicitud de las asignaciones: ", e);
             return CompletableFuture.failedFuture(e);
         }
     }
 
     @Override
     public void onBackPressed() {
-        //super.onBackPressed();
-        // Muestra un mensaje o realiza otra acción si no se permite regresar
-        Toast.makeText(this, "Para regresar a la pantalla de inicio debes cerrar sesion", Toast.LENGTH_SHORT).show();
+        try{
+            //super.onBackPressed();
+            // Muestra un mensaje o realiza otra acción si no se permite regresar
+            Toast.makeText(this, "Para regresar a la pantalla de inicio debes cerrar sesion", Toast.LENGTH_SHORT).show();
+        }catch (Exception e){
+            Messages.showErrorDetail(MainActivity.this, e);
+        }
     }
 }

@@ -11,7 +11,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:text="GPS desactivado"
+        android:text="Sesion Activa"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textAlignment="center"
         android:textSize="20sp"
@@ -26,7 +26,7 @@
         android:layout_below="@id/tvTitle"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
-        android:text="El GPS está desactivado. ¿Desea activarlo?"
+        android:text="Ya se cuenta con una sesion iniciada."
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:textAlignment="center"
         app:layout_constraintEnd_toEndOf="parent"
@@ -34,42 +34,43 @@
         app:layout_constraintTop_toBottomOf="@+id/tvTitle" />
 
     <Button
-        android:id="@+id/btnEnableGPS"
+        android:id="@+id/btnCancelar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/tvMessage"
         android:layout_alignParentStart="true"
         android:layout_marginStart="16dp"
         android:layout_marginTop="15dp"
-        android:text="Activar GPS"
+        android:text="Cancelar"
         android:textAlignment="center"
-        android:textAppearance="?android:attr/textAppearanceSmall"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/btnCancel"
+        app:layout_constraintStart_toEndOf="@+id/btnCerrarSesion"
         app:layout_constraintTop_toBottomOf="@+id/tvMessage" />
 
     <Button
-        android:id="@+id/btnCancel"
+        android:id="@+id/btnCerrarSesion"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@id/tvMessage"
         android:layout_alignParentEnd="true"
         android:layout_marginTop="15dp"
         android:layout_marginEnd="16dp"
-        android:text="Cancelar"
+        android:text="Cerrar sesion"
         android:textAlignment="center"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        app:layout_constraintEnd_toStartOf="@+id/btnEnableGPS"
+        android:visibility="gone"
+        app:layout_constraintEnd_toStartOf="@+id/btnCancelar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tvMessage" />
+
+    <!--android:textAppearance="?android:attr/textAppearanceSmall"-->
 
     <ImageView
         android:id="@+id/imageView7"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        app:srcCompat="@drawable/ic_supervisor_account"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/brujula"
-        app:tint="?attr/colorControlNormal"/>
+        app:tint="?attr/colorControlNormal" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

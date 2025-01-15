@@ -32,6 +32,8 @@ import com.here.sdk.location.LocationEngine;
 import com.here.sdk.location.LocationEngineStatus;
 import com.here.sdk.location.LocationFeature;
 import com.here.sdk.location.LocationStatusListener;
+import com.itsmarts.smartroutetruckapp.MainActivity;
+import com.itsmarts.smartroutetruckapp.helpers.Messages;
 
 import java.util.List;
 
@@ -41,8 +43,9 @@ public class HEREPositioningProvider {
 
     private static final String LOG_TAG = HEREPositioningProvider.class.getName();
 
-    private final LocationEngine locationEngine;
+    private LocationEngine locationEngine = null;
     private LocationListener updateListener;
+    private MainActivity mainActivity;
 
     private final LocationStatusListener locationStatusListener = new LocationStatusListener() {
         @Override
@@ -58,46 +61,60 @@ public class HEREPositioningProvider {
         }
     };
 
-    public HEREPositioningProvider() {
-        ConsentEngine consentEngine;
+    public HEREPositioningProvider(MainActivity mainActivity) {
+        try{
+            this.mainActivity = mainActivity;
+            ConsentEngine consentEngine = null;
 
-        try {
-            consentEngine = new ConsentEngine();
-            locationEngine = new LocationEngine();
-        } catch (InstantiationErrorException e) {
-            throw new RuntimeException("Initialization failed: " + e.getMessage());
-        }
+            try {
+                consentEngine = new ConsentEngine();
+                locationEngine = new LocationEngine();
+            } catch (InstantiationErrorException e) {
+                //throw new RuntimeException("Initialization failed: " + e.getMessage());
+                Log.e(LOG_TAG, "Initialization failed: " + e.getMessage());
+            }
 
-        // Ask user to optionally opt in to HERE's data collection / improvement program.
-        if (consentEngine.getUserConsentState() == Consent.UserReply.NOT_HANDLED) {
-            consentEngine.requestUserConsent();
+            // Ask user to optionally opt in to HERE's data collection / improvement program.
+            if (consentEngine.getUserConsentState() == Consent.UserReply.NOT_HANDLED) {
+                consentEngine.requestUserConsent();
+            }
+        }catch (Exception e){
+            Messages.showErrorDetail(mainActivity, e);
         }
     }
 
     // Does nothing when engine is already running.
     public void startLocating(LocationListener updateListener, LocationAccuracy accuracy) {
-        if (locationEngine.isStarted()) {
-            return;
+        try{
+            if (locationEngine.isStarted()) {
+                return;
+            }
+
+            this.updateListener = updateListener;
+
+            // Set listeners to get location updates.
+            locationEngine.addLocationListener(updateListener);
+            locationEngine.addLocationStatusListener(locationStatusListener);
+
+            locationEngine.start(accuracy);
+        }catch (Exception e){
+            Messages.showErrorDetail(mainActivity, e);
         }
-
-        this.updateListener = updateListener;
-
-        // Set listeners to get location updates.
-        locationEngine.addLocationListener(updateListener);
-        locationEngine.addLocationStatusListener(locationStatusListener);
-
-        locationEngine.start(accuracy);
     }
 
     // Does nothing when engine is already stopped.
     public void stopLocating() {
-        if (!locationEngine.isStarted()) {
-            return;
-        }
+        try{
+            if (!locationEngine.isStarted()) {
+                return;
+            }
 
-        // Remove listeners and stop location engine.
-        locationEngine.removeLocationListener(updateListener);
-        locationEngine.removeLocationStatusListener(locationStatusListener);
-        locationEngine.stop();
+            // Remove listeners and stop location engine.
+            locationEngine.removeLocationListener(updateListener);
+            locationEngine.removeLocationStatusListener(locationStatusListener);
+            locationEngine.stop();
+        }catch (Exception e){
+            Messages.showErrorDetail(mainActivity, e);
+        }
     }
 }

@@ -36,6 +36,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.os.Vibrator;
 
 import androidx.annotation.NonNull;
 
@@ -122,6 +123,7 @@ import com.here.sdk.routing.Route;
 import com.here.sdk.trafficawarenavigation.DynamicRoutingEngine;
 import com.here.sdk.transport.GeneralVehicleSpeedLimits;
 import com.here.time.Duration;
+
 import com.itsmarts.smartroutetruckapp.MainActivity;
 import com.itsmarts.smartroutetruckapp.R;
 import com.itsmarts.smartroutetruckapp.helpers.Messages;
@@ -139,11 +141,9 @@ public class NavigationEventHandler {
 
     private static final String TAG = NavigationEventHandler.class.getName();
 
-    private final Context context;
     private int previousManeuverIndex = -1;
     private MapMatchedLocation lastMapMatchedLocation;
     private final VoiceAssistant voiceAssistant;
-    private final TextView messageView;
     private SpeedUpdateListener speedUpdateListener;
     private DestinationDistanceListener destinationDistanceListener;
     private DestinationReachedListener destinationReachedListener;
@@ -157,6 +157,8 @@ public class NavigationEventHandler {
     private boolean validacionZona = false;
     private Handler handler = new Handler();
     private Dialog rutaFinalizadaDialog;
+    private Vibrator vibrator = null;
+    private long[] pattern = { 0, 200, 100, 200, 500 };
     private Runnable resetFlagsRunnable = new Runnable() {
         @Override
         public void run() {
@@ -179,12 +181,10 @@ public class NavigationEventHandler {
         }
     };
 
-    public NavigationEventHandler(MainActivity mainActivity, TextView messageView) {
-        this.context = mainActivity.getApplicationContext();
+    public NavigationEventHandler(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
-        this.messageView = messageView;
-
-        voiceAssistant = new VoiceAssistant(context);
+        vibrator = (Vibrator) mainActivity.getSystemService(Context.VIBRATOR_SERVICE);
+        voiceAssistant = new VoiceAssistant(mainActivity.getApplicationContext());
     }
 
     public void setupListeners(VisualNavigator visualNavigator, DynamicRoutingEngine dynamicRoutingEngine) {
@@ -249,9 +249,9 @@ public class NavigationEventHandler {
                     }
 
                     if (previousManeuverIndex != nextManeuverIndex) {
-                        messageView.setText(logMessage);
+                        mainActivity.messageView.setText(logMessage);
                     } else {
-                        messageView.setText(logMessage);
+                        mainActivity.messageView.setText(logMessage);
                     }
 
                     previousManeuverIndex = nextManeuverIndex;
@@ -270,7 +270,7 @@ public class NavigationEventHandler {
             public void onDestinationReached() {
                 try{
                     String message = "Ha llegado a su destino";
-                    messageView.setText(message);
+                    mainActivity.messageView.setText(message);
                     mainActivity.llegoAlDestino = true;
                     // Iniciar el temporizador al comienzo
                     handler.postDelayed(limpiarMapa, 2000);
@@ -349,7 +349,7 @@ public class NavigationEventHandler {
                 try{
                     if (speedWarningStatus == SpeedWarningStatus.SPEED_LIMIT_EXCEEDED) {
                         Uri ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
-                        Ringtone ringtone = RingtoneManager.getRingtone(context, ringtoneUri);
+                        Ringtone ringtone = RingtoneManager.getRingtone(mainActivity.getApplicationContext(), ringtoneUri);
                         ringtone.play();
                     }
 
@@ -410,6 +410,7 @@ public class NavigationEventHandler {
                         mainActivity.speedTextView.startAnimation(mainActivity.cargaAnimacion);
                         mainActivity.imgVelocidad.startAnimation(mainActivity.cargaAnimacion);
                         mainActivity.llMapas.startAnimation(mainActivity.cargaAnimacion);
+                        mainActivity.speedLabeltextView.startAnimation(mainActivity.cargaAnimacion);
                         mainActivity.animacionEjecutada = true;
                     }
                     lastMapMatchedLocation = currentNavigableLocation.mapMatchedLocation;
@@ -421,11 +422,11 @@ public class NavigationEventHandler {
                         Log.d(TAG, "User is driving in the wrong direction of the route.");
                     }
                     if (mainActivity.ruta != null) {
-                        if (!hasNotifiedDeviation) {
+                        /*if (!hasNotifiedDeviation) {
                             double distanceToPolyline = Distances.distanceToPolyline(lastMapMatchedLocation.coordinates, mainActivity.ruta.polyline.getGeometry());
                             if (distanceToPolyline > 100) {
                                 NotificationHelper.showNotification(
-                                        context,
+                                        mainActivity.getApplicationContext(),
                                         "Desviación de ruta",
                                         String.format("Te has desviado, estás a %.2f metros de la ruta planificada.", distanceToPolyline)
                                 );
@@ -433,7 +434,7 @@ public class NavigationEventHandler {
                                 // Iniciar el temporizador al comienzo
                                 handler.postDelayed(resetFlagsRunnable, 120000);
                             }
-                        }
+                        }*/
                         if (!hasNotifiedCheckpoint) {
                             for (PointWithId pointWithId : mainActivity.controlPointsExample.pointsWithIds) {
                                 for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
@@ -444,12 +445,17 @@ public class NavigationEventHandler {
                                                     "Punto de Control",
                                                     "Has pasado por el punto de control " + pointWithId.name + "."
                                             );*/
-                                            mainActivity.messages.showCustomToast("Has pasado por el punto de control " + pointWithId.name + ".");
+                                            vibrator.vibrate(pattern, -1); // Vibrate with the defined pattern
+                                            //mainActivity.messages.showCustomToast("Has pasado por el punto de control " + pointWithId.name + ".");
+                                            mainActivity.recalculateRouteButton.setBackgroundColor(mainActivity.getResources().getColor(R.color.blue, null));
+                                            mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
+                                            mainActivity.recalculateRouteButton.setEnabled(false);
+                                            mainActivity.recalculateRouteButton.setText("Has pasado por el punto de control " + pointWithId.name + ".");
                                             hasNotifiedCheckpoint = true;
                                             id_punto_control = pointWithId.id;
                                             puntos_completados.add(id_punto_control);
                                             // Iniciar el temporizador al comienzo
-                                            handler.postDelayed(resetFlagsRunnable, 60000);
+                                            handler.postDelayed(resetFlagsRunnable, 10000);
                                             break;
                                         }
                                     }
@@ -462,11 +468,12 @@ public class NavigationEventHandler {
                                     if (polygonWithId.visibility && polygonWithId.status && !polygonWithId.peligrosa) {
                                         boolean isInside = isPointInPolygon(lastMapMatchedLocation.coordinates, polygonWithId.polygon.getGeometry().vertices);
                                         if (isInside) {
-                                            NotificationHelper.showNotification(
-                                                    context,
+                                            /*NotificationHelper.showNotification(
+                                                    mainActivity.getApplicationContext(),
                                                     "Zona Prohibida",
                                                     "Has entrado en la zona prohibida " + polygonWithId.name + "."
-                                            );
+                                            );*/
+                                            vibrator.vibrate(pattern, -1); // Vibrate with the defined pattern
                                             mainActivity.recalculateRouteButton.setBackgroundColor(mainActivity.getResources().getColor(R.color.red, null));
                                             mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
                                             mainActivity.recalculateRouteButton.setEnabled(false);
@@ -485,11 +492,12 @@ public class NavigationEventHandler {
                                     if (polygonWithId.visibility && polygonWithId.status && polygonWithId.peligrosa) {
                                         boolean isInside = isPointInPolygon(lastMapMatchedLocation.coordinates, polygonWithId.polygon.getGeometry().vertices);
                                         if (isInside) {
-                                            NotificationHelper.showNotification(
-                                                    context,
+                                            /*NotificationHelper.showNotification(
+                                                    mainActivity.getApplicationContext(),
                                                     "Zona Peligrosa",
                                                     "Has entrado en la zona peligrosa " + polygonWithId.name + "."
-                                            );
+                                            );*/
+                                            vibrator.vibrate(pattern, -1); // Vibrate with the defined pattern
                                             mainActivity.recalculateRouteButton.setBackgroundColor(mainActivity.getResources().getColor(R.color.pressed_background, null));
                                             mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
                                             mainActivity.recalculateRouteButton.setEnabled(false);
@@ -502,7 +510,7 @@ public class NavigationEventHandler {
                                 }
                             }
                         }
-                        if (!validacionZona) {
+                        if (!validacionZona && !hasNotifiedCheckpoint) {
                             mainActivity.recalculateRouteButton.setVisibility(View.GONE);
                         } else {
                             // Iniciar el temporizador al comienzo
@@ -562,7 +570,7 @@ public class NavigationEventHandler {
                             mainActivity.recalculateRouteButton.setVisibility(View.GONE);
                             mainActivity.recalculateRoute();
                         }
-                    }else if(!validacionZona){
+                    }else if(!validacionZona && !hasNotifiedCheckpoint){
                         mainActivity.recalculateRouteButton.setVisibility(View.GONE);
                     }
                 }catch (Exception e){
