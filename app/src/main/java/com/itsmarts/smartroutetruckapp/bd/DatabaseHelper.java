@@ -37,7 +37,6 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
@@ -51,6 +50,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_ZONAS = "zonas";
     private static final String TABLE_CAMIONES = "camiones";
     private static final String TABLE_ROUTES = "rutas";
+    private static final String TABLE_ASIGNACIONES = "asignaciones";
 
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_NAME = "name";
@@ -149,10 +149,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COLUMN_ORDEN_AUTOMATICO + " INTEGER, " +
                 COLUMN_STATUS + " INTEGER)";
 
+        String createTableQueryAsignaciones = "CREATE TABLE " + TABLE_ASIGNACIONES + " (" +
+                COLUMN_ROUTE_ID + " INTEGER)";
+
         db.execSQL(createTableQueryPuntos);
         db.execSQL(createTableQueryZonas);
         db.execSQL(createTableQueryTrucks);
         db.execSQL(createTableQueryRoutes);
+        db.execSQL(createTableQueryAsignaciones);
     }
 
     @Override
@@ -162,6 +166,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ZONAS);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_CAMIONES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ROUTES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_ASIGNACIONES);
         onCreate(db);
     }
 
@@ -972,6 +977,45 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         return resultList;
+    }
+
+    /*
+     * Descripcion: FUNCIONES PARA LA BASE DE DATOS DE ASIGNACIONES
+     * Autor: CHARLY
+     * Ultima fecha de actualizacion: 16.01.2025
+     */
+
+    // Guarda una asignacion en la base de datos
+    public void saveAsignacion(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_ROUTE_ID, id);
+        db.insert(TABLE_ASIGNACIONES, null, values);
+        db.close();
+    }
+
+    // Recupera todas las asignaciones de la base de datos
+    public List<Integer> getAllAsignaciones() {
+        List<Integer> asignaciones = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT * FROM " + TABLE_ASIGNACIONES;
+        Cursor cursor = db.rawQuery(selectQuery, null);
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ROUTE_ID));
+                asignaciones.add(id);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return asignaciones;
+    }
+
+    // Elimina todas las asignaciones de la base de datos
+    public void truncateAsignaciones() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_ASIGNACIONES, null, null);
+        db.close();
     }
 
 }

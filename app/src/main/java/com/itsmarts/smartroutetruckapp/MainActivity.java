@@ -119,6 +119,7 @@ import org.json.JSONObject;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -178,6 +179,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public List<PolygonWithId> poligonos = new ArrayList<>();
     public List<PointWithId> puntos = new ArrayList<>();
     public ProgressBar loading_spinner;
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -298,7 +300,27 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         });
                                     });
                         }else{
-                            sinRutasTextView.setText("Verifique su conexion a internet.");
+                            //sinRutasTextView.setText("Verifique su conexion a internet.");
+                            List<Integer> asignaciones = dbHelper.getAllAsignaciones();
+                            for (int i = 0; i < asignaciones.size(); i++) {
+                                // Extraer rutas asignadas
+                                for (int j = 0; j < rutas.size(); j++) {
+                                    if (rutas.get(j).id == asignaciones.get(i)) {
+                                        rutasAsignadas.add(rutas.get(j));
+                                    }
+                                }
+                            }
+                            adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
+                            if (adapterAsignedRoutes.getItemCount() == 0) {
+                                scrollView.setVisibility(View.GONE);
+                                sinRutasTextView.setText("No hay rutas disponibles");
+                                sinRutasTextView.setVisibility(View.VISIBLE);
+                            } else {
+                                recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
+                                recyclerView.setAdapter(adapterAsignedRoutes);
+                                scrollView.setVisibility(View.VISIBLE);
+                                sinRutasTextView.setVisibility(View.GONE);
+                            }
                         }
                     }else{
                         Messages.showInvalidCredentialsDialog("Ya se tiene una ruta activa.","Es necesario terminar la ruta activa antes de seleccionar otra ruta.",MainActivity.this);
@@ -1494,7 +1516,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     int distancia = rutaObject.optInt("distancia", 0);
                                     int tiempo = rutaObject.optInt("tiempo", 0);
                                     String fecha_creacion = rutaObject.optString("fecha_hora_creacion", "");
+                                    Date fechaCreacion = null;
+                                    if (fecha_creacion != null && fecha_creacion != "null") {
+                                        try {
+                                            fechaCreacion = dateFormat.parse(fecha_creacion);
+
+                                            Calendar calendar = Calendar.getInstance();
+                                            calendar.setTime(fechaCreacion);
+                                            calendar.add(Calendar.HOUR, -6);
+
+                                            // Obtener la cadena formateada directamente
+                                            fecha_creacion = dateFormat.format(calendar.getTime()).toString();
+                                        } catch (ParseException e) {
+                                            Log.e(TAG,"Error al parsear fecha de creacion: "+fecha_creacion);
+                                        }
+                                    }
                                     String fecha_ultima_modificacion = rutaObject.optString("fecha_hora_ultima_modificacion", "");
+                                    Date fechaUltimaModificacion = null;
+                                    if (fecha_ultima_modificacion != null && fecha_ultima_modificacion != "null") {
+                                        try {
+                                            fechaUltimaModificacion = dateFormat.parse(fecha_ultima_modificacion);
+
+                                            Calendar calendar = Calendar.getInstance();
+                                            calendar.setTime(fechaUltimaModificacion);
+                                            calendar.add(Calendar.HOUR, -6);
+
+                                            // Obtener la cadena formateada directamente
+                                            fecha_ultima_modificacion = dateFormat.format(calendar.getTime()).toString();
+                                        } catch (ParseException e) {
+                                            Log.e(TAG,"Error al parsear fecha de su ultima actualizacion: "+fecha_ultima_modificacion);
+                                        }
+                                    }
                                     int status = rutaObject.optInt("estatus", 0);
                                     JSONArray puntosArray = rutaObject.getJSONArray("puntos_de_control");
                                     // Calcular el tamaño del array de enteros de antemano
@@ -1569,7 +1621,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private CompletableFuture<ResponseBody> descargarRutasFaltantes() {
         try {
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
             ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
             apiService.getRutas().enqueue(new retrofit2.Callback<ResponseBody>() {
@@ -1599,11 +1650,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     }
                                     String fecha_ultima_modificacion = rutaObject.optString("fecha_hora_ultima_modificacion", "");
                                     Date fechaUltimaModificacion = null;
-                                    if (fecha_ultima_modificacion != null) {
+                                    if (fecha_ultima_modificacion != null && fecha_ultima_modificacion != "null") {
                                         try {
                                             fechaUltimaModificacion = dateFormat.parse(fecha_ultima_modificacion);
+
+                                            Calendar calendar = Calendar.getInstance();
+                                            calendar.setTime(fechaUltimaModificacion);
+                                            calendar.add(Calendar.HOUR, -6);
+
+                                            // Obtener la cadena formateada directamente
+                                            fecha_ultima_modificacion = dateFormat.format(calendar.getTime()).toString();
+                                            fechaUltimaModificacion = dateFormat.parse(fecha_ultima_modificacion);
                                         } catch (ParseException e) {
-                                            //throw new RuntimeException(e);
+                                            Log.e(TAG,"Error al parsear fecha de su ultima actualizacion: "+fecha_ultima_modificacion);
                                         }
                                     }
                                     if(ruta_previa != null){
@@ -1614,14 +1673,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                             }
                                         }
                                         else if(ruta_previa.fecha_ultima_modificacion.toString().equalsIgnoreCase(fechaUltimaModificacion.toString())){
-                                            Log.e("Prueba","Id ruta: (continue 2) "+id);
                                             continue;
                                         }else{
-                                            Log.e("Prueba","Id ruta: (delete) "+id);
                                             dbHelper.deleteRoute(id);
                                         }
                                     }
-                                    Log.e("Prueba","Id ruta: (save) "+id);
                                     String nombre = rutaObject.optString("nombre", "Sin nombre");
                                     String direccion_inicio = rutaObject.optString("direccion_inicio", "Sin direccion");
                                     double latitud_inicio = rutaObject.optDouble("latitud_inicio", 0.0);
@@ -1666,6 +1722,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     int distancia = rutaObject.optInt("distancia", 0);
                                     int tiempo = rutaObject.optInt("tiempo", 0);
                                     String fecha_creacion = rutaObject.optString("fecha_hora_creacion", "");
+                                    Date fechaCreacion = null;
+                                    if (fecha_creacion != null && fecha_creacion != "null") {
+                                        try {
+                                            fechaCreacion = dateFormat.parse(fecha_creacion);
+
+                                            Calendar calendar = Calendar.getInstance();
+                                            calendar.setTime(fechaCreacion);
+                                            calendar.add(Calendar.HOUR, -6);
+
+                                            // Obtener la cadena formateada directamente
+                                            fecha_creacion = dateFormat.format(calendar.getTime()).toString();
+                                        } catch (ParseException e) {
+                                            Log.e(TAG,"Error al parsear fecha de creacion: "+fecha_creacion);
+                                        }
+                                    }
                                     int status = rutaObject.optInt("estatus", 0);
                                     JSONArray puntosArray = rutaObject.getJSONArray("puntos_de_control");
                                     // Calcular el tamaño del array de enteros de antemano
@@ -1872,13 +1943,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             // Verifica si la operación fue exitosa
                             boolean success = jsonObject.getBoolean("success");
                             if (success) {
+                                dbHelper.truncateAsignaciones();
                                 // Obtén el arreglo "result"
                                 JSONArray resultArray = jsonObject.getJSONArray("result");
                                 for (int i = 0; i < resultArray.length(); i++) {
                                     JSONObject asignacionObject = resultArray.getJSONObject(i);
+                                    int id_ruta = asignacionObject.getInt("id_ruta");
+                                    dbHelper.saveAsignacion(id_ruta);
                                     // Extraer rutas asignadas
                                     for (int j = 0; j < rutas.size(); j++) {
-                                        if (rutas.get(j).id == asignacionObject.getInt("id_ruta")) {
+                                        if (rutas.get(j).id == id_ruta) {
                                             rutasAsignadas.add(rutas.get(j));
                                         }
                                     }
