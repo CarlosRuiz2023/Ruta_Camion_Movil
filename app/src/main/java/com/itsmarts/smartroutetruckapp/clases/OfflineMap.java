@@ -2,8 +2,11 @@ package com.itsmarts.smartroutetruckapp.clases;
 
 import static android.view.View.VISIBLE;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -43,14 +46,12 @@ import java.util.List;
  * Ultima fecha de actualizacion: 07.09.2024
  */
 
-
-/**Clase para descarga de mapa de Mexico*/
-
 /**Clase para descarga de mapa de Mexico*/
 public class OfflineMap {
     private CatalogUpdateInfo catalogUpdate;
     private boolean isDownloadOnProcess = false;
     public boolean isMexicoMapDownload = false;
+    private static final String TAG = "OfflineMap";
     /**
      * Variable para acceder al MainActivity
      */
@@ -84,14 +85,14 @@ public class OfflineMap {
     public OfflineMap(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
 
-
         SDKNativeEngine sdkNativeEngine = SDKNativeEngine.getSharedInstance();
         if (sdkNativeEngine == null) {
-            throw new RuntimeException("SDKNativeEngine not initialized.");
+            //throw new RuntimeException("SDKNativeEngine not initialized.");
+            Log.e(TAG, "SDKNativeEngine not initialized.");
         }
         // Note that the default storage path can be adapted when creating a new SDKNativeEngine.
         String storagePath = sdkNativeEngine.getOptions().cachePath;
-        Log.d("", "StoragePath: " + storagePath);
+        Log.d(TAG, "StoragePath: " + storagePath);
 
         MapDownloader.fromEngineAsync(sdkNativeEngine, new MapDownloaderConstructionCallback() {
             @Override
@@ -101,18 +102,27 @@ public class OfflineMap {
                     List<InstalledRegion> list = mapDownloader.getInstalledRegions();
                     if (list != null && list.size() > 0) {
                         mainActivity.mapOfflineMexDownload = true;
-                        //mainActivity.switchOffline.setChecked(true);
-                        mainActivity.offlineMap.isMexicoMapDownload = true;
-                    }
-                    Log.d("InstalledRegion", list.toString());
-                } catch (MapLoaderException e) {
-                    Log.d("MapLoaderException", e.getLocalizedMessage());
-                }
+                        isMexicoMapDownload = true;
 
-                // Checks the status of already downloaded map data and eventually repairs it.
-                // Important: For production-ready apps, it is recommended to not do such operations silently in
-                // the background and instead inform the user.
-//                checkInstallationStatus();
+                        // Find the "Mapa offline" menu item
+                        for (int i = 0; i < mainActivity.menu_options.size(); i++) {
+                            MenuItem item = mainActivity.menu_options.getItem(i);
+                            if (item.getTitle().toString().equals("Mapa offline")) {
+                                mainActivity.offlineMapItem = item;
+                                break;
+                            }
+                        }
+
+                        if (mainActivity.offlineMapItem != null) {
+                            mainActivity.offlineMapItem.setChecked(true);
+                            onSwitchOfflineButtonClicked();
+                            mainActivity.routingExample.routingInterface = mainActivity.routingExample.offlineRoutingEngine;
+                        }
+                    }
+                    Log.d(TAG,"InstalledRegion: "+ list.toString());
+                } catch (MapLoaderException e) {
+                    Log.d(TAG,"MapLoaderException: "+ e.getLocalizedMessage());
+                }
             }
 
         });
@@ -202,6 +212,9 @@ public class OfflineMap {
                             return;
                         }
                         mainActivity.txtProcesoDescarga.setText(mainActivity.getString(R.string.descarga_completada));
+                        isMexicoMapDownload = true;
+                        mainActivity.mapOfflineMexDownload = true;
+                        mainActivity.offlineMapItem.setChecked(true);
                     }
 
                     @Override
@@ -374,11 +387,6 @@ public class OfflineMap {
                 String message = "Se han instalado correctamente una o más actualizaciones del mapa de México.";
                 mainActivity.txtProcesoActualizacion.setText(message);
                 logCurrentMapVersion();
-
-                // It is recommend to call now also `getDownloadableRegions()` to update
-                // the internal catalog data that is needed to download, update or delete
-                // existing `Region` data. It is required to do this at least once
-                // before doing a new download, update or delete operation.
             }
         });
     }

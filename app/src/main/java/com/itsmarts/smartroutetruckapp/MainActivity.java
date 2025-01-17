@@ -99,6 +99,7 @@ import com.itsmarts.smartroutetruckapp.clases.AvoidZonesExample;
 import com.itsmarts.smartroutetruckapp.clases.ControlPointsExample;
 import com.itsmarts.smartroutetruckapp.clases.NavigationEventHandler;
 import com.itsmarts.smartroutetruckapp.clases.NavigationExample;
+import com.itsmarts.smartroutetruckapp.clases.NetworkUtil;
 import com.itsmarts.smartroutetruckapp.clases.OfflineMap;
 import com.itsmarts.smartroutetruckapp.clases.RoutingExample;
 import com.itsmarts.smartroutetruckapp.clases.TruckConfig;
@@ -180,6 +181,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public List<PointWithId> puntos = new ArrayList<>();
     public ProgressBar loading_spinner;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    public Menu menu_options = null;
+    public MenuItem offlineMapItem = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -532,6 +535,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        menu_options = menu;
+        offlineMap = new OfflineMap(this);
         try{
             MenuInflater inflater = getMenuInflater();
             inflater.inflate(R.menu.menu_bottom_nav, menu);
@@ -562,14 +567,21 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     restartLocationUpdates();
                     break;
                 case "Mapa offline":
-                    // Code to handle refresh selection
-                    Toast.makeText(this, name+" selected", Toast.LENGTH_SHORT).show();
-                    if(item.isChecked()){
-                        item.setChecked(false);
-                        offlineMap.onSwitchOfflineButtonClicked();
+                    if(mapOfflineMexDownload){
+                        if(item.isChecked()){
+                            item.setChecked(false);
+                            offlineMap.onSwitchOfflineButtonClicked();
+                            routingExample.routingInterface = routingExample.onlineRoutingEngine;
+                        }else{
+                            item.setChecked(true);
+                            offlineMap.onSwitchOnlineButtonClicked();
+                            routingExample.routingInterface = routingExample.offlineRoutingEngine;
+                        }
+                        // Code to handle refresh selection
+                        Toast.makeText(this, name+" selected", Toast.LENGTH_SHORT).show();
                     }else{
-                        item.setChecked(true);
-                        offlineMap.onSwitchOnlineButtonClicked();
+                        // Code to handle refresh selection
+                        Toast.makeText(this, "Imposible cambiar debido a que aun no tienes descargado el mapa de Mexico", Toast.LENGTH_SHORT).show();
                     }
                     break;
                 default:
@@ -599,7 +611,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void initializeSecondClass(){
         try{
             routingExample = new RoutingExample(this);
-            offlineMap = new OfflineMap(this);
             truckConfig = new TruckConfig(this);
             navigationExample = new NavigationExample(this);
             navigationExample.getNavigationEventHandler().setSpeedUpdateListener(this);
@@ -1191,7 +1202,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if (!cartoPOIList.isEmpty()) {
                     PickedPlace pickedPlace = cartoPOIList.get(0);
                     Log.d("Carto POI picked: ", pickedPlace.name + ", Place category: " + pickedPlace.placeCategoryId);
-                    if(offlineMap.isMexicoMapDownload){
+                    if(offlineMapItem.isChecked()){
                         offlineSearchEngine.searchPickedPlace(pickedPlace, LanguageCode.ES_MX, new PlaceIdSearchCallback() {
                             @Override
                             public void onPlaceIdSearchCompleted(@Nullable SearchError searchError, @Nullable Place place) {
@@ -1668,7 +1679,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     if(ruta_previa != null){
                                         if(ruta_previa.fecha_ultima_modificacion == null){
                                             if(fechaUltimaModificacion == null){
-                                                Log.e("Prueba","Id ruta: (continue 1) "+id);
                                                 continue;
                                             }
                                         }

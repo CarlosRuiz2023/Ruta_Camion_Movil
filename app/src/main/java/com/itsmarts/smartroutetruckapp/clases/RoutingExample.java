@@ -88,9 +88,9 @@ public class RoutingExample {
     private static final String TAG = RoutingExample.class.getName();
     public final List < MapMarker > mapMarkerList = new ArrayList < > ();
     public final List < MapPolyline > mapPolylines = new ArrayList < > ();
-    private RoutingEngine routingEngine;
-    private OfflineRoutingEngine offlineRoutingEngine;
-    private RoutingInterface routingInterface;
+    public RoutingEngine onlineRoutingEngine;
+    public OfflineRoutingEngine offlineRoutingEngine;
+    public RoutingInterface routingInterface;
     public static final int DEFAULT_TONELADAS = 17;
     public static final int DEFAULT_ALTO = 3;
     public static final int DEFAULT_ANCHO = 4;
@@ -98,14 +98,14 @@ public class RoutingExample {
     private double toneladasIngresadas, altoIngresado, anchoIngresado, largoIngresado;
     private MainActivity mainActivity;
     // Define la duración de la animación de zoom en milisegundos
-    final long zoomAnimationDuration = 1000L;
+    private final long zoomAnimationDuration = 1000L;
 
     public RoutingExample(MainActivity mainActivity) {
         try{
             this.mainActivity = mainActivity;
-            if(routingEngine == null) {
+            if(onlineRoutingEngine == null) {
                 try {
-                    routingEngine = new RoutingEngine();
+                    onlineRoutingEngine = new RoutingEngine();
                 } catch (InstantiationErrorException e) {
                     throw new RuntimeException("Initialization of RoutingEngine failed: " + e.error.name());
                 }
@@ -126,7 +126,7 @@ public class RoutingExample {
     private void setRoutingEngine() {
         try{
             if(NetworkUtil.isOnline(mainActivity.getApplicationContext())) {
-                routingInterface = routingEngine;
+                routingInterface = onlineRoutingEngine;
             } else {
                 routingInterface = offlineRoutingEngine;
             }
@@ -241,7 +241,7 @@ public class RoutingExample {
                 truckOptions.avoidanceOptions.avoidPolygonAreas = avoidanceZones;
             }
             // Calculate the route
-            setRoutingEngine();
+            //setRoutingEngine();
             routingInterface.calculateRoute(waypointsList, truckOptions, new CalculateRouteCallback() {
                 @Override
                 public void onRouteCalculated(@Nullable RoutingError routingError, @Nullable List < Route > routes) {
