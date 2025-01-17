@@ -535,19 +535,24 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        menu_options = menu;
-        // Find the "Mapa offline" menu item
-        for (int i = 0; i < menu.size(); i++) {
-            MenuItem item = menu.getItem(i);
-            if (item.getTitle().toString().equals("Mapa offline")) {
-                offlineMapItem = item;
-                break;
-            }
-        }
-        offlineMap = new OfflineMap(this);
         try{
             MenuInflater inflater = getMenuInflater();
             inflater.inflate(R.menu.menu_bottom_nav, menu);
+            menu_options = menu;
+            // Find the "Mapa offline" menu item
+            for (int i = 0; i < menu.size(); i++) {
+                MenuItem item = menu.getItem(i);
+                if (item.getTitle().toString().equals("Mapa offline")) {
+                    offlineMapItem = item;
+                    break;
+                }
+            }
+            offlineMap = new OfflineMap(this);
+            if (offlineMapItem != null && mapOfflineMexDownload) {
+                offlineMapItem.setChecked(true);
+                offlineMap.onSwitchOfflineButtonClicked();
+                routingExample.routingInterface = routingExample.offlineRoutingEngine;
+            }
             return super.onCreateOptionsMenu(menu);
         }catch (Exception e){
             Messages.showErrorDetail(MainActivity.this, e);
@@ -578,11 +583,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     if(mapOfflineMexDownload){
                         if(item.isChecked()){
                             item.setChecked(false);
-                            offlineMap.onSwitchOfflineButtonClicked();
+                            offlineMap.onSwitchOnlineButtonClicked();
                             routingExample.routingInterface = routingExample.onlineRoutingEngine;
                         }else{
                             item.setChecked(true);
-                            offlineMap.onSwitchOnlineButtonClicked();
+                            offlineMap.onSwitchOfflineButtonClicked();
                             routingExample.routingInterface = routingExample.offlineRoutingEngine;
                         }
                         // Code to handle refresh selection
@@ -618,8 +623,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
     private void initializeSecondClass(){
         try{
-            routingExample = new RoutingExample(this);
             truckConfig = new TruckConfig(this);
+            routingExample = new RoutingExample(this);
             navigationExample = new NavigationExample(this);
             navigationExample.getNavigationEventHandler().setSpeedUpdateListener(this);
             navigationExample.getNavigationEventHandler().setDestinationDistanceListener(this);

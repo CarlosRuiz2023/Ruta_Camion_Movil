@@ -107,7 +107,8 @@ public class RoutingExample {
                 try {
                     onlineRoutingEngine = new RoutingEngine();
                 } catch (InstantiationErrorException e) {
-                    throw new RuntimeException("Initialization of RoutingEngine failed: " + e.error.name());
+                    //throw new RuntimeException("Initialization of RoutingEngine failed: " + e.error.name());
+                    Log.e(TAG, "Initialization of RoutingEngine failed: " + e.error.name());
                 }
             }
             if(offlineRoutingEngine == null) {
@@ -115,9 +116,11 @@ public class RoutingExample {
                     // Allows to calculate routes on already downloaded or cached map data.
                     offlineRoutingEngine = new OfflineRoutingEngine();
                 } catch (InstantiationErrorException e) {
-                    throw new RuntimeException("Initialization of OfflineRoutingEngine failed: " + e.error.name());
+                    //throw new RuntimeException("Initialization of OfflineRoutingEngine failed: " + e.error.name());
+                    Log.e(TAG, "Initialization of OfflineRoutingEngine failed: " + e.error.name());
                 }
             }
+            routingInterface = onlineRoutingEngine;
         }catch (Exception e){
             Messages.showErrorDetail(mainActivity, e);
         }
@@ -155,8 +158,10 @@ public class RoutingExample {
             truckSpecifications.lengthInCentimeters = truckSpec.largo;
             List < Waypoint > waypointsList = new ArrayList < > ();
             waypointsList.add(new Waypoint(startCoordinates));
-            if(startCoordinates.distanceTo(geoCoordinatesInicioRuta) > 3) {
-                waypointsList.add(new Waypoint(geoCoordinatesInicioRuta));
+            if(geoCoordinatesInicioRuta != null) {
+                if(startCoordinates.distanceTo(geoCoordinatesInicioRuta) > 3) {
+                    waypointsList.add(new Waypoint(geoCoordinatesInicioRuta));
+                }
             }
             if(puntos.size() > 0 || geoCoordinatesPOI != null) {
                 if(!orden_automatico) {
@@ -173,9 +178,13 @@ public class RoutingExample {
                     }
                     if(geoCoordinatesPOI != null) {
                         double distanceToStartPoi = 0.0;
-                        if(geoCoordinatesInicioRuta != null && startCoordinates.distanceTo(geoCoordinatesInicioRuta) > 3){
-                            distanceToStartPoi = geoCoordinatesPOI.distanceTo(geoCoordinatesInicioRuta);
-                        } else {
+                        if(geoCoordinatesInicioRuta != null){
+                            if(startCoordinates.distanceTo(geoCoordinatesInicioRuta) > 3){
+                                distanceToStartPoi = geoCoordinatesPOI.distanceTo(geoCoordinatesInicioRuta);
+                            }else {
+                                distanceToStartPoi = geoCoordinatesPOI.distanceTo(startCoordinates);
+                            }
+                        }else {
                             distanceToStartPoi = geoCoordinatesPOI.distanceTo(startCoordinates);
                         }
                         waypointDistances.add(new Triple < > (new Waypoint(geoCoordinatesPOI), distanceToStartPoi, false));
@@ -205,9 +214,13 @@ public class RoutingExample {
                     }
                     if(geoCoordinatesPOI != null) {
                         double distanceToStartPoi = 0.0;
-                        if(geoCoordinatesInicioRuta != null && startCoordinates.distanceTo(geoCoordinatesInicioRuta) > 3){
-                            distanceToStartPoi = geoCoordinatesPOI.distanceTo(geoCoordinatesInicioRuta);
-                        } else {
+                        if(geoCoordinatesInicioRuta != null){
+                            if(startCoordinates.distanceTo(geoCoordinatesInicioRuta) > 3){
+                                distanceToStartPoi = geoCoordinatesPOI.distanceTo(geoCoordinatesInicioRuta);
+                            }else {
+                                distanceToStartPoi = geoCoordinatesPOI.distanceTo(startCoordinates);
+                            }
+                        }else {
                             distanceToStartPoi = geoCoordinatesPOI.distanceTo(startCoordinates);
                         }
                         waypointDistances.add(new Pair < > (new Waypoint(geoCoordinatesPOI), distanceToStartPoi));
@@ -220,7 +233,9 @@ public class RoutingExample {
                     }
                 }
             }
-            waypointsList.add(new Waypoint(destinationCoordinates));
+            if(destinationCoordinates != null){
+                waypointsList.add(new Waypoint(destinationCoordinates));
+            }
             TruckOptions truckOptions = new TruckOptions();
             //truckOptions.routeOptions.enableTolls = true;
             //truckOptions.routeOptions.optimizeWaypointsOrder = orden_automatico;

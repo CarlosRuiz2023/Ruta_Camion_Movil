@@ -81,14 +81,12 @@ public class Messages {
         if (mainActivity.isDialogShowing) {
             return;
         }
-
         mainActivity.isDialogShowing = true;
-
         Dialog dialog = new Dialog(mainActivity);
         if(geoCoordinatesPOI != null){
             dialog.setContentView(R.layout.ventana_poi_ruta);
             Button goButton = dialog.findViewById(R.id.dialog_go_button);
-            if(mainActivity.navigationExample.getVisualNavigator().getRoute() != null){
+            if(mainActivity.rutaGenerada){
                 goButton.setText("Pasar por ahi");
                 goButton.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -101,7 +99,7 @@ public class Messages {
                         }
                         List<GeoCoordinates> puntos_de_control = new ArrayList<>();
                         List<MapPolygon> zonas = new ArrayList<>();
-                        int id_vehiculo = 3;
+                        int id_vehiculo = 1;
                         if(mainActivity.ruta.truckSpectIds!=null){
                             for (int i = 0; i < mainActivity.ruta.truckSpectIds.length; i++) {
                                 if(mainActivity.ruta.truckSpectIds[i] > id_vehiculo){
@@ -194,6 +192,7 @@ public class Messages {
                                         mainActivity.isTrackingCamera = false;
                                         mainActivity.trackCamara.setImageResource(R.drawable.track_on);
                                         mainActivity.navigationExample.startNavigation(route, false, false);
+                                        mainActivity.rutaGenerada = true;
                                     } catch (Exception e) {
                                         Log.e("MainActivity", "Error starting navigation: ", e);
                                     }

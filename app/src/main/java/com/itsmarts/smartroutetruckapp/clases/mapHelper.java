@@ -80,7 +80,8 @@ public class mapHelper {
         try {
             SDKNativeEngine.makeSharedInstance(context, options);
         } catch (InstantiationErrorException e) {
-            throw new RuntimeException("Fallo al iniciar el SDK: " + e.error.name());
+            //throw new RuntimeException("Fallo al iniciar el SDK: " + e.error.name());
+            Log.e("initializeHERESDK()", "Fallo al iniciar el SDK: " + e.error.name());
         }
     }
 
