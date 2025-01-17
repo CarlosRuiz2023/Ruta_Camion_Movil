@@ -104,15 +104,6 @@ public class OfflineMap {
                         mainActivity.mapOfflineMexDownload = true;
                         isMexicoMapDownload = true;
 
-                        // Find the "Mapa offline" menu item
-                        for (int i = 0; i < mainActivity.menu_options.size(); i++) {
-                            MenuItem item = mainActivity.menu_options.getItem(i);
-                            if (item.getTitle().toString().equals("Mapa offline")) {
-                                mainActivity.offlineMapItem = item;
-                                break;
-                            }
-                        }
-
                         if (mainActivity.offlineMapItem != null) {
                             mainActivity.offlineMapItem.setChecked(true);
                             onSwitchOfflineButtonClicked();

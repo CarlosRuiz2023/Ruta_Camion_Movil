@@ -536,6 +536,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         menu_options = menu;
+        // Find the "Mapa offline" menu item
+        for (int i = 0; i < menu.size(); i++) {
+            MenuItem item = menu.getItem(i);
+            if (item.getTitle().toString().equals("Mapa offline")) {
+                offlineMapItem = item;
+                break;
+            }
+        }
         offlineMap = new OfflineMap(this);
         try{
             MenuInflater inflater = getMenuInflater();
