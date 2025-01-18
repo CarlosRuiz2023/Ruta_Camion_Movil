@@ -103,6 +103,11 @@ public class OfflineMap {
                     if (list != null && list.size() > 0) {
                         mainActivity.mapOfflineMexDownload = true;
                         isMexicoMapDownload = true;
+                        if (mainActivity.offlineMapItem != null ) {
+                            mainActivity.offlineMapItem.setChecked(true);
+                            onSwitchOfflineButtonClicked();
+                            mainActivity.routingExample.routingInterface = mainActivity.routingExample.offlineRoutingEngine;
+                        }
                     }
                     Log.d(TAG,"InstalledRegion: "+ list.toString());
                 } catch (MapLoaderException e) {

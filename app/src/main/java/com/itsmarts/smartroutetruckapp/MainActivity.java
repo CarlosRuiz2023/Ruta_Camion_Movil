@@ -548,11 +548,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
             offlineMap = new OfflineMap(this);
-            if (offlineMapItem != null && mapOfflineMexDownload) {
-                offlineMapItem.setChecked(true);
-                offlineMap.onSwitchOfflineButtonClicked();
-                routingExample.routingInterface = routingExample.offlineRoutingEngine;
-            }
             return super.onCreateOptionsMenu(menu);
         }catch (Exception e){
             Messages.showErrorDetail(MainActivity.this, e);
@@ -1124,6 +1119,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             navigationExample.getNavigationEventHandler().id_punto_control = 0;
             trackCamara.setVisibility(View.GONE);
             txtNavegacion.setVisibility(View.GONE);
+            for (PointWithId pointWithId : controlPointsExample.pointsWithIds) {
+                for (int id : navigationExample.getNavigationEventHandler().puntos_completados) {
+                    if(id==pointWithId.id){
+                        MapImage mapImage = MapImageFactory.fromResource(getApplicationContext().getResources(), R.drawable.punto_control);
+                        MapMarker mapMarker = new MapMarker(new GeoCoordinates(pointWithId.mapMarker.getCoordinates().latitude, pointWithId.mapMarker.getCoordinates().longitude), mapImage);
+                        pointWithId.mapMarker = mapMarker;
+                    }
+                }
+            }
         }catch (Exception e){
             Messages.showErrorDetail(MainActivity.this, e);
         }
@@ -1920,6 +1924,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if(navigationExample.getNavigationEventHandler().puntos_completados.size()==0){
                     coordenadasIniciales = ruta.coordinatesInicio;
                 }
+                ruta.orden_automatico = false;
                 routingExample.addRoute(zonas,puntos_de_control,currentGeoCoordinates, ruta.coordinatesFin, null,coordenadasIniciales, id_vehiculo,ruta.orden_automatico, new RoutingExample.RouteCallback() {
                     @Override
                     public void onRouteCalculated(Route route) {

@@ -145,6 +145,7 @@ public class Messages {
                                 }
                             }
                         }
+
                         mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, geoCoordinatesPOI, mainActivity.ruta.coordinatesInicio,id_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
                             @Override
                             public void onRouteCalculated(Route route) {
@@ -168,6 +169,7 @@ public class Messages {
                     }
                 });
             } else {
+                mainActivity.rutaGenerada = true;
                 goButton.setText("Ir al lugar");
                 goButton.setOnClickListener(new View.OnClickListener() {
                     @Override

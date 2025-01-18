@@ -204,11 +204,8 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                         }
                                     }
                                     mainActivity.geocercas.drawGeofenceAroundPolyline(mainActivity.ruta.polyline, 100.0);
-                                    mainActivity.mapView.getMapScene().addMapPolyline(mainActivity.ruta.polyline);
                                     mainActivity.llLoadingRoute.setVisibility(View.GONE);
                                     //mainActivity.likeImageView1.setVisibility(View.GONE);
-                                    mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
-                                    mainActivity.llGeocerca.setVisibility(VISIBLE);
                                     mainActivity.controlPointsExample.cleanPoint();
                                     mainActivity.avoidZonesExample.cleanPolygon();
                                     mainActivity.rutaGenerada = true;
@@ -216,6 +213,9 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                         @Override
                                         public void onRouteCalculated(Route route) {
                                             if (route != null) {
+                                                mainActivity.mapView.getMapScene().addMapPolyline(mainActivity.ruta.polyline);
+                                                mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
+                                                mainActivity.llGeocerca.setVisibility(VISIBLE);
                                                 mainActivity.messageView.startAnimation(mainActivity.cargaAnimacion);
                                                 mainActivity.messageView.setVisibility(View.VISIBLE);
                                                 mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
@@ -333,11 +333,9 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                             }
                                         }
                                     }
-                                    mainActivity.mapView.getMapScene().addMapPolyline(mainActivity.ruta.polyline);
                                     mainActivity.geocercas.drawGeofenceAroundPolyline(mainActivity.ruta.polyline, 100.0);
                                     mainActivity.llLoadingRoute.setVisibility(View.GONE);
                                     //mainActivity.likeImageView1.setVisibility(View.GONE);
-                                    mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
                                     mainActivity.controlPointsExample.cleanPoint();
                                     mainActivity.avoidZonesExample.cleanPolygon();
                                     mainActivity.rutaGenerada = true;
@@ -345,6 +343,8 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                         @Override
                                         public void onRouteCalculated(Route route) {
                                             if (route != null) {
+                                                mainActivity.mapView.getMapScene().addMapPolyline(mainActivity.ruta.polyline);
+                                                mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
                                                 mainActivity.messageView.startAnimation(mainActivity.cargaAnimacion);
                                                 mainActivity.messageView.setVisibility(View.VISIBLE);
                                                 mainActivity.btnTerminarRuta.setVisibility(VISIBLE);

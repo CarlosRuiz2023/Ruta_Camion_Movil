@@ -264,7 +264,7 @@ public class RoutingExample {
                     if(routingError == null) {
                         // Get the first route from the list
                         Route route = routes.get(0);
-                        if(!mainActivity.rutaGenerada){
+                        if(mainActivity.rutaGenerada){
                             // Calcular la extensión de la ruta
                             GeoBox geoBox = route.getBoundingBox();
                             // Calcular el centro del GeoBox

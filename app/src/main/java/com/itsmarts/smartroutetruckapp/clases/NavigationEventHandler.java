@@ -25,6 +25,8 @@ import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
@@ -34,6 +36,7 @@ import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.os.Vibrator;
@@ -46,8 +49,12 @@ import com.here.sdk.core.LanguageCode;
 import com.here.sdk.core.UnitSystem;
 import com.here.sdk.mapview.MapCameraAnimation;
 import com.here.sdk.mapview.MapCameraAnimationFactory;
+import com.here.sdk.mapview.MapImage;
+import com.here.sdk.mapview.MapImageFactory;
+import com.here.sdk.mapview.MapMarker;
 import com.here.sdk.mapview.MapMeasure;
 import com.here.sdk.mapview.MapPolygon;
+import com.here.sdk.mapview.MapView;
 import com.here.sdk.navigation.AspectRatio;
 import com.here.sdk.navigation.BorderCrossingWarning;
 import com.here.sdk.navigation.BorderCrossingWarningListener;
@@ -126,6 +133,7 @@ import com.here.time.Duration;
 
 import com.itsmarts.smartroutetruckapp.MainActivity;
 import com.itsmarts.smartroutetruckapp.R;
+import com.itsmarts.smartroutetruckapp.helpers.Geocercas;
 import com.itsmarts.smartroutetruckapp.helpers.Messages;
 import com.itsmarts.smartroutetruckapp.modelos.PointWithId;
 import com.itsmarts.smartroutetruckapp.modelos.PolygonWithId;
@@ -436,28 +444,51 @@ public class NavigationEventHandler {
                             }
                         }*/
                         if (!hasNotifiedCheckpoint) {
-                            for (PointWithId pointWithId : mainActivity.controlPointsExample.pointsWithIds) {
-                                for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
-                                    if (pointWithId.visibility && pointWithId.status) {
-                                        if (lastMapMatchedLocation.coordinates.distanceTo(pointWithId.mapMarker.getCoordinates()) < 100 && id_punto_control != pointWithId.id) {
+                            for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
+                                PointWithId pointWithId = mainActivity.controlPointsExample.pointsWithIds.get(i);
+                                if (pointWithId.visibility && pointWithId.status) {
+                                    if (lastMapMatchedLocation.coordinates.distanceTo(pointWithId.mapMarker.getCoordinates()) < 100 && id_punto_control != pointWithId.id) {
                                             /*NotificationHelper.showNotification(
                                                     context,
                                                     "Punto de Control",
                                                     "Has pasado por el punto de control " + pointWithId.name + "."
                                             );*/
-                                            vibrator.vibrate(pattern, -1); // Vibrate with the defined pattern
-                                            //mainActivity.messages.showCustomToast("Has pasado por el punto de control " + pointWithId.name + ".");
-                                            mainActivity.recalculateRouteButton.setBackgroundColor(mainActivity.getResources().getColor(R.color.blue, null));
-                                            mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
-                                            mainActivity.recalculateRouteButton.setEnabled(false);
-                                            mainActivity.recalculateRouteButton.setText("Has pasado por el punto de control " + pointWithId.name + ".");
-                                            hasNotifiedCheckpoint = true;
-                                            id_punto_control = pointWithId.id;
-                                            puntos_completados.add(id_punto_control);
-                                            // Iniciar el temporizador al comienzo
-                                            handler.postDelayed(resetFlagsRunnable, 10000);
-                                            break;
+                                        vibrator.vibrate(pattern, -1); // Vibrate with the defined pattern
+                                        //mainActivity.messages.showCustomToast("Has pasado por el punto de control " + pointWithId.name + ".");
+                                        mainActivity.recalculateRouteButton.setBackgroundColor(mainActivity.getResources().getColor(R.color.blue, null));
+                                        mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
+                                        mainActivity.recalculateRouteButton.setEnabled(false);
+                                        mainActivity.recalculateRouteButton.setText("Has pasado por el punto de control " + pointWithId.name + ".");
+                                        hasNotifiedCheckpoint = true;
+                                        id_punto_control = pointWithId.id;
+                                        puntos_completados.add(id_punto_control);
+                                        mainActivity.mapView.getMapScene().removeMapMarker(pointWithId.mapMarker);
+                                        List<MapView.ViewPin> mapViewPins = mainActivity.mapView.getViewPins();
+                                        for (MapView.ViewPin viewPin : new ArrayList<>(mapViewPins)) {
+                                            if(pointWithId.mapMarker.getCoordinates().latitude==viewPin.getGeoCoordinates().latitude && pointWithId.mapMarker.getCoordinates().longitude==viewPin.getGeoCoordinates().longitude){
+                                                viewPin.unpin();
+                                            }
                                         }
+                                        MapImage mapImage = MapImageFactory.fromResource(mainActivity.getApplicationContext().getResources(), R.drawable.punto_control_reached);
+                                        MapMarker mapMarker = new MapMarker(new GeoCoordinates(pointWithId.mapMarker.getCoordinates().latitude, pointWithId.mapMarker.getCoordinates().longitude), mapImage);
+                                        pointWithId.mapMarker = mapMarker;
+                                        mainActivity.mapView.getMapScene().addMapMarker(mapMarker);
+                                        // Crea un TextView para la etiqueta
+                                        TextView textView = new TextView(mainActivity.getApplicationContext());
+                                        textView.setTextColor(Color.parseColor("#1A8B51"));
+                                        textView.setText(pointWithId.name);
+                                        textView.setTypeface(Typeface.DEFAULT_BOLD);
+                                        // Crea un LinearLayout para contener el TextView y agregar padding
+                                        LinearLayout linearLayout = new LinearLayout(mainActivity.getApplicationContext());
+                                        //linearLayout.setBackgroundResource(R.color.colorAccent);
+                                        linearLayout.setPadding(0, 0, 0, 130);
+                                        linearLayout.addView(textView);
+                                        // Ancla el LinearLayout al mapa en las coordenadas ajustadas
+                                        mainActivity.mapView.pinView(linearLayout, pointWithId.mapMarker.getCoordinates());
+                                        mainActivity.geocercas.drawGecocercaControlPointReached(pointWithId.mapMarker.getCoordinates(),100);
+                                        // Iniciar el temporizador al comienzo
+                                        handler.postDelayed(resetFlagsRunnable, 10000);
+                                        break;
                                     }
                                 }
                             }
