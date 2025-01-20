@@ -41,7 +41,7 @@ import java.util.List;
 // from various location sources available from a device and HERE services.
 public class HEREPositioningProvider {
 
-    private static final String LOG_TAG = HEREPositioningProvider.class.getName();
+    private static final String TAG = HEREPositioningProvider.class.getName();
 
     private LocationEngine locationEngine = null;
     private LocationListener updateListener;
@@ -50,13 +50,13 @@ public class HEREPositioningProvider {
     private final LocationStatusListener locationStatusListener = new LocationStatusListener() {
         @Override
         public void onStatusChanged(@NonNull LocationEngineStatus locationEngineStatus) {
-            Log.d(LOG_TAG, "Location engine status: " + locationEngineStatus.name());
+            Log.d(TAG, "Location engine status: " + locationEngineStatus.name());
         }
 
         @Override
         public void onFeaturesNotAvailable(@NonNull List<LocationFeature> features) {
             for (LocationFeature feature : features) {
-                Log.d(LOG_TAG, "Location feature not available: " + feature.name());
+                Log.d(TAG, "Location feature not available: " + feature.name());
             }
         }
     };
@@ -71,7 +71,7 @@ public class HEREPositioningProvider {
                 locationEngine = new LocationEngine();
             } catch (InstantiationErrorException e) {
                 //throw new RuntimeException("Initialization failed: " + e.getMessage());
-                Log.e(LOG_TAG, "Initialization failed: " + e.getMessage());
+                Log.e(TAG, "Initialization failed: " + e.getMessage());
             }
 
             // Ask user to optionally opt in to HERE's data collection / improvement program.
@@ -79,7 +79,7 @@ public class HEREPositioningProvider {
                 consentEngine.requestUserConsent();
             }
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -98,7 +98,7 @@ public class HEREPositioningProvider {
 
             locationEngine.start(accuracy);
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -114,7 +114,7 @@ public class HEREPositioningProvider {
             locationEngine.removeLocationStatusListener(locationStatusListener);
             locationEngine.stop();
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 }

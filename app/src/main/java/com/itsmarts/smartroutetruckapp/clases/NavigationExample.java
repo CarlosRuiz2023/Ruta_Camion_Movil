@@ -84,7 +84,7 @@ public class NavigationExample {
             navigationEventHandler.setupListeners(visualNavigator, dynamicRoutingEngine);
             updateCameraTracking(false);
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -92,7 +92,7 @@ public class NavigationExample {
         try{
             return navigationEventHandler;
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
             return null;
         }
     }
@@ -102,7 +102,7 @@ public class NavigationExample {
             inicioEscucha = true;
             herePositioningProvider.startLocating(visualNavigator, locationAccuracy);
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -112,7 +112,7 @@ public class NavigationExample {
             routePrefetcher.prefetchAroundLocationWithRadius(currentGeoCoordinates, radiusInMeters);
             routePrefetcher.prefetchAroundRouteOnIntervals(visualNavigator);
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -126,10 +126,11 @@ public class NavigationExample {
             try {
                 dynamicRoutingEngine = new DynamicRoutingEngine(dynamicRoutingOptions);
             } catch (InstantiationErrorException e) {
-                throw new RuntimeException("Initialization of DynamicRoutingEngine failed: " + e.error.name());
+                //throw new RuntimeException("Initialization of DynamicRoutingEngine failed: " + e.error.name());
+                Log.e(TAG,"Initialization of DynamicRoutingEngine failed: " + e.error.name());
             }
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -157,7 +158,7 @@ public class NavigationExample {
             startDynamicSearchForBetterRoutes(route);
             updateCameraTracking(isCameraTrackingEnabled);
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -187,7 +188,7 @@ public class NavigationExample {
                 Log.d(TAG,"Start of DynamicRoutingEngine failed. Is the RouteHandle missing?");
             }
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -203,7 +204,7 @@ public class NavigationExample {
 
             updateCameraTracking(isCameraTrackingEnabled);
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -215,7 +216,7 @@ public class NavigationExample {
                 stopCameraTracking();
             }
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -224,7 +225,7 @@ public class NavigationExample {
             herePositioningProvider.stopLocating();
             herePositioningSimulator.startLocating(visualNavigator, route);
         }catch (Exception e) {
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -233,7 +234,7 @@ public class NavigationExample {
             herePositioningSimulator.stopLocating();
             herePositioningProvider.startLocating(visualNavigator, locationAccuracy);
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -241,7 +242,7 @@ public class NavigationExample {
         try{
             visualNavigator.setCameraBehavior(new DynamicCameraBehavior());
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -249,7 +250,7 @@ public class NavigationExample {
         try{
             visualNavigator.setCameraBehavior(null);
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -257,7 +258,7 @@ public class NavigationExample {
         try{
             herePositioningProvider.stopLocating();
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -265,7 +266,7 @@ public class NavigationExample {
         try{
             visualNavigator.stopRendering();
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 
@@ -273,7 +274,7 @@ public class NavigationExample {
         try{
             return visualNavigator;
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
             return null;
         }
     }
@@ -297,7 +298,7 @@ public class NavigationExample {
             // Sets the adjusted colors for route progress and maneuver arrows based on the day color scheme.
             visualNavigator.setColors(visualNavigatorColors);
         }catch (Exception e){
-            Messages.showErrorDetail(mainActivity, e);
+            mainActivity.logger.logError(TAG,e);
         }
     }
 }

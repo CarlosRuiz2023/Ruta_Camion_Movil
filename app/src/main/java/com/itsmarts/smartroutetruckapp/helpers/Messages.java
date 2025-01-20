@@ -59,17 +59,9 @@ public class Messages {
     }
 
     //DIALOG DE EXCEPCIONES
-    public static void showErrorDetail(AppCompatActivity activity, Exception error)
+    public static void showErrorDetail(AppCompatActivity activity, String error)
     {
-        // Crear un StringWriter para almacenar la traza de la pila
-        StringWriter sw = new StringWriter();
-        // Crear un PrintWriter que escriba en el StringWriter
-        PrintWriter pw = new PrintWriter(sw);
-        // Imprimir la traza de la pila en el PrintWriter
-        error.printStackTrace(pw);
-        // Obtener la traza de la pila como una cadena
-        String stackTrace = sw.toString();
-        DialogFullFragmentErrorDetail detail = new DialogFullFragmentErrorDetail(stackTrace);
+        DialogFullFragmentErrorDetail detail = new DialogFullFragmentErrorDetail(error);
         //FragmentTransaction transaction = activity.getFragmentManager().beginTransaction();
         FragmentTransaction transaction = activity.getSupportFragmentManager().beginTransaction();
         detail.show(transaction, DialogFullFragmentErrorDetail.TAG);

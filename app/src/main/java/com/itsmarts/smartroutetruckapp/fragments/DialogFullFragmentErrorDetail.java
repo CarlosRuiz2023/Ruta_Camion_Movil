@@ -14,6 +14,7 @@ import androidx.fragment.app.DialogFragment;
 
 import com.google.android.material.button.MaterialButton;
 import com.itsmarts.smartroutetruckapp.R;
+import com.itsmarts.smartroutetruckapp.clases.Logger;
 
 public class DialogFullFragmentErrorDetail extends DialogFragment {
     public static final String TAG = "DialogFullFragmentErrorDetail";
@@ -51,14 +52,14 @@ public class DialogFullFragmentErrorDetail extends DialogFragment {
             //System.exit(0);
         });
 
-        /*BtnSend.setOnClickListener(v -> {
+        BtnSend.setOnClickListener(v -> {
             if (Logger.isNetworkAvailable()) {
                 Logger.checkInternetConnectionAndErrors();
                 dismiss();
             }else{
                 TxtMensajeEnvio.setText(R.string.error_internet);
             }
-        });*/
+        });
 
         return view;
     }
@@ -68,7 +69,7 @@ public class DialogFullFragmentErrorDetail extends DialogFragment {
         TxtError = view.findViewById(R.id.TxtError);
         ImgTelcel = view.findViewById(R.id.ImgTelcel);
         BtnSalir = view.findViewById(R.id.BtnSalir);
-        //BtnSend = view.findViewById(R.id.BtnSend);
+        BtnSend = view.findViewById(R.id.BtnSend);
         TxtMensajeEnvio = view.findViewById(R.id.TxtMensajeEnvio);
     }
 }

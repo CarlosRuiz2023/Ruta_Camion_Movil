@@ -97,6 +97,7 @@ import com.itsmarts.smartroutetruckapp.bd.DatabaseHelper;
 import com.itsmarts.smartroutetruckapp.clases.AnimatorNew;
 import com.itsmarts.smartroutetruckapp.clases.AvoidZonesExample;
 import com.itsmarts.smartroutetruckapp.clases.ControlPointsExample;
+import com.itsmarts.smartroutetruckapp.clases.Logger;
 import com.itsmarts.smartroutetruckapp.clases.NavigationEventHandler;
 import com.itsmarts.smartroutetruckapp.clases.NavigationExample;
 import com.itsmarts.smartroutetruckapp.clases.NetworkUtil;
@@ -183,12 +184,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     public Menu menu_options = null;
     public MenuItem offlineMapItem = null;
+    public Logger logger;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         try{
             super.onCreate(savedInstanceState);
             //EdgeToEdge.enable(this);
+            //ActivityTracker.trackActivity(MODULO,"Cancelo editar una PV","El usuario mando los siguientes parametros....");
             initializeFirstsClass();
             mMapHelper.initializeHERESDK(this);
             setContentView(R.layout.activity_main);
@@ -210,7 +213,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mMapHelper.handleAndroidPermissions();
             }
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -528,7 +531,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
             return false;
         }
     }
@@ -550,7 +553,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             offlineMap = new OfflineMap(this);
             return super.onCreateOptionsMenu(menu);
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
             return false;
         }
     }
@@ -601,19 +604,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // If the ID doesn't match any handled items, return false to allow system handling
             return super.onOptionsItemSelected(item);
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
             return false;
         }
     }
 
     private void initializeFirstsClass(){
         try{
+            logger = new Logger(MainActivity.this);
             mMapHelper = new mapHelper(this);
             messages = new Messages(this);
             geocercas = new Geocercas(this);
             likeAnimator = new AnimatorNew();
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
     private void initializeSecondClass(){
@@ -633,7 +637,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Log.e(TAG, "Fallo al inicializar el motor de búsqueda: " + e.error.name());
             }
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -668,7 +672,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             });
         }*/
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -738,7 +742,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             initializeListeners();
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
     private void initializeListeners(){
@@ -933,7 +937,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             });
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -945,7 +949,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             navigationExample.locationAccuracy = isExactRouteEnabled ? LocationAccuracy.NAVIGATION : LocationAccuracy.BEST_AVAILABLE;
             navigationExample.startLocationProvider();
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -957,7 +961,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 speedTextView.setText(String.format("%d", speedKmh));
             });
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -990,7 +994,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             });
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -1019,7 +1023,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 timeTextView.setText(timeString);
             });
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
     public void limpiezaTotal() {
@@ -1129,7 +1133,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -1140,7 +1144,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
             routingExample.mapPolylines.clear();
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -1189,7 +1193,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             llPois.setVisibility(View.GONE);
             routeTextView.setVisibility(View.GONE);
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -1197,7 +1201,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         try{
             mapView.getGestures().setTapListener(touchPoint -> pickCartoPois(touchPoint));
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -1330,7 +1334,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             });
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
     private void searchNearestPoi(String poiType, int radius) {
@@ -1382,7 +1386,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
             }
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
     private void showPoiOnMap(GeoCoordinates poiCoordinates,Place place) {
@@ -1416,7 +1420,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // Usar el punto medio para anclar la vista
             mapView.pinView(linearLayout, poiCoordinates);
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -1427,7 +1431,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mapView.onPause();
             mMapHelper.handleAndroidPermissions();
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -1447,7 +1451,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mMapHelper.handleAndroidPermissions();
             }
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -1473,7 +1477,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             editor.remove("id_rol");  // Remove password key (if stored directly)
             editor.apply(); // Apply changes to SharedPreferences*/
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -1949,7 +1953,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
             }
         } catch (Exception e) {
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 
@@ -2018,10 +2022,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onBackPressed() {
         try{
             //super.onBackPressed();
+            int nulo = 12/0;
             // Muestra un mensaje o realiza otra acción si no se permite regresar
             Toast.makeText(this, "Para regresar a la pantalla de inicio debes cerrar sesion", Toast.LENGTH_SHORT).show();
         }catch (Exception e){
-            Messages.showErrorDetail(MainActivity.this, e);
+            logger.logError(TAG,e);
         }
     }
 }

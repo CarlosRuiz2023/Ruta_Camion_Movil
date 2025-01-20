@@ -5,6 +5,9 @@ import com.itsmarts.smartroutetruckapp.modelos.LoginRequest;
 import com.itsmarts.smartroutetruckapp.modelos.PointWithId;
 import com.itsmarts.smartroutetruckapp.modelos.RecuperarContraseniaRequest;
 
+import org.json.JSONObject;
+
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -47,5 +50,8 @@ public interface ApiService {
 
     @POST("api/analisis-de-uso-ruta/agregar")
     Call<ResponseBody> mandarHistorial(@Body HistorialRequest historialRequest);
+
+    @POST("api/logs/registrarLog")
+    Call<Void> enviarError(@Body JSONObject requestBody);
 }
 
