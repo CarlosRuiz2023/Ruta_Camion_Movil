@@ -117,19 +117,6 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                     ImageButton btnObtenerRuta = dialogView.findViewById(R.id.btnObtenerRuta);
                     Button btnCancelar = dialogView.findViewById(R.id.btnCancelar);
 
-                    /*btnSimularRuta.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            btnSimularRuta.startAnimation(mainActivity.animacionClick);
-                            mainActivity.handler.postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    alertDialogRuta.dismiss();
-                                }
-                            }, 400);
-                        }
-                    });*/
-
                     btnObtenerRuta.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -148,6 +135,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                 @Override
                                 public void run() {
                                     mainActivity.ruta=rutas.get(getAdapterPosition());
+                                    mainActivity.logger.trackActivity(TAG,"Ruta seleccionada","El usuario selecciono la ruta: "+mainActivity.ruta.name);
                                     /*GeoCoordinatesUpdate geoCoordinatesUpdate = new GeoCoordinatesUpdate(mainActivity.currentGeoCoordinates);
                                     MapMeasure mapMeasureZoom = new MapMeasure(MapMeasure.Kind.DISTANCE, 1000.0);
                                     double bowFactor = 1;
@@ -227,6 +215,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
 
                                                 try {
                                                     mainActivity.navigationExample.startNavigation(route, false, false);
+                                                    mainActivity.logger.trackActivity(TAG,"Se inicio ruta","El usuario decidio iniciar la ruta: "+mainActivity.ruta.name);
                                                     mainActivity.routeSuccessfullyProcessed = true;
                                                 } catch (Exception e) {
                                                     mainActivity.routeSuccessfullyProcessed = false;
@@ -245,6 +234,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                                         @Override
                                                         public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
                                                             Toast.makeText(mainActivity.getApplicationContext(), "Uso de la ruta #"+mainActivity.ruta.id+" registrado", Toast.LENGTH_SHORT).show();
+                                                            mainActivity.logger.trackActivity(TAG,"Uso de ruta registrado","El uso de la ruta: "+mainActivity.ruta.name+" fue registrado con exito");
                                                         }
 
                                                         @Override
@@ -355,6 +345,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                                 mainActivity.timeTextView.setVisibility(VISIBLE);
                                                 try {
                                                     mainActivity.navigationExample.startNavigation(route, true, false);
+                                                    mainActivity.logger.trackActivity(TAG,"Se inicio ruta","El usuario decidio simular la ruta: "+mainActivity.ruta.name);
                                                     mainActivity.routeSuccessfullyProcessed = true;
                                                 } catch (Exception e) {
                                                     mainActivity.routeSuccessfullyProcessed = false;
@@ -388,6 +379,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                 @Override
                 public void onClick(View v) {
                     showRouteInfoDialog(getAdapterPosition());
+                    mainActivity.logger.trackActivity(TAG,"Obtuvo info ruta","El usuario consulto la informacion de la ruta: "+mainActivity.ruta.name);
                 }
             });
             alertDialogRutaMaster.show();

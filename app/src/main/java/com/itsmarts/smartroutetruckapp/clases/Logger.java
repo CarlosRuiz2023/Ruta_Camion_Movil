@@ -1,5 +1,6 @@
 package com.itsmarts.smartroutetruckapp.clases;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.location.Address;
@@ -14,8 +15,13 @@ import android.view.View;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentActivity;
 
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
+import com.google.android.gms.location.LocationResult;
+import com.google.android.gms.location.LocationServices;
 import com.itsmarts.smartroutetruckapp.MainActivity;
 import com.itsmarts.smartroutetruckapp.api.ApiService;
 import com.itsmarts.smartroutetruckapp.api.RetrofitClient;
@@ -36,6 +42,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+import okhttp3.MediaType;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -43,16 +51,16 @@ import retrofit2.Response;
 
 
 public class Logger {
-    private static MainActivity mainActivity;
+    private static Context context;
     public static final String TAG = "Logger";
 
-    public Logger(MainActivity mainActivity) {
-        this.mainActivity = mainActivity;
+    public Logger(Context context) {
+        this.context = context;
     }
 
-    public void logError(String module, Exception error) {
+    public void logError(String module, Exception error, AppCompatActivity activity) {
         try {
-            SharedPreferences sharedPreferences = mainActivity.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            SharedPreferences sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
             int id_usuario = sharedPreferences.getInt("id_usuario", 0);
             // Crear un StringWriter para almacenar la traza de la pila
             StringWriter sw = new StringWriter();
@@ -66,51 +74,82 @@ public class Logger {
             errorData.put("usuario", id_usuario);
             errorData.put("fecha_hora", getCurrentTimeStamp());
             errorData.put("modulo", module);
-            double latitude = mainActivity.currentGeoCoordinates.latitude;
-            double longitude = mainActivity.currentGeoCoordinates.longitude;
-            try {
-                errorData.put("latitud", latitude);
-                errorData.put("longitud", longitude);
-                // Obtener el nombre del dispositivo
-                String dispositivo = Build.MODEL;
-                // Colocar el nombre del dispositivo en el JSONObject
-                errorData.put("dispositivo", dispositivo);
-                // Obtener la versión de Android
-                errorData.put("version_android", Build.VERSION.RELEASE);
-                // Obtener la versión de la aplicación
-                String versionName = mainActivity.getApplicationContext().getPackageManager().getPackageInfo(mainActivity.getApplicationContext().getPackageName(), 0).versionName;
-                errorData.put("version_aplicacion", versionName);
-            }catch (Exception e){}
-            // Obtener la ubicación (estado y ciudad) de donde se está emitiendo el error
-            Geocoder geocoder = new Geocoder(mainActivity.getApplicationContext(), Locale.getDefault());
-            List<Address> addresses=null;
-            try{
-                addresses = geocoder.getFromLocation(latitude, longitude, 1);
-            }catch (Exception e){}
-            if (addresses != null && addresses.size() > 0) {
-                String state = addresses.get(0).getAdminArea(); // Estado
-                String city = addresses.get(0).getLocality(); // Ciudad
-                try{
-                    errorData.put("estado", state);
-                    errorData.put("municipio", city);
-                    errorData.put("error", stackTrace);
-                }catch (Exception e){}
-            }
-            // Escribir en el archivo después de obtener todas las coordenadas y detalles
-            writeToFile("error_log.json", errorData.toString());
-            try {
-                Messages.showErrorDetail(mainActivity, stackTrace);
-            } catch (Exception e) {
-                // Forzar la finalización de la aplicación
-                System.exit(0);
-            }
+            // Solicitar ubicación en tiempo real
+            LocationRequest locationRequest = new LocationRequest();
+            locationRequest.setInterval(3000);
+            locationRequest.setFastestInterval(3000);
+            locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+            LocationServices.getFusedLocationProviderClient(context).requestLocationUpdates(locationRequest, new LocationCallback() {
+                @Override
+                public void onLocationResult(LocationResult locationResult) {
+                    super.onLocationResult(locationResult);
+                    // Procesar el resultado de ubicación
+                    LocationServices.getFusedLocationProviderClient(context).removeLocationUpdates(this);
+                    if (locationResult != null && locationResult.getLocations().size() > 0) {
+                        int latestLocationIndex = locationResult.getLocations().size() - 1;
+                        double latitude = locationResult.getLocations().get(latestLocationIndex).getLatitude();
+                        double longitude = locationResult.getLocations().get(latestLocationIndex).getLongitude();
+                        try {
+                            errorData.put("latitud", latitude);
+                            errorData.put("longitud", longitude);
+                            // Obtener el nombre del dispositivo
+                            String dispositivo = Build.MODEL;
+                            // Colocar el nombre del dispositivo en el JSONObject
+                            errorData.put("dispositivo", dispositivo);
+                            // Obtener la versión de Android
+                            errorData.put("version_android", Build.VERSION.RELEASE);
+                            // Obtener la versión de la aplicación
+                            String versionName = context.getPackageManager().getPackageInfo(context.getPackageName(), 0).versionName;
+                            errorData.put("version_aplicacion", versionName);
+                        }catch (Exception e){}
+                        // Obtener la ubicación (estado y ciudad) de donde se está emitiendo el error
+                        Geocoder geocoder = new Geocoder(context, Locale.getDefault());
+                        List<Address> addresses=null;
+                        try{
+                            addresses = geocoder.getFromLocation(latitude, longitude, 1);
+                        }catch (Exception e){}
+                        if (addresses != null && addresses.size() > 0) {
+                            String state = addresses.get(0).getAdminArea(); // Estado
+                            String city = addresses.get(0).getLocality(); // Ciudad
+                            try{
+                                errorData.put("estado", state);
+                                errorData.put("municipio", city);
+                                errorData.put("error", stackTrace);
+                            }catch (Exception e){}
+                        }
+                        // Escribir en el archivo después de obtener todas las coordenadas y detalles
+                        writeToFile("error_log.json", errorData.toString());
+                        // Forzar la finalización de la aplicación
+                        try {
+                            Messages.showErrorDetail(activity, stackTrace);
+                        } catch (Exception e) {
+                            // Forzar la finalización de la aplicación
+                            System.exit(0);
+                        }
+                    }
+                }
+            }, Looper.getMainLooper()); // Utiliza el Looper principal para asegurar que la llamada al método se realice en el hilo principal
         } catch (Exception e) {
             writeToFile("critical_log.txt", "Critical Error: " + e.toString());
         }
     }
 
+    public void trackActivity(String module,String action, String details) {
+        try {
+            JSONObject activityData = new JSONObject();
+            activityData.put("modulo", module);
+            activityData.put("accion", action);
+            activityData.put("detalles", details);
+            activityData.put("fecha_hora", Logger.getCurrentTimeStamp());
+
+            writeToFile("activity_log.json", activityData.toString());
+        } catch (Exception e) {
+            Log.e("ActivityTracker", "Error al registrar la actividad: " + e.getMessage());
+        }
+    }
+
     public static void writeToFile(String filename, String data) {
-        try (FileOutputStream fos = mainActivity.getApplicationContext().openFileOutput(filename, Context.MODE_APPEND)) {
+        try (FileOutputStream fos = context.openFileOutput(filename, Context.MODE_APPEND)) {
             fos.write((data + "\n").getBytes());
         } catch (Exception e) {
             e.printStackTrace();
@@ -123,14 +162,14 @@ public class Logger {
 
     public static List<String> readLogFile(String filename) {
         List<String> logEntries = new ArrayList<>();
-        try (FileInputStream fis = mainActivity.getApplicationContext().openFileInput(filename);
+        try (FileInputStream fis = context.openFileInput(filename);
              BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 logEntries.add(line);
             }
         } catch (Exception e) {
-            mainActivity.logger.logError(TAG,e);
+            Log.e("Logger", "Error al leer el archivo: " + e.getMessage());
         }
         return logEntries;
     }
@@ -146,10 +185,12 @@ public class Logger {
                         try {
                             JSONObject jsonObject = new JSONObject();
                             jsonObject.put("error", errorLogArray);
-                            jsonObject.put("events", eventLogArray);
+                            jsonObject.put("eventos", eventLogArray);
                             //ErrorReporter.sendError(jsonObject);
                             ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
-                            Call<Void> call = apiService.enviarError(jsonObject);
+                            // Convertir JSONObject a String y crear un RequestBody
+                            RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject.toString());
+                            Call<Void> call = apiService.enviarError(requestBody);
 
                             call.enqueue(new Callback<Void>() {
                                 @Override
@@ -165,7 +206,7 @@ public class Logger {
                                 }
                             });
                         } catch (Exception e) {
-                            mainActivity.logger.logError(TAG,e);
+                            Log.e("ErrorReporter", "Error al enviar el reporte: " + e.getMessage());
                         }
                         // Una vez enviados los errores, podemos limpiar el archivo
                         clearLogFile("error_log.json");
@@ -185,7 +226,7 @@ public class Logger {
     // Método para leer el archivo JSON que contiene múltiples objetos y almacenarlos en un JSONArray
     private static JSONArray readJsonFileToArray(String filename) {
         JSONArray jsonArray = new JSONArray();
-        try (FileInputStream fis = mainActivity.getApplicationContext().openFileInput(filename);
+        try (FileInputStream fis = context.openFileInput(filename);
              BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {
             String line;
             while ((line = reader.readLine()) != null) {
@@ -199,13 +240,13 @@ public class Logger {
                 }
             }
         } catch (Exception e) {
-            mainActivity.logger.logError(TAG,e);
+            Log.e("Logger", "Error al leer el archivo: " + e.getMessage());
         }
         return jsonArray;
     }
 
     private static JSONObject readJsonFileToObject(String filename) {
-        try (FileInputStream fis = mainActivity.getApplicationContext().openFileInput(filename);
+        try (FileInputStream fis = context.openFileInput(filename);
              BufferedReader reader = new BufferedReader(new InputStreamReader(fis))) {
             StringBuilder content = new StringBuilder();
             String line;
@@ -218,13 +259,13 @@ public class Logger {
             }
             return result;
         } catch (Exception e) {
-            mainActivity.logger.logError(TAG,e);
+            Log.e("Logger", "Error al leer el archivo: " + e.getMessage());
             return new JSONObject();  // Retorna un objeto vacío en caso de error
         }
     }
 
     public static boolean isNetworkAvailable() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) mainActivity.getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (connectivityManager != null) {
             NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
             // return networkInfo != null && networkInfo.isAvailable() && networkInfo.isConnected();
@@ -246,7 +287,7 @@ public class Logger {
     }
 
     private static void clearLogFile(String filename) {
-        try (FileOutputStream fos = mainActivity.getApplicationContext().openFileOutput(filename, Context.MODE_PRIVATE)) {
+        try (FileOutputStream fos = context.openFileOutput(filename, Context.MODE_PRIVATE)) {
             // Escribimos una cadena vacía para limpiar el archivo
             fos.write("".getBytes());
         } catch (Exception e) {

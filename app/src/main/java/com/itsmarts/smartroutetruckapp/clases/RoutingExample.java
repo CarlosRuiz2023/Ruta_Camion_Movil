@@ -122,7 +122,7 @@ public class RoutingExample {
             }
             routingInterface = onlineRoutingEngine;
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
 
@@ -134,7 +134,7 @@ public class RoutingExample {
                 routingInterface = offlineRoutingEngine;
             }
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
     public void setTruckSpecifications(double toneladas, double alto, double ancho, double largo) {
@@ -144,7 +144,7 @@ public class RoutingExample {
             this.anchoIngresado = ancho;
             this.largoIngresado = largo;
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
     public void addRoute(List < MapPolygon > poligonos, List < GeoCoordinates > puntos, GeoCoordinates startCoordinates, GeoCoordinates destinationCoordinates, GeoCoordinates geoCoordinatesPOI, GeoCoordinates geoCoordinatesInicioRuta, int id_vehiculo, boolean orden_automatico, RouteCallback callback) {
@@ -314,7 +314,7 @@ public class RoutingExample {
                 }
             });
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
     private void processCalculatedRoute(Route route) {
@@ -324,7 +324,7 @@ public class RoutingExample {
             logRouteViolations(route);
             logTollDetails(route);
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
     private void processCalculatedRouteTour(Route route) {
@@ -333,7 +333,7 @@ public class RoutingExample {
             logRouteViolations(route);
             logTollDetails(route);
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
     private void logRouteViolations(Route route) {
@@ -344,7 +344,7 @@ public class RoutingExample {
                 }
             }
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
     private void logRouteSectionDetails(Route route) {
@@ -359,7 +359,7 @@ public class RoutingExample {
                 Log.d(TAG, "Route Section duration : " + section.getDuration().getSeconds() + " s");
             }
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
     private void logTollDetails(Route route) {
@@ -384,7 +384,7 @@ public class RoutingExample {
                 }
             }
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
     private void showRouteOnMap(Route route) {
@@ -400,7 +400,7 @@ public class RoutingExample {
                 logManeuverInstructions(section);
             }
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
     private void logManeuverInstructions(Section section) {
@@ -414,14 +414,14 @@ public class RoutingExample {
                 Log.d(TAG, maneuverInfo);
             }
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
     public void clearMap() {
         try{
             clearWaypointMapMarker();
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
     private void clearWaypointMapMarker() {
@@ -431,7 +431,7 @@ public class RoutingExample {
             }
             mapMarkerList.clear();
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
     private void showTrafficOnRoute(Route route) {
@@ -461,7 +461,7 @@ public class RoutingExample {
                 }
             }
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
     @Nullable
@@ -475,7 +475,7 @@ public class RoutingExample {
                 return Color.valueOf(1, 0, 0, 0.63f);
             }
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
         return Color.valueOf(0, 0, 0, 0.63f);
     }
@@ -487,7 +487,7 @@ public class RoutingExample {
             mainActivity.mapView.getMapScene().addMapMarker(mapMarker);
             mapMarkerList.add(mapMarker);
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
 
@@ -495,7 +495,7 @@ public class RoutingExample {
         try{
             new AlertDialog.Builder(mainActivity).setTitle(title).setMessage(message).setPositiveButton("OK", null).show();
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
 
@@ -527,7 +527,7 @@ public class RoutingExample {
 
             return zoomFactor - Math.log10(maxDimension);
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
             return 0.0;
         }
     }

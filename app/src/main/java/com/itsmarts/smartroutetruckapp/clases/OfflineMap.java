@@ -204,12 +204,13 @@ public class OfflineMap {
                         mainActivity.txtProcesoDescarga.setText(mainActivity.getString(R.string.descarga_completada));
                         isMexicoMapDownload = true;
                         mainActivity.mapOfflineMexDownload = true;
+                        mainActivity.logger.trackActivity(TAG,"Mapa offline descargado","El usuario descargo el mapa offline");
                         try{
                             mainActivity.offlineMapItem.setChecked(true);
                             onSwitchOfflineButtonClicked();
                             mainActivity.routingExample.routingInterface = mainActivity.routingExample.offlineRoutingEngine;
                         }catch (Exception e){
-                            Log.e("Prueba", e.toString());
+                            Log.e(TAG,"Error al activar mapa offline: "+e.getMessage());
                         }
                     }
 
@@ -251,6 +252,7 @@ public class OfflineMap {
         String message = mainActivity.getString(R.string.proceso_cancelado) + mapDownloaderTasks.size() + mainActivity.getString(R.string.tareas_canceladas);
         mainActivity.txtProcesoDescarga.setText(message);
         mapDownloaderTasks.clear();
+        mainActivity.logger.trackActivity(TAG,"Mapa offline cancelado","El usuario cancelo la descarga del mapa offline");
     }
 
     public boolean onCancelMapDownloadFromDismiss() {
@@ -383,6 +385,7 @@ public class OfflineMap {
                 String message = "Se han instalado correctamente una o más actualizaciones del mapa de México.";
                 mainActivity.txtProcesoActualizacion.setText(message);
                 logCurrentMapVersion();
+                mainActivity.logger.trackActivity(TAG,"Mapa offline actualizado","El usuario actualizo el mapa offline");
             }
         });
     }

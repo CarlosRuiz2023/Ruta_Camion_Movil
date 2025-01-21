@@ -38,7 +38,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.cardview.widget.CardView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
@@ -49,7 +48,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.here.sdk.core.Anchor2D;
@@ -100,7 +98,6 @@ import com.itsmarts.smartroutetruckapp.clases.ControlPointsExample;
 import com.itsmarts.smartroutetruckapp.clases.Logger;
 import com.itsmarts.smartroutetruckapp.clases.NavigationEventHandler;
 import com.itsmarts.smartroutetruckapp.clases.NavigationExample;
-import com.itsmarts.smartroutetruckapp.clases.NetworkUtil;
 import com.itsmarts.smartroutetruckapp.clases.OfflineMap;
 import com.itsmarts.smartroutetruckapp.clases.RoutingExample;
 import com.itsmarts.smartroutetruckapp.clases.TruckConfig;
@@ -190,8 +187,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onCreate(Bundle savedInstanceState) {
         try{
             super.onCreate(savedInstanceState);
-            //EdgeToEdge.enable(this);
-            //ActivityTracker.trackActivity(MODULO,"Cancelo editar una PV","El usuario mando los siguientes parametros....");
             initializeFirstsClass();
             mMapHelper.initializeHERESDK(this);
             setContentView(R.layout.activity_main);
@@ -205,6 +200,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 if(mMapHelper.isGPSEnabled(MainActivity.this)){
                     navigationExample.startLocationProvider();
+                    logger.trackActivity(TAG,"Cargo el mapa","El usuario entro a la interfaz principal");
                 }else{
                     mMapHelper.showGPSDisabledDialog(MainActivity.this);
                 }
@@ -213,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mMapHelper.handleAndroidPermissions();
             }
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -289,6 +285,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                                                 return;
                                                             }
 
+                                                            logger.trackActivity(TAG,"Obtuvo rutas asignadas","El usuario obtubo las rutas asignadas");
+
                                                             adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
 
                                                             if (adapterAsignedRoutes.getItemCount() == 0) {
@@ -316,6 +314,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     }
                                 }
                             }
+                            logger.trackActivity(TAG,"Obtuvo rutas asignadas","El usuario obtubo las rutas asignadas sin conexion a internet");
                             adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
                             if (adapterAsignedRoutes.getItemCount() == 0) {
                                 scrollView.setVisibility(View.GONE);
@@ -365,6 +364,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             String radiusStr = editTextRadius.getText().toString().trim();
                             if (!radiusStr.isEmpty() && Integer.parseInt(radiusStr)!=0 && Integer.parseInt(radiusStr)>=1000) {
                                 int radius = Integer.parseInt(radiusStr);
+                                logger.trackActivity(TAG,"Busco: "+selectedPoiType,"El usuario busco un POI");
                                 // Llamar a la función para buscar el POI más cercano
                                 searchNearestPoi(selectedPoiType, radius);
                                 llPois.setVisibility(VISIBLE);
@@ -441,7 +441,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 btnDescargar.setText(getString(R.string.descargar));
                                 btnConsultar.setEnabled(true);
                                 offlineMap.onCancelMapDownloadClicked();
-
                             }
                         }
                     });
@@ -453,11 +452,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             if (response) {
                                 Toast.makeText(MainActivity.this, "La descarga del mapa fue cancelada", Toast.LENGTH_SHORT).show();
                             }
-
                         }
-
                     });
-
                     alertDialogOffline.show();
                     break;
                 case "Vehiculo":
@@ -519,8 +515,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             }
                         });
                     }else{
-                        DialogFragment errorDialog = new ErrorDialogFragment();
-                        errorDialog.show(getSupportFragmentManager(), "errorDialog");
+                        // - Redirect to login activity
+                        Intent intent = new Intent(MainActivity.this, InicioSesionActivity.class); // Assuming your login activity is LoginActivity
+                        startActivity(intent);
+                        // Obtén el objeto "result"
+                        Toast.makeText(getApplicationContext(), "No se pudo desloguear el usuario debido a la conexion a internet", Toast.LENGTH_SHORT).show();
                     }
                     break;
                 default:
@@ -531,7 +530,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
             return false;
         }
     }
@@ -553,7 +552,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             offlineMap = new OfflineMap(this);
             return super.onCreateOptionsMenu(menu);
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
             return false;
         }
     }
@@ -572,8 +571,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     isExactRouteEnabled = !item.isChecked();
                     if(!isExactRouteEnabled){
                         item.setChecked(false);
+                        logger.trackActivity(TAG,"Click en GPS preciso","Desactivado");
                     }else{
                         item.setChecked(true);
+                        logger.trackActivity(TAG,"Click en GPS preciso","Activado");
                     }
                     restartLocationUpdates();
                     break;
@@ -583,10 +584,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             item.setChecked(false);
                             offlineMap.onSwitchOnlineButtonClicked();
                             routingExample.routingInterface = routingExample.onlineRoutingEngine;
+                            logger.trackActivity(TAG,"Click en Mapa offline","Desactivado");
                         }else{
                             item.setChecked(true);
                             offlineMap.onSwitchOfflineButtonClicked();
                             routingExample.routingInterface = routingExample.offlineRoutingEngine;
+                            logger.trackActivity(TAG,"Click en Mapa offline","Activado");
                         }
                         // Code to handle refresh selection
                         Toast.makeText(this, name+" selected", Toast.LENGTH_SHORT).show();
@@ -604,20 +607,20 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // If the ID doesn't match any handled items, return false to allow system handling
             return super.onOptionsItemSelected(item);
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
             return false;
         }
     }
 
     private void initializeFirstsClass(){
         try{
-            logger = new Logger(MainActivity.this);
+            logger = new Logger(getApplicationContext());
             mMapHelper = new mapHelper(this);
             messages = new Messages(this);
             geocercas = new Geocercas(this);
             likeAnimator = new AnimatorNew();
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
     private void initializeSecondClass(){
@@ -637,7 +640,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 Log.e(TAG, "Fallo al inicializar el motor de búsqueda: " + e.error.name());
             }
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -672,7 +675,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             });
         }*/
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -742,7 +745,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             initializeListeners();
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
     private void initializeListeners(){
@@ -758,9 +761,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             if (isTrackingCamera) {
                                 trackCamara.setImageResource(R.drawable.track_on);
                                 navigationExample.stopCameraTracking();
+                                logger.trackActivity(TAG,"Click en track camara","Desactivado");
                             } else {
                                 trackCamara.setImageResource(R.drawable.track_off);
                                 navigationExample.startCameraTracking();
+                                logger.trackActivity(TAG,"Click en track camara","Activado");
                             }
                             isTrackingCamera = !isTrackingCamera;
                         }
@@ -774,10 +779,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         mapView.getMapScene().removeMapPolygon(geocercas.geocercas);
                         activarGeocercas = false;
                         btnGeocercas.setImageResource(R.drawable.ic_add_road);
+                        logger.trackActivity(TAG,"Click en fb Geocercas","Desactivado");
                     }else{
                         mapView.getMapScene().addMapPolygon(geocercas.geocercas);
                         activarGeocercas = true;
                         btnGeocercas.setImageResource(R.drawable.ic_remove_road);
+                        logger.trackActivity(TAG,"Click en fb Geocercas","Activado");
                     }
                 }
             });
@@ -806,6 +813,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     new Handler().postDelayed(new Runnable() {
                                         @Override
                                         public void run() {
+                                            logger.trackActivity(TAG,"Ruta terminada","El usuario termino la ruta: "+ruta.name);
                                             limpiezaTotal();
                                             dialog.dismiss();
                                         }
@@ -839,6 +847,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     clearMapMarkersPOIsAndCircle(true);
                     messages.showCustomToast("Se eliminaron los poi");
                     llPois.setVisibility(View.GONE);
+                    logger.trackActivity(TAG,"Click en fb Pois","El usuario elimino la busqueda de POIs");
                 }
             });
             fbMapas.setOnClickListener(new View.OnClickListener() {
@@ -927,6 +936,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             }
                         });
                     }
+                    logger.trackActivity(TAG,"Click en fb Mapas","El usuario cambio el estilo del mapa a: "+styleCounter);
                 }
             });
             recalculateRouteButton.setOnClickListener(new View.OnClickListener() {
@@ -937,7 +947,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             });
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -949,7 +959,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             navigationExample.locationAccuracy = isExactRouteEnabled ? LocationAccuracy.NAVIGATION : LocationAccuracy.BEST_AVAILABLE;
             navigationExample.startLocationProvider();
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -961,7 +971,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 speedTextView.setText(String.format("%d", speedKmh));
             });
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -994,7 +1004,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             });
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -1023,7 +1033,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 timeTextView.setText(timeString);
             });
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
     public void limpiezaTotal() {
@@ -1133,7 +1143,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             }
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -1144,7 +1154,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
             routingExample.mapPolylines.clear();
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -1193,7 +1203,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             llPois.setVisibility(View.GONE);
             routeTextView.setVisibility(View.GONE);
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -1201,7 +1211,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         try{
             mapView.getGestures().setTapListener(touchPoint -> pickCartoPois(touchPoint));
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -1240,6 +1250,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         }
                                     }
                                     messages.showDialog("Información de lugar", address, categoriesBuilder.toString(), "Lugar de interés", null);
+                                    logger.trackActivity(TAG,"Click en POI","El usuario selecciono el POI: "+pickedPlace.name+" sin conexion a internet");
                                 } else {
                                     Log.e(TAG, "searchPickedPlace() resulted in an error: " + searchError.name());
                                 }
@@ -1262,6 +1273,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         }
                                     }
                                     messages.showDialog("Información de lugar", address, categoriesBuilder.toString(), "Lugar de interés", null);
+                                    logger.trackActivity(TAG,"Click en POI","El usuario selecciono el POI: "+pickedPlace.name);
                                 } else {
                                     Log.e(TAG, "searchPickedPlace() resulted in an error: " + searchError.name());
                                 }
@@ -1271,6 +1283,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 } else if (!trafficPOIList.isEmpty()) {
                     PickMapContentResult.TrafficIncidentResult topmostContent = trafficPOIList.get(0);
                     messages.showDialog("Incidente de tráfico", "" + topmostContent.getType().name(), "", "Incidente de tráfico",null);
+                    logger.trackActivity(TAG,"Click en incidente de trafico","El usuario selecciono el incidente de trafico: "+topmostContent.getType().name());
                 } else if (!vehicleRestrictionResultList.isEmpty()) {
                     PickMapContentResult.VehicleRestrictionResult topmostContent = vehicleRestrictionResultList.get(0);
                     String restrictionType = topmostContent.restrictionType != null ? topmostContent.restrictionType : "No especificado";
@@ -1279,6 +1292,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             "",
                             "",
                             null);
+                    logger.trackActivity(TAG,"Click en una restriccion vehicular","El usuario selecciono la restriccion vehicular: "+restrictionType);
                 }
                 else {
                     // Establece el radio en metros
@@ -1334,7 +1348,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 }
             });
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
     private void searchNearestPoi(String poiType, int radius) {
@@ -1386,7 +1400,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
             }
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
     private void showPoiOnMap(GeoCoordinates poiCoordinates,Place place) {
@@ -1420,7 +1434,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // Usar el punto medio para anclar la vista
             mapView.pinView(linearLayout, poiCoordinates);
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -1431,7 +1445,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             mapView.onPause();
             mMapHelper.handleAndroidPermissions();
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -1451,7 +1465,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 mMapHelper.handleAndroidPermissions();
             }
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -1477,7 +1491,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             editor.remove("id_rol");  // Remove password key (if stored directly)
             editor.apply(); // Apply changes to SharedPreferences*/
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -1850,6 +1864,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     public void recalculateRoute() {
         try {
+            logger.trackActivity(TAG,"Se recalculo la ruta","El sistema recalculo la ruta");
             recalculateRouteButton.setVisibility(View.GONE);
             if (currentGeoCoordinates != null && destinationGeoCoordinates != null) {
                 List<GeoCoordinates> puntos_de_control = new ArrayList<>();
@@ -1953,7 +1968,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 });
             }
         } catch (Exception e) {
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 
@@ -2026,7 +2041,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // Muestra un mensaje o realiza otra acción si no se permite regresar
             Toast.makeText(this, "Para regresar a la pantalla de inicio debes cerrar sesion", Toast.LENGTH_SHORT).show();
         }catch (Exception e){
-            logger.logError(TAG,e);
+            logger.logError(TAG,e,MainActivity.this);
         }
     }
 }

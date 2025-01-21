@@ -79,7 +79,7 @@ public class HEREPositioningProvider {
                 consentEngine.requestUserConsent();
             }
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
 
@@ -98,7 +98,7 @@ public class HEREPositioningProvider {
 
             locationEngine.start(accuracy);
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
 
@@ -114,7 +114,7 @@ public class HEREPositioningProvider {
             locationEngine.removeLocationStatusListener(locationStatusListener);
             locationEngine.stop();
         }catch (Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
 }

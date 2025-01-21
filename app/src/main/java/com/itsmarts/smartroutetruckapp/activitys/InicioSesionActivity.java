@@ -36,6 +36,7 @@ import com.itsmarts.smartroutetruckapp.R;
 import com.itsmarts.smartroutetruckapp.api.ApiService;
 import com.itsmarts.smartroutetruckapp.api.RetrofitClient;
 import com.itsmarts.smartroutetruckapp.clases.CredentialsManager;
+import com.itsmarts.smartroutetruckapp.clases.Logger;
 import com.itsmarts.smartroutetruckapp.fragments.ErrorDialogFragment;
 import com.itsmarts.smartroutetruckapp.helpers.Internet;
 import com.itsmarts.smartroutetruckapp.helpers.Messages;
@@ -64,9 +65,13 @@ public class InicioSesionActivity extends AppCompatActivity {
     private static final String TAG = "InicioSesionActivity";
     private LinearLayout llLoadingSesion;
     private TextView forgotPasswordText, closeSesionText;
+    private Logger logger;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        logger = new Logger(getApplicationContext());
+        // CHECAMOS LA CONEXION A INTERNET
+        logger.checkInternetConnectionAndErrors();
         setContentView(R.layout.activity_inicio_sesion);
         etUsername = findViewById(R.id.etUsername);
         etPassword = findViewById(R.id.etPassword);
@@ -115,6 +120,7 @@ public class InicioSesionActivity extends AppCompatActivity {
                                                 if (success) {
                                                     dialogRecuperarContrasenia.dismiss();
                                                     Toast.makeText(getApplicationContext(), "Correo enviado con exito", Toast.LENGTH_SHORT).show();
+                                                    logger.trackActivity(TAG,"Recuperar contraseña","El usuario solicito el cambio de contraseña para el correo: "+email);
                                                 }
                                                 Log.d("Retrofit", "Solicitud exitosa.");
                                             } catch (Exception e) {
@@ -265,11 +271,13 @@ public class InicioSesionActivity extends AppCompatActivity {
                                                 startActivity(intent);
                                                 // Obtén el objeto "result"
                                                 Toast.makeText(getApplicationContext(), "Usuario logueado con exito", Toast.LENGTH_SHORT).show();
+                                                logger.trackActivity(TAG,"Inicio sesion","El usuario inicio sesion bajo el correo: "+username+" y la contraseña: "+password);
                                                 //finish();
                                             } else {
                                                 // Handle login failure (e.g., display error message)
                                                 llLoadingSesion.setVisibility(View.GONE);
                                                 Toast.makeText(getApplicationContext(), "Solo puede acceder un operador a la Aplicacion", Toast.LENGTH_SHORT).show();
+                                                logger.trackActivity(TAG,"Inicio sesion invalido","El usuario inicio sesion bajo el correo: "+username+" y la contraseña: "+password+" dicho usuario no es operador");
                                                 // Use Retrofit to make the POST request
                                                 ApiService apiService = RetrofitClient.getInstance(token).create(ApiService.class);
                                                 Call<ResponseBody> call1 = apiService.desloguearse();
@@ -321,6 +329,7 @@ public class InicioSesionActivity extends AppCompatActivity {
                                                         @Override
                                                         public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
                                                             Toast.makeText(getApplicationContext(), "Sesion Cerrada con exito", Toast.LENGTH_SHORT).show();
+                                                            logger.trackActivity(TAG,"Sesion cerrada","El usuario cerro la sesion del usuario: "+username);
                                                             llLoadingSesion.setVisibility(View.GONE);
                                                         }
 
@@ -352,6 +361,7 @@ public class InicioSesionActivity extends AppCompatActivity {
                                         sesionActivaDialog.show();
                                     }else if (response.code() == 400){
                                         Messages.showInvalidCredentialsDialog("Error de autenticación","Usuario o contraseña incorrectos.",InicioSesionActivity.this);
+                                        logger.trackActivity(TAG,"Inicio sesion invalido","El usuario inicio sesion bajo el correo: "+username+" y la contraseña: "+password+" donde las credenciales no corresponden");
                                     }
                                 }
                             }
@@ -372,9 +382,11 @@ public class InicioSesionActivity extends AppCompatActivity {
                             startActivity(intent);
                             // Obtén el objeto "result"
                             Toast.makeText(getApplicationContext(), "Usuario logueado sin conexion con exito", Toast.LENGTH_SHORT).show();
+                            logger.trackActivity(TAG,"Inicio sesion","El usuario inicio sesion bajo el correo: "+username+" y la contraseña: "+password+" sin conexion a internet");
                         }else{
                             DialogFragment errorDialog = new ErrorDialogFragment();
                             errorDialog.show(getSupportFragmentManager(), "errorDialog");
+                            logger.trackActivity(TAG,"Inicio sesion invalido","El usuario inicio sesion bajo el correo: "+username+" y la contraseña: "+password+" sin exito y sin conexion a internet");
                         }
                     }
                 }

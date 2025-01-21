@@ -268,7 +268,7 @@ public class NavigationEventHandler {
                         dynamicRoutingEngine.updateCurrentLocation(lastMapMatchedLocation, routeProgress.sectionIndex);
                     }
                 }catch (Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -293,7 +293,7 @@ public class NavigationEventHandler {
                         destinationReachedListener.onDestinationReached();
                     }*/
                 }catch (Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -317,7 +317,7 @@ public class NavigationEventHandler {
                         Log.d(TAG, "A system-defined waypoint was missed at: " + milestone.mapMatchedCoordinates);
                     }
                 }catch (Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -340,7 +340,7 @@ public class NavigationEventHandler {
                                 + safetyCameraWarning.speedLimitInMetersPerSecond + "m/s");
                     }
                 }catch (Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -365,7 +365,7 @@ public class NavigationEventHandler {
                         Log.d(TAG, "Driver is again slower than current speed limit (plus an optional offset).");
                     }
                 }catch (Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -383,7 +383,7 @@ public class NavigationEventHandler {
                         Log.d(TAG, "Current speed limit (m/s):" + currentSpeedLimit);
                     }
                 }catch (Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -557,7 +557,7 @@ public class NavigationEventHandler {
                         speedUpdateListener.onSpeedUpdated(speed);
                     }
                 } catch (Exception e) {
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -605,7 +605,7 @@ public class NavigationEventHandler {
                         mainActivity.recalculateRouteButton.setVisibility(View.GONE);
                     }
                 }catch (Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -619,7 +619,7 @@ public class NavigationEventHandler {
                         Maneuver maneuver = eventText.maneuverNotificationDetails.maneuver;
                     }
                 }catch (Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -638,7 +638,7 @@ public class NavigationEventHandler {
                         logLaneRecommendations(nextLanes);
                     }
                 }catch (Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -655,7 +655,7 @@ public class NavigationEventHandler {
                         logLaneRecommendations(lanes);
                     }
                 }catch(Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -699,7 +699,7 @@ public class NavigationEventHandler {
                         Log.d(TAG, "Road attributes: This is a tunnel.");
                     }
                 }catch(Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -721,7 +721,7 @@ public class NavigationEventHandler {
                         Log.d(TAG, "Road sign text: " + roadSignWarning.signValue.text);
                     }
                 }catch(Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -754,7 +754,7 @@ public class NavigationEventHandler {
                         }
                     }
                 }catch(Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -777,7 +777,7 @@ public class NavigationEventHandler {
                         }
                     }
                 }catch(Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -806,7 +806,7 @@ public class NavigationEventHandler {
                         Log.d(TAG, "BorderCrossing: A border has been passed.");
                     }
                 }catch(Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -830,7 +830,7 @@ public class NavigationEventHandler {
                         Log.d(TAG, "A danger zone has been passed.");
                     }
                 }catch(Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -877,7 +877,7 @@ public class NavigationEventHandler {
                     Log.d("signpostSvgImage", signpostSvgImageContent);
                     Log.d("junctionViewSvgImage", junctionViewSvgImageContent);
                 }catch(Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -901,7 +901,7 @@ public class NavigationEventHandler {
                         }
                     }
                 }catch(Exception e){
-                    mainActivity.logger.logError(TAG,e);
+                    mainActivity.logger.logError(TAG,e,mainActivity);
                 }
             }
         });
@@ -915,7 +915,7 @@ public class NavigationEventHandler {
             speedLimitOffset.highSpeedBoundaryInMetersPerSecond = 25;
             visualNavigator.setSpeedWarningOptions(new SpeedWarningOptions(speedLimitOffset));
         }catch(Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
 
@@ -931,7 +931,7 @@ public class NavigationEventHandler {
                 Log.e(TAG, "TextToSpeech engine does not support this language: " + locale);
             }
         }catch(Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
 
@@ -952,7 +952,7 @@ public class NavigationEventHandler {
                 roadName = currentRoadName == null ? currentRoadNumber : currentRoadName;
             }
         }catch(Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
         return roadName;
     }
@@ -967,7 +967,7 @@ public class NavigationEventHandler {
             Log.d(TAG,"rainSpeedLimitInMetersPerSecond: " + speedLimit.rainSpeedLimitInMetersPerSecond);
             Log.d(TAG,"snowSpeedLimitInMetersPerSecond: " + speedLimit.snowSpeedLimitInMetersPerSecond);
         }catch(Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
         return speedLimit.effectiveSpeedLimitInMetersPerSecond();
     }
@@ -989,7 +989,7 @@ public class NavigationEventHandler {
                 laneNumber++;
             }
         }catch(Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
 
@@ -1010,7 +1010,7 @@ public class NavigationEventHandler {
             LaneAccess laneAccess = lane.access;
             logLaneAccess(laneNumber, laneAccess);
         }catch(Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
 
@@ -1028,7 +1028,7 @@ public class NavigationEventHandler {
             Log.d(TAG,"EmergencyVehicles are allowed on this lane: " + laneAccess.emergencyVehicles);
             Log.d(TAG,"Motorcycles are allowed on this lane: " + laneAccess.motorcycles);
         }catch(Exception e){
-            mainActivity.logger.logError(TAG,e);
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
 

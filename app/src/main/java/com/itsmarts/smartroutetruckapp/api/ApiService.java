@@ -52,6 +52,6 @@ public interface ApiService {
     Call<ResponseBody> mandarHistorial(@Body HistorialRequest historialRequest);
 
     @POST("api/logs/registrarLog")
-    Call<Void> enviarError(@Body JSONObject requestBody);
+    Call<Void> enviarError(@Body RequestBody requestBody);
 }
 
