@@ -168,6 +168,8 @@ public class Geocercas {
             mapPolygon.setOutlineColor(strokeColor);
             mapPolygon.setOutlineWidth(strokeWidthInPixels);
             geocercas = mapPolygon;
+            mainActivity.mapView.getMapScene().addMapPolygon(mapPolygon);
+            mainActivity.mapView.getMapScene().addMapPolyline(polyline);
         } catch (InstantiationErrorException e) {
             Log.e("Geofence", "Error al crear el polígono: " + e.getMessage());
         }
@@ -182,46 +184,5 @@ public class Geocercas {
         //Color fillColor= Color.valueOf(1.0f, 1.0f, 0.0f, 0.3f); // AMARILLO
         mapPolygon = new MapPolygon(geoPolygon, fillColor);
         mainActivity.mapView.getMapScene().addMapPolygon(mapPolygon);
-    }
-
-    /**
-     * Método para dibujar un polígono en el mapa usando una lista de vértices.
-     *
-     * @param vertices Lista de coordenadas que componen el polígono.
-     */
-    public GeoCoordinates calculateCentroid(List<GeoCoordinates> vertices){
-        // Calcular el centroide
-        double area = 0.0;
-        double cx = 0.0;
-        double cy = 0.0;
-
-        for (int i = 0; i < vertices.size() - 1; i++) {
-            double x1 = vertices.get(i).longitude;
-            double y1 = vertices.get(i).latitude;
-            double x2 = vertices.get(i + 1).longitude;
-            double y2 = vertices.get(i + 1).latitude;double temp = x1 * y2 - x2 * y1;
-            area += temp;
-            cx += (x1 + x2) * temp;
-            cy += (y1 + y2) * temp;
-        }
-
-        // Cerrar el polígono
-        double x1 = vertices.get(vertices.size() - 1).longitude;
-        double y1 = vertices.get(vertices.size() - 1).latitude;
-        double x2 = vertices.get(0).longitude;
-        double y2 = vertices.get(0).latitude;
-
-        double temp = x1 * y2 - x2 * y1;
-        area += temp;
-        cx += (x1 + x2) * temp;
-        cy += (y1 + y2) * temp;
-
-        area /= 2.0;
-        cx /= (6.0 * area);
-        cy /= (6.0 * area);
-
-        // Crear un nuevo GeoCoordinates para el centroide
-        GeoCoordinates centroid = new GeoCoordinates(cy, cx);
-        return centroid;
     }
 }

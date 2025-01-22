@@ -136,12 +136,6 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                 public void run() {
                                     mainActivity.ruta=rutas.get(getAdapterPosition());
                                     mainActivity.logger.trackActivity(TAG,"Ruta seleccionada","El usuario selecciono la ruta: "+mainActivity.ruta.name);
-                                    /*GeoCoordinatesUpdate geoCoordinatesUpdate = new GeoCoordinatesUpdate(mainActivity.currentGeoCoordinates);
-                                    MapMeasure mapMeasureZoom = new MapMeasure(MapMeasure.Kind.DISTANCE, 1000.0);
-                                    double bowFactor = 1;
-                                    MapCameraAnimation animation = MapCameraAnimationFactory.flyTo(
-                                            geoCoordinatesUpdate, mapMeasureZoom, bowFactor, Duration.ofSeconds(3));
-                                    mainActivity.mapView.getCamera().startAnimation(animation);*/
                                     alertDialogRuta.dismiss();
                                     List<GeoCoordinates> puntos_de_control = new ArrayList<>();
                                     List<MapPolygon> zonas = new ArrayList<>();
@@ -192,17 +186,15 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                         }
                                     }
                                     mainActivity.geocercas.drawGeofenceAroundPolyline(mainActivity.ruta.polyline, 100.0);
-                                    mainActivity.llLoadingRoute.setVisibility(View.GONE);
                                     //mainActivity.likeImageView1.setVisibility(View.GONE);
-                                    mainActivity.controlPointsExample.cleanPoint();
-                                    mainActivity.avoidZonesExample.cleanPolygon();
-                                    mainActivity.rutaGenerada = true;
                                     mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,id_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
                                         @Override
                                         public void onRouteCalculated(Route route) {
                                             if (route != null) {
-                                                mainActivity.mapView.getMapScene().addMapPolyline(mainActivity.ruta.polyline);
-                                                mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
+                                                mainActivity.controlPointsExample.cleanPoint();
+                                                mainActivity.avoidZonesExample.cleanPolygon();
+                                                mainActivity.rutaGenerada = true;
+                                                mainActivity.llLoadingRoute.setVisibility(View.GONE);
                                                 mainActivity.llGeocerca.setVisibility(VISIBLE);
                                                 mainActivity.messageView.startAnimation(mainActivity.cargaAnimacion);
                                                 mainActivity.messageView.setVisibility(View.VISIBLE);
@@ -324,17 +316,15 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                         }
                                     }
                                     mainActivity.geocercas.drawGeofenceAroundPolyline(mainActivity.ruta.polyline, 100.0);
-                                    mainActivity.llLoadingRoute.setVisibility(View.GONE);
                                     //mainActivity.likeImageView1.setVisibility(View.GONE);
-                                    mainActivity.controlPointsExample.cleanPoint();
-                                    mainActivity.avoidZonesExample.cleanPolygon();
-                                    mainActivity.rutaGenerada = true;
                                     mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,id_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
                                         @Override
                                         public void onRouteCalculated(Route route) {
                                             if (route != null) {
-                                                mainActivity.mapView.getMapScene().addMapPolyline(mainActivity.ruta.polyline);
-                                                mainActivity.mapView.getMapScene().addMapPolygon(mainActivity.geocercas.geocercas);
+                                                mainActivity.rutaGenerada = true;
+                                                mainActivity.controlPointsExample.cleanPoint();
+                                                mainActivity.avoidZonesExample.cleanPolygon();
+                                                mainActivity.llLoadingRoute.setVisibility(View.GONE);
                                                 mainActivity.messageView.startAnimation(mainActivity.cargaAnimacion);
                                                 mainActivity.messageView.setVisibility(View.VISIBLE);
                                                 mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
@@ -379,7 +369,6 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                 @Override
                 public void onClick(View v) {
                     showRouteInfoDialog(getAdapterPosition());
-                    mainActivity.logger.trackActivity(TAG,"Obtuvo info ruta","El usuario consulto la informacion de la ruta: "+mainActivity.ruta.name);
                 }
             });
             alertDialogRutaMaster.show();
@@ -388,6 +377,8 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
 
     public static void showRouteInfoDialog(int position) {
         RoutesWithId selectedRoute = rutas.get(position);
+
+        mainActivity.logger.trackActivity(TAG,"Obtuvo info ruta","El usuario consulto la informacion de la ruta: "+selectedRoute.name);
 
         // Infla el layout personalizado
         View dialogView = LayoutInflater.from(mainActivity).inflate(R.layout.route_info_dialog, null);

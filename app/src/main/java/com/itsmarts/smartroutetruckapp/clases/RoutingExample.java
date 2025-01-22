@@ -293,10 +293,6 @@ public class RoutingExample {
                             zoomAnimator.start();
                         }
                         // Crear un ValueAnimator para interpolar entre el nivel de zoom actual y el objetivo
-                        showRouteOnMap(route);
-                        logRouteSectionDetails(route);
-                        logRouteViolations(route);
-                        logTollDetails(route);
                         processCalculatedRoute(route);
                         callback.onRouteCalculated(route);
                         if(geoCoordinatesPOI != null){
@@ -317,6 +313,7 @@ public class RoutingExample {
             mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
+
     private void processCalculatedRoute(Route route) {
         try{
             showRouteOnMap(route);
@@ -327,15 +324,7 @@ public class RoutingExample {
             mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
-    private void processCalculatedRouteTour(Route route) {
-        try{
-            logRouteSectionDetails(route);
-            logRouteViolations(route);
-            logTollDetails(route);
-        }catch (Exception e){
-            mainActivity.logger.logError(TAG,e,mainActivity);
-        }
-    }
+
     private void logRouteViolations(Route route) {
         try{
             for(Section section: route.getSections()) {

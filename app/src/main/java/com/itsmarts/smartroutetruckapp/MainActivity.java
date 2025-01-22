@@ -1533,8 +1533,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         vertexPair = vertexPair.replace("[", "").replace("]", "");
                                         String[] coords = vertexPair.split(",");
                                         try {
-                                            double latitude = Double.parseDouble(coords[0].substring(1, coords[0].length() - 1));
-                                            double longitude = Double.parseDouble(coords[1].substring(1, coords[1].length() - 1));
+                                            double latitude = Double.parseDouble(coords[0].substring(0, coords[0].length()));
+                                            double longitude = Double.parseDouble(coords[1].substring(0, coords[1].length()));
                                             vertices.add(new GeoCoordinates(latitude, longitude));
                                         } catch (NumberFormatException e) {
                                             Log.e("Error", "Invalid coordinate format: " + vertexPair);
@@ -1738,8 +1738,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         vertexPair = vertexPair.replace("[", "").replace("]", "");
                                         String[] coords = vertexPair.split(",");
                                         try {
-                                            double latitude = Double.parseDouble(coords[0].substring(1, coords[0].length() - 1));
-                                            double longitude = Double.parseDouble(coords[1].substring(1, coords[1].length() - 1));
+                                            double latitude = Double.parseDouble(coords[0].substring(0, coords[0].length()));
+                                            double longitude = Double.parseDouble(coords[1].substring(0, coords[1].length()));
                                             vertices.add(new GeoCoordinates(latitude, longitude));
                                         } catch (NumberFormatException e) {
                                             Log.e("Error", "Invalid coordinate format: " + vertexPair);
