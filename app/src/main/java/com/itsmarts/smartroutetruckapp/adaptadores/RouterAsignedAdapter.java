@@ -196,6 +196,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                                 mainActivity.rutaGenerada = true;
                                                 mainActivity.llLoadingRoute.setVisibility(View.GONE);
                                                 mainActivity.llGeocerca.setVisibility(VISIBLE);
+                                                mainActivity.llIncidencia.setVisibility(VISIBLE);
                                                 mainActivity.messageView.startAnimation(mainActivity.cargaAnimacion);
                                                 mainActivity.messageView.setVisibility(View.VISIBLE);
                                                 mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
@@ -259,6 +260,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                 mainActivity.trackCamara.setImageResource(R.drawable.track_on);
                             }
                             mainActivity.llGeocerca.setVisibility(VISIBLE);
+                            mainActivity.llIncidencia.setVisibility(VISIBLE);
                             mainActivity.llLoadingRoute.setVisibility(VISIBLE);
                             //mainActivity.likeImageView1.setVisibility(VISIBLE);
                             btnStartRoute.startAnimation(mainActivity.animacionClick);

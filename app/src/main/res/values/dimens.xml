@@ -6,6 +6,10 @@
     <dimen name="common_padding_middle">24dp</dimen>
     <dimen name="dimen_160">160dp</dimen>
     <dimen name="dimen_50">50dp</dimen>
+    <dimen name="dimen_30">30dp</dimen>
+    <dimen name="dimen_16">16dp</dimen>
+    <dimen name="dimen_14">14dp</dimen>
+    <dimen name="dimen_12">12dp</dimen>
     <dimen name="dimen_8">8dp</dimen>
     <dimen name="dimen_4">4dp</dimen>
 </resources>

@@ -33,6 +33,28 @@
         <item>Farmacia</item>
     </string-array>
 
+    <string-array name="incident_types_array">
+        <item>Infracción de transito</item>
+        <item>Cierre vial por obras en la zona</item>
+        <item>Cierre vial por evento en la zona</item>
+        <item>Zona prohibida</item>
+        <item>Trafico excesivo por sobre flujo</item>
+        <item>Trafico excesivo por accidente</item>
+        <item>Accidente en la zona</item>
+        <item>Cansancio por manejar</item>
+        <item>Malestar de salud</item>
+        <item>Sin combustible</item>
+        <item>Robo</item>
+        <item>Falla mecánica</item>
+        <item>Ponchadura de llanta</item>
+        <item>Problema eléctrico</item>
+        <item>Exceso de peso</item>
+        <item>Clima adverso</item>
+        <item>Mal estado de las carreteras</item>
+        <item>Retraso en la carga</item>
+        <item>Retraso en la descarga</item>
+    </string-array>
+
     <!-- ESTAS SON STRINGS PARA DESCARGA, CONSULTA E INSTALACION DE MAPA DE MEXICO OFFLINE/ONLINE -->
 
     <string name="descargar">Descargar</string>

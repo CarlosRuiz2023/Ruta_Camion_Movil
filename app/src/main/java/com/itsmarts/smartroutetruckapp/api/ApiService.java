@@ -7,12 +7,15 @@ import com.itsmarts.smartroutetruckapp.modelos.RecuperarContraseniaRequest;
 
 import org.json.JSONObject;
 
+import okhttp3.MultipartBody;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
+import retrofit2.http.Multipart;
 import retrofit2.http.POST;
+import retrofit2.http.Part;
 import retrofit2.http.Path;
 
 import java.util.List;
@@ -53,5 +56,11 @@ public interface ApiService {
 
     @POST("api/logs/registrarLog")
     Call<Void> enviarError(@Body RequestBody requestBody);
+
+    @Multipart
+    @POST("api/incidencias/cargarImagen")
+    Call<ResponseBody> cargarImagen(
+            @Part MultipartBody.Part imagePart
+    );
 }
 

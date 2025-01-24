@@ -19,16 +19,16 @@
         tools:ignore="MissingConstraints">
         <ImageView
             android:id="@+id/imageView10"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
             app:tint="?attr/colorControlNormal"
-            app:srcCompat="@drawable/imagen_poi" />
+            app:srcCompat="@drawable/ic_minor_crash" />
 
         <TextView
             android:id="@+id/textView9"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Buscar POI cercano"
+            android:text="Incidencia"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textStyle="bold"
             android:textSize="24sp" />
@@ -39,13 +39,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="25dp"
-        android:text="Seleccione el tipo de POI"
+        android:text="Seleccione el tipo de Incidencia"
         android:textAppearance="?android:attr/textAppearanceSmall"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/llTituloPois" />
 
     <Spinner
-        android:id="@+id/spinnerPoiType"
+        android:id="@+id/spinnerIncidentType"
         android:layout_width="0dp"
         android:layout_height="53dp"
         android:layout_marginTop="10dp"
@@ -63,10 +63,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="25dp"
-        android:text="Ingrese el radio (en metros)"
+        android:text="Comentarios"
         android:textAppearance="?android:attr/textAppearanceSmall"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/spinnerPoiType" />
+        app:layout_constraintTop_toBottomOf="@+id/spinnerIncidentType" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputLayout"
@@ -74,31 +74,45 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
-        android:hint="Radio (metros)"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/materialTextView">
 
         <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/editTextRadius"
+            android:id="@+id/editTextComment"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:maxLength="4"
-            android:text="1000"
-            android:inputType="number" />
+            android:maxLength="255"
+            android:hint="Sin comentarios"
+            android:inputType="text" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <ImageView
+        android:id="@+id/imgIncidencia"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginStart="40dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="40dp"
+        android:adjustViewBounds="true"
+        android:elevation="6dp"
+        android:src="@drawable/no_image"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textInputLayout" />
+
     <Button
-        android:id="@+id/btnBuscar"
+        android:id="@+id/btnEnviar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
-        android:text="Buscar"
+        android:text="Enviar"
         android:backgroundTint="@color/blue"
         android:textColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/btnCancelar"
-        app:layout_constraintTop_toBottomOf="@+id/textInputLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/imgIncidencia" />
 
     <Button
         android:id="@+id/btnCancelar"
@@ -108,7 +122,7 @@
         android:text="Cancelar"
         android:backgroundTint="@color/red"
         android:textColor="@android:color/white"
-        app:layout_constraintEnd_toStartOf="@+id/btnBuscar"
+        app:layout_constraintEnd_toStartOf="@+id/btnEnviar"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textInputLayout" />
+        app:layout_constraintTop_toBottomOf="@+id/imgIncidencia" />
 </androidx.constraintlayout.widget.ConstraintLayout>

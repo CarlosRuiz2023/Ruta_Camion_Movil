@@ -9,9 +9,18 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.graphics.Typeface;
+import android.media.ExifInterface;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,6 +42,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -40,9 +50,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
+import androidx.core.content.FileProvider;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.DialogFragment;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -115,18 +127,28 @@ import com.itsmarts.smartroutetruckapp.modelos.RoutesWithId;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import android.Manifest;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, NavigationEventHandler.SpeedUpdateListener, NavigationEventHandler.DestinationDistanceListener, NavigationEventHandler.DestinationReachedListener{
 
@@ -149,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public ImageButton trackCamara, btnTerminarRuta;
     public ImageView imgVelocidad;
     public View detallesRuta;
-    public LinearLayout llGeocerca, llPois, llMapas, llLoadingRoute;
+    public LinearLayout llGeocerca, llPois, llMapas, llLoadingRoute, llIncidencia;
     public Geocercas geocercas;
     public RoutingExample routingExample;
     public DatabaseHelper dbHelper;
@@ -166,7 +188,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public Button btnDescargar, btnBuscarActualizaciones, btnIniciarActualizacion, recalculateRouteButton;
     /** TextView para mosntrar como se descarga y el porcentaje de descarga del mapa*/
     public TextView txtProcesoDescarga, txtDescargaTitulo, nav_header_name, nav_header_email, routeTextView;
-    public FloatingActionButton fbEliminarPoi, fbMapas, btnGeocercas;
+    public FloatingActionButton fbEliminarPoi, fbMapas, btnGeocercas, fbIncidencia;
     public int styleCounter=0;
     // INICIALIZACION DE LA VARIABLE TIPO MapScheme PARA EL ESTILO DEL MAPA POR DEFECTO
     private MapScheme style = MapScheme.NORMAL_DAY;
@@ -182,6 +204,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public Menu menu_options = null;
     public MenuItem offlineMapItem = null;
     public Logger logger;
+    private static final int REQUEST_IMAGE_CAPTURE = 1;
+    private static final int REQUEST_IMAGE_PICK = 2;
+    private ImageView imgIncidencia;
+    private File imageFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -210,6 +236,45 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             }
         }catch (Exception e){
             logger.logError(TAG,e,MainActivity.this);
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            // La foto fue tomada correctamente
+            Bundle extras = data.getExtras();
+            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            imgIncidencia.setImageBitmap(imageBitmap);
+            Uri imageUri = bitmapToUri(imageBitmap);
+            Log.e(TAG, "Image URI: " + imageUri);
+            // Now you have the imageUri
+            try {
+                String realPath = getPathFromUri(getApplicationContext(),imageUri);
+                imageFile = new File(realPath);
+            } catch (Exception e) {
+                Log.e(TAG, "Error al obtener la ruta de la imagen", e);
+            }
+        } else if (requestCode == REQUEST_IMAGE_PICK && resultCode == RESULT_OK) {
+            // La imagen fue seleccionada correctamente
+            Uri selectedImageUri = data.getData();
+            Log.e(TAG, "Image URI: " + selectedImageUri);
+            try {
+                Bitmap imageBitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), selectedImageUri);
+                imgIncidencia.setImageBitmap(imageBitmap);
+            } catch (IOException e) {
+                Log.e(TAG,"Error al cargar la imagen seleccionada:");
+            }
+            try {
+                // Get the real path from the URI
+                String realPath = getPathFromUri(getApplicationContext(),selectedImageUri);
+                // Create a File object from the real path
+                imageFile = new File(realPath);
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(this, "Error al obtener la ruta de la imagen", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -718,6 +783,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             llLoadingRoute = findViewById(R.id.llLoadingRoute);
             routeTextView = findViewById(R.id.routeTextView);
             speedLabeltextView = findViewById(R.id.speedLabeltextView);
+            fbIncidencia = findViewById(R.id.fbIncidencia);
+            llIncidencia = findViewById(R.id.llIncidencia);
             // Infla el layout del encabezado
             View headerView = nmd.inflateHeaderView(R.layout.nav_header);
             nav_header_name = headerView.findViewById(R.id.nav_header_name);
@@ -946,6 +1013,77 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     recalculateRoute();
                 }
             });
+            fbIncidencia.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    View dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.ventana_incidencia, null);
+
+                    final Dialog dialogIncidencia = new Dialog(MainActivity.this);
+                    dialogIncidencia.setContentView(dialogView);
+                    dialogIncidencia.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+                    Spinner spinnerIncidentType = dialogView.findViewById(R.id.spinnerIncidentType);
+                    EditText editTextComment = dialogView.findViewById(R.id.editTextComment);
+                    Button btnEnviar = dialogView.findViewById(R.id.btnEnviar);
+                    imgIncidencia = dialogView.findViewById(R.id.imgIncidencia);
+                    final Button btnCancelar = dialogView.findViewById(R.id.btnCancelar);
+
+                    // Configurar el spinner con los tipos de POI
+                    ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(MainActivity.this,
+                            R.array.incident_types_array, android.R.layout.simple_spinner_item);
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    spinnerIncidentType.setAdapter(adapter);
+
+                    btnEnviar.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            if (imageFile != null) {
+                                uploadImage();
+                            } else {
+                                Toast.makeText(MainActivity.this, "Por favor, seleccione una imagen", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    });
+
+                    btnCancelar.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialogIncidencia.dismiss();
+                        }
+                    });
+                    imgIncidencia.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            // Mostrar un diálogo para que el usuario elija entre la cámara o la galería
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            builder.setTitle("Seleccionar imagen");
+                            builder.setItems(new CharSequence[]{"Tomar foto", "Elegir de la galería"}, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    if (which == 0) {
+                                        if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                                            // Abrir la cámara
+                                            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                                            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                                                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                                            }
+                                        }else{
+                                            Toast.makeText(MainActivity.this, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show();
+                                        }
+                                    } else {
+                                        // Abrir el selector de imágenes
+                                        Intent pickImageIntent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                                        startActivityForResult(pickImageIntent, REQUEST_IMAGE_PICK);
+                                    }
+                                }
+                            });
+                            builder.show();
+                        }
+                    });
+
+                    dialogIncidencia.show();
+                }
+            });
         }catch (Exception e){
             logger.logError(TAG,e,MainActivity.this);
         }
@@ -1097,6 +1235,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             clearMapMarkersPOIsAndCircle(false);
             if(ruta!=null){
                 llGeocerca.setVisibility(View.GONE);
+                llIncidencia.setVisibility(View.GONE);
                 mapView.getMapScene().removeMapPolyline(ruta.polyline);
                 ruta=null;
             }
@@ -2043,5 +2182,104 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }catch (Exception e){
             logger.logError(TAG,e,MainActivity.this);
         }
+    }
+
+    private void uploadImage() {
+        // Crear el MultipartBody.Part para la imagen
+        RequestBody requestBody = RequestBody.create(MediaType.parse("image/*"), imageFile);
+        MultipartBody.Part imagePart = MultipartBody.Part.createFormData("archivo", "imagen.jpg", requestBody);
+        ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+        // Llamar al servicio
+        Call<ResponseBody> call = apiService.cargarImagen(imagePart);
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                if (response.isSuccessful()) {
+                    try {
+                        String responseBody = response.body().string();
+                        // Procesar la respuesta del servidor (por ejemplo, mostrar un mensaje de éxito)
+                        Log.d("Retrofit", "Imagen enviada correctamente: " + responseBody);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    Log.e("Retrofit", "Error al enviar la imagen: " + response.code());
+                    // Mostrar un mensaje de error al usuario
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Log.e("Retrofit", "Error al enviar la imagen", t);
+                // Mostrar un mensaje de error al usuario
+            }
+        });
+    }
+    public String getPathFromUri(Context context, Uri uri) {
+        if ("content".equalsIgnoreCase(uri.getScheme())) {
+            if (uri.getAuthority().contains("media")) {
+                // Si es una imagen de la galería (MediaStore)
+                return getMediaStorePath(context, uri);
+            } else {
+                // Si es una imagen desde el FileProvider
+                return copyFileToInternalStorage(context, uri, "my_images");
+            }
+        }
+        return uri.getPath();
+    }
+
+    // Obtener ruta desde MediaStore
+    private String getMediaStorePath(Context context, Uri uri) {
+        String[] projection = { MediaStore.Images.Media.DATA };
+        try (Cursor cursor = context.getContentResolver().query(uri, projection, null, null, null)) {
+            if (cursor != null && cursor.moveToFirst()) {
+                int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+                return cursor.getString(columnIndex);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    // Copiar archivo a almacenamiento interno y devolver la ruta
+    private String copyFileToInternalStorage(Context context, Uri uri, String directoryName) {
+        File directory = new File(context.getFilesDir(), directoryName);
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+        File file = new File(directory, "temp_image.jpg");
+
+        try (InputStream inputStream = context.getContentResolver().openInputStream(uri);
+             OutputStream outputStream = new FileOutputStream(file)) {
+
+            byte[] buffer = new byte[1024];
+            int length;
+            while ((length = inputStream.read(buffer)) > 0) {
+                outputStream.write(buffer, 0, length);
+            }
+            return file.getAbsolutePath();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+    private Uri bitmapToUri(Bitmap bitmap) {
+        Uri uri = null;
+        try {
+            // Crear un archivo temporal en el almacenamiento privado de la aplicación
+            File file = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "temp_image.jpg");
+
+            FileOutputStream fos = new FileOutputStream(file);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            fos.close();
+
+            // Obtener la URI del archivo utilizando FileProvider
+            uri = FileProvider.getUriForFile(this, "com.itsmarts.smartroutetruckapp.fileprovider", file);
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("BitmapToUri", "Error al convertir el Bitmap a URI");
+        }
+        return uri;
     }
 }

@@ -266,8 +266,7 @@
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/detallesRuta"
-        tools:visibility="visible" />
+        app:layout_constraintTop_toTopOf="@+id/detallesRuta" />
 
     <LinearLayout
         android:id="@+id/llPois"
@@ -279,8 +278,7 @@
         app:layout_constraintBottom_toTopOf="@+id/llMapas"
         android:layout_marginEnd="12dp"
         android:layout_marginTop="8dp"
-        android:visibility="gone"
-        tools:visibility="visible">
+        android:visibility="gone">
 
         <TextView
             android:id="@+id/txtEliminarPoi"
@@ -316,8 +314,7 @@
         app:layout_constraintBottom_toTopOf="@+id/llPois"
         android:layout_marginEnd="12dp"
         android:layout_marginTop="8dp"
-        android:visibility="gone"
-        tools:visibility="visible">
+        android:visibility="gone">
 
         <TextView
             android:layout_width="wrap_content"
@@ -374,6 +371,42 @@
             android:clickable="true"
             android:focusable="true"
             android:src="@drawable/mapa"
+            app:tint="@android:color/white" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/llIncidencia"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/llGeocerca"
+        android:layout_marginEnd="12dp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/txtIncidente"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="5dp"
+            android:layout_marginTop="20dp"
+            android:elevation="2dp"
+            android:text="Incidente"
+            android:textColor="@color/deepOrange_800"
+            android:textSize="15dp"
+            android:textStyle="bold" />
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fbIncidencia"
+            android:layout_width="52dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:backgroundTint="@color/deepOrange_800"
+            android:clickable="true"
+            android:focusable="true"
+            android:src="@drawable/ic_minor_crash"
             app:tint="@android:color/white" />
 
     </LinearLayout>
