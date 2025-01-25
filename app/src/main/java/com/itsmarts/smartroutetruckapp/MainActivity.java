@@ -125,6 +125,7 @@ import com.itsmarts.smartroutetruckapp.modelos.PolygonWithId;
 import com.itsmarts.smartroutetruckapp.modelos.RoutesWithId;
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.File;
@@ -208,6 +209,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final int REQUEST_IMAGE_PICK = 2;
     private ImageView imgIncidencia;
     private File imageFile;
+    private Spinner spinnerIncidentType;
+    private EditText editTextComment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -1022,8 +1025,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     dialogIncidencia.setContentView(dialogView);
                     dialogIncidencia.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
-                    Spinner spinnerIncidentType = dialogView.findViewById(R.id.spinnerIncidentType);
-                    EditText editTextComment = dialogView.findViewById(R.id.editTextComment);
+                    spinnerIncidentType = dialogView.findViewById(R.id.spinnerIncidentType);
+                    editTextComment = dialogView.findViewById(R.id.editTextComment);
                     Button btnEnviar = dialogView.findViewById(R.id.btnEnviar);
                     imgIncidencia = dialogView.findViewById(R.id.imgIncidencia);
                     final Button btnCancelar = dialogView.findViewById(R.id.btnCancelar);
@@ -1037,10 +1040,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     btnEnviar.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
-                            if (imageFile != null) {
-                                uploadImage();
-                            } else {
-                                Toast.makeText(MainActivity.this, "Por favor, seleccione una imagen", Toast.LENGTH_SHORT).show();
+                            if(Internet.isNetworkConnected()){
+                                if (imageFile != null) {
+                                    uploadImage();
+                                } else {
+                                    enviarIncidenciaSinFoto();
+                                }
+                                dialogIncidencia.dismiss();
+                            }else{
+                                DialogFragment errorDialog = new ErrorDialogFragment();
+                                errorDialog.show(getSupportFragmentManager(), "errorDialog");
+                                dialogIncidencia.dismiss();
                             }
                         }
                     });
@@ -1858,10 +1868,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         }
                                         else if(ruta_previa.fecha_ultima_modificacion.toString().equalsIgnoreCase(fechaUltimaModificacion.toString())){
                                             continue;
-                                        }else{
-                                            dbHelper.deleteRoute(id);
                                         }
                                     }
+                                    dbHelper.deleteRoute(id);
                                     String nombre = rutaObject.optString("nombre", "Sin nombre");
                                     String direccion_inicio = rutaObject.optString("direccion_inicio", "Sin direccion");
                                     double latitud_inicio = rutaObject.optDouble("latitud_inicio", 0.0);
@@ -2143,10 +2152,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         }
                                     }
                                 }
+                                Log.d("Retrofit", "Asignaciones obtenidas exitosamente.");
                             } else {
                                 Log.e("Error", "La operación no fue exitosa.");
                             }
-                            Log.d("Retrofit", "Asignaciones obtenidas exitosamente.");
                             future.complete(response.body());
                         } catch (Exception e) {
                             Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
@@ -2196,15 +2205,124 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
                 if (response.isSuccessful()) {
                     try {
-                        String responseBody = response.body().string();
-                        // Procesar la respuesta del servidor (por ejemplo, mostrar un mensaje de éxito)
-                        Log.d("Retrofit", "Imagen enviada correctamente: " + responseBody);
+                        // Obtener el JSON como string
+                        String jsonResponse = response.body().string();
+                        // Convierte la respuesta en un objeto JSON
+                        JSONObject jsonFoto = new JSONObject(jsonResponse);
+                        // Verifica si la operación fue exitosa
+                        boolean success = jsonFoto.getBoolean("success");
+                        if (success) {
+                            String foto = jsonFoto.optString("result", "");
+                            Log.d("Retrofit", "Foto enviada exitosamente.");
+                            String selectedIncidentType = spinnerIncidentType.getSelectedItem().toString();
+                            int id_tipo_incidencia = 0;
+                            switch (selectedIncidentType) {
+                                case "Infracción de transito":
+                                    id_tipo_incidencia = 1;
+                                    break;
+                                case "Cierre vial por obras en la zona":
+                                    id_tipo_incidencia = 2;
+                                    break;
+                                case "Cierre vial por evento en la zona":
+                                    id_tipo_incidencia = 3;
+                                    break;
+                                case "Zona prohibida":
+                                    id_tipo_incidencia = 4;
+                                    break;
+                                case "Trafico excesivo por sobre flujo":
+                                    id_tipo_incidencia = 5;
+                                    break;
+                                case "Trafico excesivo por accidente":
+                                    id_tipo_incidencia = 6;
+                                    break;
+                                case "Accidente en la zona":
+                                    id_tipo_incidencia = 7;
+                                    break;
+                                case "Cansancio por manejar":
+                                    id_tipo_incidencia = 8;
+                                    break;
+                                case "Malestar de salud":
+                                    id_tipo_incidencia = 9;
+                                    break;
+                                case "Sin combustible":
+                                    id_tipo_incidencia = 10;
+                                    break;
+                                case "Robo":
+                                    id_tipo_incidencia = 11;
+                                    break;
+                                case "Falla mecánica":
+                                    id_tipo_incidencia = 12;
+                                    break;
+                                case "Ponchadura de llanta":
+                                    id_tipo_incidencia = 13;
+                                    break;
+                                case "Problema eléctrico":
+                                    id_tipo_incidencia = 14;
+                                    break;
+                                case "Exceso de peso":
+                                    id_tipo_incidencia = 15;
+                                    break;
+                                case "Clima adverso":
+                                    id_tipo_incidencia = 16;
+                                    break;
+                                case "Mal estado de las carreteras":
+                                    id_tipo_incidencia = 17;
+                                    break;
+                                case "Retraso en la carga":
+                                    id_tipo_incidencia = 18;
+                                    break;
+                                case "Retraso en la descarga":
+                                    id_tipo_incidencia = 19;
+                                    break;
+                                default:
+                                    id_tipo_incidencia = 0;
+                                    break;
+                            }
+                            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                            int id_usuario = sharedPreferences.getInt("id_usuario", 0);
+                            String comentarios = editTextComment.getText().toString();
+                            JSONObject jsonIncident = new JSONObject();
+                            jsonIncident.put("id_tipo_incidencia", id_tipo_incidencia);
+                            jsonIncident.put("id_usuario", id_usuario);
+                            jsonIncident.put("id_ruta",ruta.id);
+                            jsonIncident.put("foto", foto);
+                            jsonIncident.put("comentarios",comentarios);
+                            jsonIncident.put("latitud",currentGeoCoordinates.latitude);
+                            jsonIncident.put("longitud",currentGeoCoordinates.longitude);
+                            //ErrorReporter.sendError(jsonObject);
+                            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+                            // Convertir JSONObject a String y crear un RequestBody
+                            RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonIncident.toString());
+                            Call<Void> call1 = apiService.agregarIncidencia(requestBody);
+
+                            call1.enqueue(new Callback<Void>() {
+                                @Override
+                                public void onResponse(Call<Void> call1, Response<Void> response) {
+                                    if (!response.isSuccessful()) {
+                                        Log.e("ErrorReporter", "Error al enviar el reporte: " + response.code());
+                                        messages.showCustomToast("Error al enviar la incidencia");
+                                    }else{
+                                        messages.showCustomToast("Incidencia enviada con exitosamente");
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call<Void> call1, Throwable t) {
+                                    Log.e("ErrorReporter", "Error al enviar el reporte: " + t.getMessage());
+                                }
+                            });
+                        } else {
+                            messages.showCustomToast("Error al enviar la imagen");
+                        }
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.logError(TAG,e,MainActivity.this);
+                    } catch (JSONException e) {
+                        logger.logError(TAG,e,MainActivity.this);
                     }
                 } else {
                     Log.e("Retrofit", "Error al enviar la imagen: " + response.code());
                     // Mostrar un mensaje de error al usuario
+                    messages.showCustomToast("Error al enviar la imagen");
                 }
             }
 
@@ -2214,6 +2332,108 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 // Mostrar un mensaje de error al usuario
             }
         });
+    }
+    private void enviarIncidenciaSinFoto() {
+        try {
+            String selectedIncidentType = spinnerIncidentType.getSelectedItem().toString();
+            int id_tipo_incidencia = 0;
+            switch (selectedIncidentType) {
+                case "Infracción de transito":
+                    id_tipo_incidencia = 1;
+                    break;
+                case "Cierre vial por obras en la zona":
+                    id_tipo_incidencia = 2;
+                    break;
+                case "Cierre vial por evento en la zona":
+                    id_tipo_incidencia = 3;
+                    break;
+                case "Zona prohibida":
+                    id_tipo_incidencia = 4;
+                    break;
+                case "Trafico excesivo por sobre flujo":
+                    id_tipo_incidencia = 5;
+                    break;
+                case "Trafico excesivo por accidente":
+                    id_tipo_incidencia = 6;
+                    break;
+                case "Accidente en la zona":
+                    id_tipo_incidencia = 7;
+                    break;
+                case "Cansancio por manejar":
+                    id_tipo_incidencia = 8;
+                    break;
+                case "Malestar de salud":
+                    id_tipo_incidencia = 9;
+                    break;
+                case "Sin combustible":
+                    id_tipo_incidencia = 10;
+                    break;
+                case "Robo":
+                    id_tipo_incidencia = 11;
+                    break;
+                case "Falla mecánica":
+                    id_tipo_incidencia = 12;
+                    break;
+                case "Ponchadura de llanta":
+                    id_tipo_incidencia = 13;
+                    break;
+                case "Problema eléctrico":
+                    id_tipo_incidencia = 14;
+                    break;
+                case "Exceso de peso":
+                    id_tipo_incidencia = 15;
+                    break;
+                case "Clima adverso":
+                    id_tipo_incidencia = 16;
+                    break;
+                case "Mal estado de las carreteras":
+                    id_tipo_incidencia = 17;
+                    break;
+                case "Retraso en la carga":
+                    id_tipo_incidencia = 18;
+                    break;
+                case "Retraso en la descarga":
+                    id_tipo_incidencia = 19;
+                    break;
+                default:
+                    id_tipo_incidencia = 0;
+                    break;
+            }
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            int id_usuario = sharedPreferences.getInt("id_usuario", 0);
+            String comentarios = editTextComment.getText().toString();
+            JSONObject jsonIncident = new JSONObject();
+            jsonIncident.put("id_tipo_incidencia", id_tipo_incidencia);
+            jsonIncident.put("id_usuario", id_usuario);
+            jsonIncident.put("id_ruta",ruta.id);
+            jsonIncident.put("comentarios",comentarios);
+            jsonIncident.put("latitud",currentGeoCoordinates.latitude);
+            jsonIncident.put("longitud",currentGeoCoordinates.longitude);
+            //ErrorReporter.sendError(jsonObject);
+            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+            // Convertir JSONObject a String y crear un RequestBody
+            RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonIncident.toString());
+            Call<Void> call = apiService.agregarIncidencia(requestBody);
+
+            call.enqueue(new Callback<Void>() {
+                @Override
+                public void onResponse(Call<Void> call, Response<Void> response) {
+                    if (!response.isSuccessful()) {
+                        Log.e("ErrorReporter", "Error al enviar el reporte: " + response.code());
+                        messages.showCustomToast("Error al enviar la incidencia");
+                    }else{
+                        messages.showCustomToast("Incidencia enviada sin foto exitosamente");
+                    }
+                }
+
+                @Override
+                public void onFailure(Call<Void> call, Throwable t) {
+                    Log.e("ErrorReporter", "Error al enviar el reporte: " + t.getMessage());
+                }
+            });
+        }catch (JSONException e){
+            logger.logError(TAG,e,MainActivity.this);
+        }
     }
     public String getPathFromUri(Context context, Uri uri) {
         if ("content".equalsIgnoreCase(uri.getScheme())) {

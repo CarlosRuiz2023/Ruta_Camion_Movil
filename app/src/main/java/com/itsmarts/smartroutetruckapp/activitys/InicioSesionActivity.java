@@ -327,14 +327,14 @@ public class InicioSesionActivity extends AppCompatActivity {
 
                                                     call1.enqueue(new Callback<ResponseBody>() {
                                                         @Override
-                                                        public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                                                        public void onResponse(@NonNull Call<ResponseBody> call1, @NonNull Response<ResponseBody> response) {
                                                             Toast.makeText(getApplicationContext(), "Sesion Cerrada con exito", Toast.LENGTH_SHORT).show();
                                                             logger.trackActivity(TAG,"Sesion cerrada","El usuario cerro la sesion del usuario: "+username);
                                                             llLoadingSesion.setVisibility(View.GONE);
                                                         }
 
                                                         @Override
-                                                        public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                                                        public void onFailure(@NonNull Call<ResponseBody> call1, @NonNull Throwable t) {
                                                             Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
                                                         }
                                                     });

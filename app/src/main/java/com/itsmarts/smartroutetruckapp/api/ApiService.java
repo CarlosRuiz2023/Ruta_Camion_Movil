@@ -62,5 +62,8 @@ public interface ApiService {
     Call<ResponseBody> cargarImagen(
             @Part MultipartBody.Part imagePart
     );
+
+    @POST("api/incidencias/agregarIncidencia")
+    Call<Void> agregarIncidencia(@Body RequestBody requestBody);
 }
 

@@ -11,8 +11,9 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
-    private static final String BASE_URL = "http://ec2-user@ec2-18-205-239-47.compute-1.amazonaws.com:3002/";
+    //private static final String BASE_URL = "http://ec2-user@ec2-18-205-239-47.compute-1.amazonaws.com:3002/";
     //private static final String BASE_URL = "http://192.168.11.26:3002/";
+    private static final String BASE_URL = "http://72.167.220.178:3002/";
     private static Retrofit retrofit;
 
     public static Retrofit getInstance(String token) {
