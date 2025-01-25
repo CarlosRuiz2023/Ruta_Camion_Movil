@@ -21,6 +21,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.provider.MediaStore;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -62,6 +64,7 @@ import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.textfield.TextInputLayout;
 import com.here.sdk.core.Anchor2D;
 import com.here.sdk.core.Color;
 import com.here.sdk.core.GeoCircle;
@@ -1026,10 +1029,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     dialogIncidencia.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
                     spinnerIncidentType = dialogView.findViewById(R.id.spinnerIncidentType);
+                    TextInputLayout textInputLayout = dialogView.findViewById(R.id.textInputLayout);
                     editTextComment = dialogView.findViewById(R.id.editTextComment);
                     Button btnEnviar = dialogView.findViewById(R.id.btnEnviar);
                     imgIncidencia = dialogView.findViewById(R.id.imgIncidencia);
                     final Button btnCancelar = dialogView.findViewById(R.id.btnCancelar);
+
+                    editTextComment.addTextChangedListener(new TextWatcher() {
+                        @Override
+                        public void onTextChanged(CharSequence s, int start, int before, int count) {
+                            if (s.length() > 0) {
+                                textInputLayout.setHint("Comentarios");
+                            } else {
+                                textInputLayout.setHint("Sin comentarios");
+                            }
+                        }
+
+                        @Override
+                        public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                            // Not used in this case
+                        }
+
+                        @Override
+                        public void afterTextChanged(Editable s) {
+                            // Not used in this case
+                        }
+                    });
 
                     // Configurar el spinner con los tipos de POI
                     ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(MainActivity.this,

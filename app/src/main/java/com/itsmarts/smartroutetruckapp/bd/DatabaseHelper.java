@@ -359,12 +359,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     //throw new RuntimeException(e);
                 }
                 Color fillColor = null;
+                Color strokeColor = null;
+                float strokeWidthInPixels = 5.0f;
                 if(peligrosa){
                     fillColor = Color.valueOf(0.5f, 0.5f, 0.5f, 0.63f);  // RGBA
+                    strokeColor = Color.valueOf(1f, 0f, 0f, 0.63f); // Orange
                 }else{
                     fillColor = Color.valueOf(1f, 0f, 0f, 0.63f);  // RGBA
+                    strokeColor = Color.valueOf(0.5f, 0.5f, 0.5f, 0.63f); // Orange
                 }
                 MapPolygon polygon = new MapPolygon(geometry,fillColor);
+                polygon.setOutlineColor(strokeColor);
+                polygon.setOutlineWidth(strokeWidthInPixels);
                 polygons.add(new PolygonWithId(id,polygon,name,id_estado,id_municipio,ids,label,visibility,peligrosa,status));
             } while (cursor.moveToNext());
         }
