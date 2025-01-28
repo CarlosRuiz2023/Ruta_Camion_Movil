@@ -211,7 +211,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private static final int REQUEST_IMAGE_CAPTURE = 1;
     private static final int REQUEST_IMAGE_PICK = 2;
     private ImageView imgIncidencia;
-    private File imageFile;
+    private File imageFile = null;
     private Spinner spinnerIncidentType;
     private EditText editTextComment;
 
@@ -2330,7 +2330,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 @Override
                                 public void onResponse(Call<Void> call1, Response<Void> response) {
                                     if (!response.isSuccessful()) {
-                                        Log.e("ErrorReporter", "Error al enviar el reporte: " + response.code());
+                                        Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
                                         messages.showCustomToast("Error al enviar la incidencia");
                                     }else{
                                         messages.showCustomToast("Incidencia enviada con exitosamente");
@@ -2450,7 +2450,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (!response.isSuccessful()) {
-                        Log.e("ErrorReporter", "Error al enviar el reporte: " + response.code());
+                        Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
                         messages.showCustomToast("Error al enviar la incidencia");
                     }else{
                         messages.showCustomToast("Incidencia enviada sin foto exitosamente");

@@ -48,6 +48,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -60,6 +62,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
     private static AlertDialog alertDialogRutaMaster;
     private static List<RoutesWithId> rutas;
     private static final String TAG = "RouterAsignedAdapter";
+    public static ExecutorService executor = Executors.newSingleThreadExecutor();
 
     // Constructor para el adaptador
     public RouterAsignedAdapter(MainActivity mainActivity, AlertDialog alertDialogRutaMaster, List<RoutesWithId> rutas) {
@@ -147,6 +150,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                             }
                                         }
                                     }
+                                    final int finalId_vehiculo = id_vehiculo;
                                     if(mainActivity.ruta.puntosIds!=null){
                                         for (int id : mainActivity.ruta.puntosIds) {
                                             for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
@@ -185,65 +189,68 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                             }
                                         }
                                     }
-                                    mainActivity.geocercas.drawGeofenceAroundPolyline(mainActivity.ruta.polyline, 100.0);
-                                    //mainActivity.likeImageView1.setVisibility(View.GONE);
-                                    mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,id_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
-                                        @Override
-                                        public void onRouteCalculated(Route route) {
-                                            if (route != null) {
-                                                mainActivity.controlPointsExample.cleanPoint();
-                                                mainActivity.avoidZonesExample.cleanPolygon();
-                                                mainActivity.rutaGenerada = true;
-                                                mainActivity.llLoadingRoute.setVisibility(View.GONE);
-                                                mainActivity.llGeocerca.setVisibility(VISIBLE);
-                                                mainActivity.llIncidencia.setVisibility(VISIBLE);
-                                                mainActivity.messageView.startAnimation(mainActivity.cargaAnimacion);
-                                                mainActivity.messageView.setVisibility(View.VISIBLE);
-                                                mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
-                                                mainActivity.txtNavegacion.setVisibility(VISIBLE);
-                                                mainActivity.txtTerminarRuta.setVisibility(VISIBLE);
-                                                mainActivity.detallesRuta.setVisibility(VISIBLE);
-                                                mainActivity.distanceTextView.setVisibility(VISIBLE);
-                                                mainActivity.timeTextView.setVisibility(VISIBLE);
+                                    executor.execute(() -> {
+                                        // Aquí va la función pesada que consume muchos recursos
+                                        mainActivity.geocercas.drawGeofenceAroundPolyline(mainActivity.ruta.polyline, 100.0);
+                                        mainActivity.rutaGenerada = true;
+                                        //mainActivity.likeImageView1.setVisibility(View.GONE);
+                                        mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,finalId_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
+                                            @Override
+                                            public void onRouteCalculated(Route route) {
+                                                if (route != null) {
+                                                    mainActivity.controlPointsExample.cleanPoint();
+                                                    mainActivity.avoidZonesExample.cleanPolygon();
+                                                    mainActivity.llLoadingRoute.setVisibility(View.GONE);
+                                                    mainActivity.llGeocerca.setVisibility(VISIBLE);
+                                                    mainActivity.llIncidencia.setVisibility(VISIBLE);
+                                                    mainActivity.messageView.startAnimation(mainActivity.cargaAnimacion);
+                                                    mainActivity.messageView.setVisibility(View.VISIBLE);
+                                                    mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
+                                                    mainActivity.txtNavegacion.setVisibility(VISIBLE);
+                                                    mainActivity.txtTerminarRuta.setVisibility(VISIBLE);
+                                                    mainActivity.detallesRuta.setVisibility(VISIBLE);
+                                                    mainActivity.distanceTextView.setVisibility(VISIBLE);
+                                                    mainActivity.timeTextView.setVisibility(VISIBLE);
 
-                                                try {
-                                                    mainActivity.navigationExample.startNavigation(route, false, false);
-                                                    mainActivity.logger.trackActivity(TAG,"Se inicio ruta","El usuario decidio iniciar la ruta: "+mainActivity.ruta.name);
-                                                    mainActivity.routeSuccessfullyProcessed = true;
-                                                } catch (Exception e) {
+                                                    try {
+                                                        mainActivity.navigationExample.startNavigation(route, false, false);
+                                                        mainActivity.logger.trackActivity(TAG,"Se inicio ruta","El usuario decidio iniciar la ruta: "+mainActivity.ruta.name);
+                                                        mainActivity.routeSuccessfullyProcessed = true;
+                                                    } catch (Exception e) {
+                                                        mainActivity.routeSuccessfullyProcessed = false;
+                                                    }
+                                                    // Create a LoginRequest object with the provided username and password
+                                                    if(Internet.isNetworkConnected()){
+                                                        SharedPreferences sharedPreferences = mainActivity.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                                                        int id_usuario = sharedPreferences.getInt("id_usuario", 0);
+                                                        HistorialRequest historialRequest = new HistorialRequest(mainActivity.ruta.id, id_usuario);
+
+                                                        // Use Retrofit to make the POST request
+                                                        ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+                                                        Call<ResponseBody> call1 = apiService.mandarHistorial(historialRequest);
+
+                                                        call1.enqueue(new Callback<ResponseBody>() {
+                                                            @Override
+                                                            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                                                                Toast.makeText(mainActivity.getApplicationContext(), "Uso de la ruta #"+mainActivity.ruta.id+" registrado", Toast.LENGTH_SHORT).show();
+                                                                mainActivity.logger.trackActivity(TAG,"Uso de ruta registrado","El uso de la ruta: "+mainActivity.ruta.name+" fue registrado con exito");
+                                                            }
+
+                                                            @Override
+                                                            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                                                                Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
+                                                            }
+                                                        });
+                                                    }else {
+                                                        DialogFragment errorDialog = new ErrorDialogFragment();
+                                                        errorDialog.show(mainActivity.getSupportFragmentManager(), "errorDialog");
+                                                    }
+                                                } else {
+                                                    mainActivity.messages.showCustomToast("No se pudo calcular la ruta");
                                                     mainActivity.routeSuccessfullyProcessed = false;
                                                 }
-                                                // Create a LoginRequest object with the provided username and password
-                                                if(Internet.isNetworkConnected()){
-                                                    SharedPreferences sharedPreferences = mainActivity.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-                                                    int id_usuario = sharedPreferences.getInt("id_usuario", 0);
-                                                    HistorialRequest historialRequest = new HistorialRequest(mainActivity.ruta.id, id_usuario);
-
-                                                    // Use Retrofit to make the POST request
-                                                    ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
-                                                    Call<ResponseBody> call1 = apiService.mandarHistorial(historialRequest);
-
-                                                    call1.enqueue(new Callback<ResponseBody>() {
-                                                        @Override
-                                                        public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
-                                                            Toast.makeText(mainActivity.getApplicationContext(), "Uso de la ruta #"+mainActivity.ruta.id+" registrado", Toast.LENGTH_SHORT).show();
-                                                            mainActivity.logger.trackActivity(TAG,"Uso de ruta registrado","El uso de la ruta: "+mainActivity.ruta.name+" fue registrado con exito");
-                                                        }
-
-                                                        @Override
-                                                        public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
-                                                            Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
-                                                        }
-                                                    });
-                                                }else {
-                                                    DialogFragment errorDialog = new ErrorDialogFragment();
-                                                    errorDialog.show(mainActivity.getSupportFragmentManager(), "errorDialog");
-                                                }
-                                            } else {
-                                                mainActivity.messages.showCustomToast("No se pudo calcular la ruta");
-                                                mainActivity.routeSuccessfullyProcessed = false;
                                             }
-                                        }
+                                        });
                                     });
                                 }
                             }, 400);
@@ -279,6 +286,7 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                             }
                                         }
                                     }
+                                    final int finalId_vehiculo = id_vehiculo;
                                     if(mainActivity.ruta.puntosIds!=null){
                                         for (int id : mainActivity.ruta.puntosIds) {
                                             for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
@@ -317,36 +325,38 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                             }
                                         }
                                     }
-                                    mainActivity.geocercas.drawGeofenceAroundPolyline(mainActivity.ruta.polyline, 100.0);
-                                    //mainActivity.likeImageView1.setVisibility(View.GONE);
-                                    mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,id_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
-                                        @Override
-                                        public void onRouteCalculated(Route route) {
-                                            if (route != null) {
-                                                mainActivity.rutaGenerada = true;
-                                                mainActivity.controlPointsExample.cleanPoint();
-                                                mainActivity.avoidZonesExample.cleanPolygon();
-                                                mainActivity.llLoadingRoute.setVisibility(View.GONE);
-                                                mainActivity.messageView.startAnimation(mainActivity.cargaAnimacion);
-                                                mainActivity.messageView.setVisibility(View.VISIBLE);
-                                                mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
-                                                mainActivity.txtNavegacion.setVisibility(VISIBLE);
-                                                mainActivity.txtTerminarRuta.setVisibility(VISIBLE);
-                                                mainActivity.detallesRuta.setVisibility(VISIBLE);
-                                                mainActivity.distanceTextView.setVisibility(VISIBLE);
-                                                mainActivity.timeTextView.setVisibility(VISIBLE);
-                                                try {
-                                                    mainActivity.navigationExample.startNavigation(route, true, false);
-                                                    mainActivity.logger.trackActivity(TAG,"Se inicio ruta","El usuario decidio simular la ruta: "+mainActivity.ruta.name);
-                                                    mainActivity.routeSuccessfullyProcessed = true;
-                                                } catch (Exception e) {
+                                    executor.execute(() -> {
+                                        mainActivity.rutaGenerada = true;
+                                        mainActivity.geocercas.drawGeofenceAroundPolyline(mainActivity.ruta.polyline, 100.0);
+                                        //mainActivity.likeImageView1.setVisibility(View.GONE);
+                                        mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, null, mainActivity.ruta.coordinatesInicio,finalId_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
+                                            @Override
+                                            public void onRouteCalculated(Route route) {
+                                                if (route != null) {
+                                                    mainActivity.controlPointsExample.cleanPoint();
+                                                    mainActivity.avoidZonesExample.cleanPolygon();
+                                                    mainActivity.llLoadingRoute.setVisibility(View.GONE);
+                                                    mainActivity.messageView.startAnimation(mainActivity.cargaAnimacion);
+                                                    mainActivity.messageView.setVisibility(View.VISIBLE);
+                                                    mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
+                                                    mainActivity.txtNavegacion.setVisibility(VISIBLE);
+                                                    mainActivity.txtTerminarRuta.setVisibility(VISIBLE);
+                                                    mainActivity.detallesRuta.setVisibility(VISIBLE);
+                                                    mainActivity.distanceTextView.setVisibility(VISIBLE);
+                                                    mainActivity.timeTextView.setVisibility(VISIBLE);
+                                                    try {
+                                                        mainActivity.navigationExample.startNavigation(route, true, false);
+                                                        mainActivity.logger.trackActivity(TAG,"Se inicio ruta","El usuario decidio simular la ruta: "+mainActivity.ruta.name);
+                                                        mainActivity.routeSuccessfullyProcessed = true;
+                                                    } catch (Exception e) {
+                                                        mainActivity.routeSuccessfullyProcessed = false;
+                                                    }
+                                                } else {
+                                                    mainActivity.messages.showCustomToast("No se pudo calcular la ruta");
                                                     mainActivity.routeSuccessfullyProcessed = false;
                                                 }
-                                            } else {
-                                                mainActivity.messages.showCustomToast("No se pudo calcular la ruta");
-                                                mainActivity.routeSuccessfullyProcessed = false;
                                             }
-                                        }
+                                        });
                                     });
                                 }
                             }, 400);
