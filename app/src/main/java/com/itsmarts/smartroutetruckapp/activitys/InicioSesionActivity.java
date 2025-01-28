@@ -64,7 +64,7 @@ public class InicioSesionActivity extends AppCompatActivity {
     private CredentialsManager credentialsManager;
     private static final String TAG = "InicioSesionActivity";
     private LinearLayout llLoadingSesion;
-    private TextView forgotPasswordText, closeSesionText;
+    private TextView forgotPasswordText, closeSesionText, versionText;
     private Logger logger;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +79,12 @@ public class InicioSesionActivity extends AppCompatActivity {
         ivTogglePassword = findViewById(R.id.ivTogglePassword);
         llLoadingSesion = findViewById(R.id.llLoadingSesion);
         forgotPasswordText = findViewById(R.id.forgotPasswordText);
+        versionText = findViewById(R.id.versionText);
+        try {
+            versionText.setText("Versión: "+getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName);
+        }catch (Exception e){
+            versionText.setText("Versión: 1.0.0");
+        }
         forgotPasswordText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

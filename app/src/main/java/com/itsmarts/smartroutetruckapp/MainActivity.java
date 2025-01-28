@@ -191,7 +191,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**Botton para comenzar la descarga de mapa*/
     public Button btnDescargar, btnBuscarActualizaciones, btnIniciarActualizacion, recalculateRouteButton;
     /** TextView para mosntrar como se descarga y el porcentaje de descarga del mapa*/
-    public TextView txtProcesoDescarga, txtDescargaTitulo, nav_header_name, nav_header_email, routeTextView;
+    public TextView txtProcesoDescarga, txtDescargaTitulo, nav_header_name, nav_header_email, nav_header_version, routeTextView;
     public FloatingActionButton fbEliminarPoi, fbMapas, btnGeocercas, fbIncidencia;
     public int styleCounter=0;
     // INICIALIZACION DE LA VARIABLE TIPO MapScheme PARA EL ESTILO DEL MAPA POR DEFECTO
@@ -795,6 +795,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             View headerView = nmd.inflateHeaderView(R.layout.nav_header);
             nav_header_name = headerView.findViewById(R.id.nav_header_name);
             nav_header_email = headerView.findViewById(R.id.nav_header_email);
+            nav_header_version = headerView.findViewById(R.id.nav_header_version);
             //likeImageView1 = findViewById(R.id.likeImageView1);
 
             SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
@@ -803,6 +804,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
             nav_header_name.setText(String.format("¡Bienvenido, %s!", nombres));
             nav_header_email.setText(String.format("%s", correo));
+            try {
+                nav_header_version.setText("Versión: "+getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName);
+            }catch (Exception e){
+                nav_header_version.setText("Versión: 1.0.0");
+            }
 
             //Animacion de cargando
             likeAnimator.beginAnimation(likeImageView,R.raw.loading_2,R.raw.loading_5);
@@ -2210,7 +2216,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onBackPressed() {
         try{
             //super.onBackPressed();
-            int nulo = 12/0;
+            //int nulo = 12/0;
             // Muestra un mensaje o realiza otra acción si no se permite regresar
             Toast.makeText(this, "Para regresar a la pantalla de inicio debes cerrar sesion", Toast.LENGTH_SHORT).show();
         }catch (Exception e){
