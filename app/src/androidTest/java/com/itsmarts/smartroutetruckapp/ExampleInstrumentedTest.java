@@ -1,4 +1,4 @@
-package com.itsmarts.smartroutetruckapp;
+package com.itsmarts.SmartRouteTruckApp;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.itsmarts.smartroutetruckapp", appContext.getPackageName());
+        assertEquals("com.itsmarts.SmartRouteTruckApp", appContext.getPackageName());
     }
 }

@@ -3,18 +3,19 @@ plugins {
 }
 
 android {
-    namespace = "com.itsmarts.smartroutetruckapp"
+    namespace = "com.itsmarts.SmartRouteTruckApp"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.itsmarts.smartroutetruckapp"
+        applicationId = "com.itsmarts.SmartRouteTruckApp"
         minSdk = 24
         targetSdk = 34
-        versionCode = 78
+        versionCode = 79
         versionName = "1.1.01"
         /*versionName = "2.0.0"*/
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        resConfigs ("zz")
     }
 
     buildFeatures {
@@ -28,20 +29,24 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("String", "BASE_URL", "\"http://72.167.220.178:3002/\"")
+            buildConfigField("boolean", "PRODUCCION", "true")
         }
         create("desarrollo") {
             isDebuggable = true
             isJniDebuggable = true
             isRenderscriptDebuggable = true
-            buildConfigField("String", "BASE_URL", "\"http://ec2-user@ec2-18-205-239-47.compute-1.amazonaws.com:3002/\"")
             signingConfig = signingConfigs.getByName("debug") // 👈 Agregando configuración de firma
+            buildConfigField("String", "BASE_URL", "\"http://ec2-user@ec2-18-205-239-47.compute-1.amazonaws.com:3002/\"")
+            buildConfigField("boolean", "PRODUCCION", "false")
         }
         create("produccion") {
             isDebuggable = true
             isJniDebuggable = true
             isRenderscriptDebuggable = true
-            buildConfigField("String", "BASE_URL", "\"http://72.167.220.178:3002/\"")
             signingConfig = signingConfigs.getByName("debug") // 👈 Agregando configuración de firma
+            buildConfigField("String", "BASE_URL", "\"http://72.167.220.178:3002/\"")
+            buildConfigField("boolean", "PRODUCCION", "true")
         }
     }
 
