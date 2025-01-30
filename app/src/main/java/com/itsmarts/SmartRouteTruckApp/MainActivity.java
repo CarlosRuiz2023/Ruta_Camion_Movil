@@ -11,7 +11,9 @@ import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Matrix;
 import android.graphics.Typeface;
+import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
@@ -137,6 +139,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.CompletableFuture;
 
 import okhttp3.MediaType;
@@ -147,6 +150,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import android.Manifest;
+import android.graphics.BitmapFactory; // Importa BitmapFactory
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener, NavigationEventHandler.SpeedUpdateListener, NavigationEventHandler.DestinationDistanceListener, NavigationEventHandler.DestinationReachedListener{
 
@@ -198,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public List<PolygonWithId> poligonos = new ArrayList<>();
     public List<PointWithId> puntos = new ArrayList<>();
     public ProgressBar loading_spinner;
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
+    public SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
     public Menu menu_options = null;
     public MenuItem offlineMapItem = null;
     public Logger logger;
@@ -208,6 +212,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private File imageFile = null;
     private Spinner spinnerIncidentType;
     private EditText editTextComment;
+    private String currentPhotoPath; // Declaración de currentPhotoPath como variable de clase
+    private Uri imageUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -243,19 +249,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            // La foto fue tomada correctamente
-            Bundle extras = data.getExtras();
-            Bitmap imageBitmap = (Bitmap) extras.get("data");
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inPreferredConfig = Bitmap.Config.ARGB_8888; // Para la mejor calidad
+            Bitmap imageBitmap = BitmapFactory.decodeFile(currentPhotoPath, options);
+            // 2. Corregir la orientación de la imagen
+            imageBitmap = corregirOrientacion(currentPhotoPath, imageBitmap);
             imgIncidencia.setImageBitmap(imageBitmap);
-            Uri imageUri = bitmapToUri(imageBitmap);
-            Log.e(TAG, "Image URI: " + imageUri);
-            // Now you have the imageUri
-            try {
-                String realPath = getPathFromUri(getApplicationContext(),imageUri);
-                imageFile = new File(realPath);
-            } catch (Exception e) {
-                Log.e(TAG, "Error al obtener la ruta de la imagen", e);
-            }
+            imageFile = reducirCalidadImagen(imageFile, 70);
         } else if (requestCode == REQUEST_IMAGE_PICK && resultCode == RESULT_OK) {
             // La imagen fue seleccionada correctamente
             Uri selectedImageUri = data.getData();
@@ -1022,6 +1022,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fbIncidencia.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    imageFile = null;
                     View dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.ventana_incidencia, null);
 
                     final Dialog dialogIncidencia = new Dialog(MainActivity.this);
@@ -1071,12 +1072,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 } else {
                                     enviarIncidenciaSinFoto();
                                 }
-                                dialogIncidencia.dismiss();
                             }else{
-                                DialogFragment errorDialog = new ErrorDialogFragment();
-                                errorDialog.show(getSupportFragmentManager(), "errorDialog");
-                                dialogIncidencia.dismiss();
+                                if (imageFile != null) {
+                                    uploadImageSinConexion();
+                                } else {
+                                    enviarIncidenciaSinFotoSinConexion();
+                                }
                             }
+                            dialogIncidencia.dismiss();
                         }
                     });
 
@@ -1100,7 +1103,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                             // Abrir la cámara
                                             Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                                             if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-                                                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+                                                /*startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);*/
+                                                dispatchTakePictureIntent();
                                             }
                                         }else{
                                             Toast.makeText(MainActivity.this, "Permiso de cámara denegado", Toast.LENGTH_SHORT).show();
@@ -2303,11 +2307,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     id_tipo_incidencia = 0;
                                     break;
                             }
+                            final int id_tipo_incidencia_final = id_tipo_incidencia;
                             SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
                             int id_usuario = sharedPreferences.getInt("id_usuario", 0);
                             String comentarios = editTextComment.getText().toString();
                             JSONObject jsonIncident = new JSONObject();
-                            jsonIncident.put("id_tipo_incidencia", id_tipo_incidencia);
+                            jsonIncident.put("id_tipo_incidencia", id_tipo_incidencia_final);
                             jsonIncident.put("id_usuario", id_usuario);
                             jsonIncident.put("id_ruta",ruta.id);
                             jsonIncident.put("foto", foto);
@@ -2325,8 +2330,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 public void onResponse(Call<Void> call1, Response<Void> response) {
                                     if (!response.isSuccessful()) {
                                         Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
-                                        messages.showCustomToast("Error al enviar la incidencia");
+                                        messages.showCustomToast("Incidencia con foto guardada en BD");
+                                        dbHelper.saveIncidencia(id_tipo_incidencia_final,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,0);
                                     }else{
+                                        dbHelper.saveIncidencia(id_tipo_incidencia_final,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,1);
                                         messages.showCustomToast("Incidencia enviada con exitosamente");
                                     }
                                 }
@@ -2337,7 +2344,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 }
                             });
                         } else {
+                            // Mostrar un mensaje de error al usuario
                             messages.showCustomToast("Error al enviar la imagen");
+                            uploadImageSinConexion();
                         }
                     } catch (IOException e) {
                         logger.logError(TAG,e,MainActivity.this);
@@ -2348,6 +2357,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     Log.e("Retrofit", "Error al enviar la imagen: " + response.code());
                     // Mostrar un mensaje de error al usuario
                     messages.showCustomToast("Error al enviar la imagen");
+                    uploadImageSinConexion();
                 }
             }
 
@@ -2355,9 +2365,85 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onFailure(Call<ResponseBody> call, Throwable t) {
                 Log.e("Retrofit", "Error al enviar la imagen", t);
                 // Mostrar un mensaje de error al usuario
+                messages.showCustomToast("Error al enviar la imagen");
+                uploadImageSinConexion();
             }
         });
     }
+
+    private void uploadImageSinConexion() {
+        String selectedIncidentType = spinnerIncidentType.getSelectedItem().toString();
+        int id_tipo_incidencia = 0;
+        switch (selectedIncidentType) {
+            case "Infracción de transito":
+                id_tipo_incidencia = 1;
+                break;
+            case "Cierre vial por obras en la zona":
+                id_tipo_incidencia = 2;
+                break;
+            case "Cierre vial por evento en la zona":
+                id_tipo_incidencia = 3;
+                break;
+            case "Zona prohibida":
+                id_tipo_incidencia = 4;
+                break;
+            case "Trafico excesivo por sobre flujo":
+                id_tipo_incidencia = 5;
+                break;
+            case "Trafico excesivo por accidente":
+                id_tipo_incidencia = 6;
+                break;
+            case "Accidente en la zona":
+                id_tipo_incidencia = 7;
+                break;
+            case "Cansancio por manejar":
+                id_tipo_incidencia = 8;
+                break;
+            case "Malestar de salud":
+                id_tipo_incidencia = 9;
+                break;
+            case "Sin combustible":
+                id_tipo_incidencia = 10;
+                break;
+            case "Robo":
+                id_tipo_incidencia = 11;
+                break;
+            case "Falla mecánica":
+                id_tipo_incidencia = 12;
+                break;
+            case "Ponchadura de llanta":
+                id_tipo_incidencia = 13;
+                break;
+            case "Problema eléctrico":
+                id_tipo_incidencia = 14;
+                break;
+            case "Exceso de peso":
+                id_tipo_incidencia = 15;
+                break;
+            case "Clima adverso":
+                id_tipo_incidencia = 16;
+                break;
+            case "Mal estado de las carreteras":
+                id_tipo_incidencia = 17;
+                break;
+            case "Retraso en la carga":
+                id_tipo_incidencia = 18;
+                break;
+            case "Retraso en la descarga":
+                id_tipo_incidencia = 19;
+                break;
+            default:
+                id_tipo_incidencia = 0;
+                break;
+        }
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        int id_usuario = sharedPreferences.getInt("id_usuario", 0);
+        String comentarios = editTextComment.getText().toString();
+
+        dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,0);
+        messages.showCustomToast("Se ha guardado la incidencia con fotografia dentro de la BD");
+    }
+
     private void enviarIncidenciaSinFoto() {
         try {
             String selectedIncidentType = spinnerIncidentType.getSelectedItem().toString();
@@ -2424,11 +2510,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     id_tipo_incidencia = 0;
                     break;
             }
+            final int id_tipo_incidencia_final = id_tipo_incidencia;
             SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
             int id_usuario = sharedPreferences.getInt("id_usuario", 0);
             String comentarios = editTextComment.getText().toString();
             JSONObject jsonIncident = new JSONObject();
-            jsonIncident.put("id_tipo_incidencia", id_tipo_incidencia);
+            jsonIncident.put("id_tipo_incidencia", id_tipo_incidencia_final);
             jsonIncident.put("id_usuario", id_usuario);
             jsonIncident.put("id_ruta",ruta.id);
             jsonIncident.put("comentarios",comentarios);
@@ -2445,21 +2532,104 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (!response.isSuccessful()) {
                         Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
-                        messages.showCustomToast("Error al enviar la incidencia");
+                        dbHelper.saveIncidencia(id_tipo_incidencia_final,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,0);
+                        messages.showCustomToast("Incidencia sin foto guardada dentro de la BD");
                     }else{
                         messages.showCustomToast("Incidencia enviada sin foto exitosamente");
+                        dbHelper.saveIncidencia(id_tipo_incidencia_final,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,1);
                     }
                 }
 
                 @Override
                 public void onFailure(Call<Void> call, Throwable t) {
                     Log.e("ErrorReporter", "Error al enviar el reporte: " + t.getMessage());
+                    dbHelper.saveIncidencia(id_tipo_incidencia_final,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,0);
+                    messages.showCustomToast("Incidencia sin foto guardada dentro de la BD");
                 }
             });
         }catch (JSONException e){
             logger.logError(TAG,e,MainActivity.this);
         }
     }
+
+    private void enviarIncidenciaSinFotoSinConexion() {
+        try {
+            String selectedIncidentType = spinnerIncidentType.getSelectedItem().toString();
+            int id_tipo_incidencia = 0;
+            switch (selectedIncidentType) {
+                case "Infracción de transito":
+                    id_tipo_incidencia = 1;
+                    break;
+                case "Cierre vial por obras en la zona":
+                    id_tipo_incidencia = 2;
+                    break;
+                case "Cierre vial por evento en la zona":
+                    id_tipo_incidencia = 3;
+                    break;
+                case "Zona prohibida":
+                    id_tipo_incidencia = 4;
+                    break;
+                case "Trafico excesivo por sobre flujo":
+                    id_tipo_incidencia = 5;
+                    break;
+                case "Trafico excesivo por accidente":
+                    id_tipo_incidencia = 6;
+                    break;
+                case "Accidente en la zona":
+                    id_tipo_incidencia = 7;
+                    break;
+                case "Cansancio por manejar":
+                    id_tipo_incidencia = 8;
+                    break;
+                case "Malestar de salud":
+                    id_tipo_incidencia = 9;
+                    break;
+                case "Sin combustible":
+                    id_tipo_incidencia = 10;
+                    break;
+                case "Robo":
+                    id_tipo_incidencia = 11;
+                    break;
+                case "Falla mecánica":
+                    id_tipo_incidencia = 12;
+                    break;
+                case "Ponchadura de llanta":
+                    id_tipo_incidencia = 13;
+                    break;
+                case "Problema eléctrico":
+                    id_tipo_incidencia = 14;
+                    break;
+                case "Exceso de peso":
+                    id_tipo_incidencia = 15;
+                    break;
+                case "Clima adverso":
+                    id_tipo_incidencia = 16;
+                    break;
+                case "Mal estado de las carreteras":
+                    id_tipo_incidencia = 17;
+                    break;
+                case "Retraso en la carga":
+                    id_tipo_incidencia = 18;
+                    break;
+                case "Retraso en la descarga":
+                    id_tipo_incidencia = 19;
+                    break;
+                default:
+                    id_tipo_incidencia = 0;
+                    break;
+            }
+            final int id_tipo_incidencia_final = id_tipo_incidencia;
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            int id_usuario = sharedPreferences.getInt("id_usuario", 0);
+            String comentarios = editTextComment.getText().toString();
+
+            dbHelper.saveIncidencia(id_tipo_incidencia_final,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,0);
+            messages.showCustomToast("Se ha guardado la incidencia sin fotografia dentro de la BD");
+        }catch (Exception e){
+            logger.logError(TAG,e,MainActivity.this);
+        }
+    }
+
     public String getPathFromUri(Context context, Uri uri) {
         if ("content".equalsIgnoreCase(uri.getScheme())) {
             if (uri.getAuthority().contains("media")) {
@@ -2509,22 +2679,97 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
         return null;
     }
-    private Uri bitmapToUri(Bitmap bitmap) {
-        Uri uri = null;
+
+    private File createImageFile() throws IOException {
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES); // Directorio de imágenes públicas
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
+
+        // Guarda un path:file URI para usarla con ACTION_IMAGE_CAPTURE intents
+        currentPhotoPath = image.getAbsolutePath();
+        return image;
+    }
+
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        // Asegurarse de que hay una actividad de cámara para manejar el intent
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            try {
+                imageFile = createImageFile();
+            } catch (IOException ex) {
+                // Error occurred while creating the File
+                return;
+            }
+            // Continúa solo si el archivo fue creado exitosamente
+            if (imageFile != null) {
+                imageUri = FileProvider.getUriForFile(this, "com.itsmarts.SmartRouteTruckApp.fileprovider", imageFile); // Tu autoridad de FileProvider
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, imageUri);
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }
+    }
+
+    private File reducirCalidadImagen(File imageFile, int calidad) {
         try {
-            // Crear un archivo temporal en el almacenamiento privado de la aplicación
-            File file = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "temp_image.jpg");
+            // 1. Cargar la imagen
+            Bitmap bitmap = BitmapFactory.decodeFile(imageFile.getAbsolutePath());
 
-            FileOutputStream fos = new FileOutputStream(file);
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-            fos.close();
+            // 2. Corregir la orientación de la imagen
+            bitmap = corregirOrientacion(imageFile.getAbsolutePath(), bitmap);
 
-            // Obtener la URI del archivo utilizando FileProvider
-            uri = FileProvider.getUriForFile(this, "com.itsmarts.smartroutetruckapp.fileprovider", file);
+            // 3. Crear un nuevo archivo para guardar la imagen comprimida
+            File compressedFile = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "imagen_reducida.jpg");
+            FileOutputStream out = new FileOutputStream(compressedFile);
+
+            // 4. Comprimir la imagen sin alterar su tamaño
+            bitmap.compress(Bitmap.CompressFormat.JPEG, calidad, out); // Calidad entre 0 y 100
+
+            out.flush();
+            out.close();
+
+            return compressedFile; // Retornar el nuevo archivo con menor calidad
+
         } catch (IOException e) {
             e.printStackTrace();
-            Log.e("BitmapToUri", "Error al convertir el Bitmap a URI");
+            return null;
         }
-        return uri;
+    }
+
+    /**
+     * 📌 Método para leer y corregir la orientación de la imagen
+     */
+    private Bitmap corregirOrientacion(String imagePath, Bitmap bitmap) {
+        try {
+            ExifInterface exif = new ExifInterface(imagePath);
+            int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL);
+            int rotationAngle = 0;
+
+            switch (orientation) {
+                case ExifInterface.ORIENTATION_ROTATE_90:
+                    rotationAngle = 90;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_180:
+                    rotationAngle = 180;
+                    break;
+                case ExifInterface.ORIENTATION_ROTATE_270:
+                    rotationAngle = 270;
+                    break;
+            }
+
+            if (rotationAngle != 0) {
+                Matrix matrix = new Matrix();
+                matrix.postRotate(rotationAngle);
+                return Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return bitmap; // Retorna la imagen corregida
     }
 }

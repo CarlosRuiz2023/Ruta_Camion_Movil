@@ -164,8 +164,8 @@ public class InicioSesionActivity extends AppCompatActivity {
             startActivity(intent);
             finish();  // Evitar que el usuario regrese a la pantalla de login al presionar 'atrás'*/
         }else{
-            etUsername.setText("example@gmail.com");
-            etPassword.setText("123456");
+            etUsername.setText("play_store@gmail.com");
+            etPassword.setText("ItsMarts1*");
         }
         // Inicializar el administrador de credenciales
         credentialsManager = new CredentialsManager();

@@ -7,14 +7,18 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.os.Environment;
 import android.text.TextUtils;
 import android.util.Base64;
 import android.util.Log;
+
+import androidx.annotation.Nullable;
 
 import com.here.sdk.core.Color;
 import com.here.sdk.core.GeoCoordinates;
 import com.here.sdk.core.GeoPolygon;
 import com.here.sdk.core.GeoPolyline;
+import com.here.sdk.core.LanguageCode;
 import com.here.sdk.core.errors.InstantiationErrorException;
 import com.here.sdk.mapview.LineCap;
 import com.here.sdk.mapview.MapImage;
@@ -24,16 +28,30 @@ import com.here.sdk.mapview.MapMeasureDependentRenderSize;
 import com.here.sdk.mapview.MapPolygon;
 import com.here.sdk.mapview.MapPolyline;
 import com.here.sdk.mapview.RenderSize;
+import com.here.sdk.search.Place;
+import com.here.sdk.search.PlaceCategory;
+import com.here.sdk.search.PlaceIdSearchCallback;
+import com.here.sdk.search.SearchCallback;
+import com.here.sdk.search.SearchError;
+import com.here.sdk.search.SearchOptions;
+import com.itsmarts.SmartRouteTruckApp.MainActivity;
 import com.itsmarts.SmartRouteTruckApp.R;
+import com.itsmarts.SmartRouteTruckApp.modelos.Incidencia;
 import com.itsmarts.SmartRouteTruckApp.modelos.PointWithId;
 import com.itsmarts.SmartRouteTruckApp.modelos.PolygonWithId;
 import com.itsmarts.SmartRouteTruckApp.modelos.RoutesWithId;
 import com.itsmarts.SmartRouteTruckApp.modelos.TruckSpec;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -51,6 +69,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_CAMIONES = "camiones";
     private static final String TABLE_ROUTES = "rutas";
     private static final String TABLE_ASIGNACIONES = "asignaciones";
+    private static final String TABLE_INCIDENCIAS = "incidencias";
 
     private static final String COLUMN_ID = "id";
     private static final String COLUMN_NAME = "name";
@@ -86,12 +105,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String COLUMN_DISTANCIA = "distancia";
     private static final String COLUMN_TIEMPO = "tiempo";
     private static final String COLUMN_ORDEN_AUTOMATICO = "orden_automatico";
+    private static final String COLUMN_TIPO_INCIDENCIA_ID = "tipo_incidencia_id";
+    private static final String COLUMN_USUARIO_ID = "usuarioId";
+    private static final String COLUMN_FOTO = "foto";
+    private static final String COLUMN_COMENTARIOS = "comentarios";
+    private static final String COLUMN_DIRECCION = "direccion";
+    private static final String COLUMN_FECHA_HORA = "fechaHora";
 
-    private static Context context;
+    private static MainActivity mainActivity;
 
-    public DatabaseHelper(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
-        this.context = context;
+    public DatabaseHelper(MainActivity mainActivity) {
+        super(mainActivity.getApplicationContext(), DATABASE_NAME, null, DATABASE_VERSION);
+        this.mainActivity = mainActivity;
     }
 
     @Override
@@ -152,11 +177,25 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String createTableQueryAsignaciones = "CREATE TABLE " + TABLE_ASIGNACIONES + " (" +
                 COLUMN_ROUTE_ID + " INTEGER)";
 
+        String createTableQueryIncidencias = "CREATE TABLE " + TABLE_INCIDENCIAS + " (" +
+                COLUMN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COLUMN_TIPO_INCIDENCIA_ID + " INTEGER, " +
+                COLUMN_USUARIO_ID + " INTEGER, " +
+                COLUMN_ROUTE_ID + " INTEGER, " +
+                COLUMN_FOTO + " TEXT, " +
+                COLUMN_COMENTARIOS + " TEXT, " +
+                COLUMN_DIRECCION + " TEXT, " +
+                COLUMN_LATITUDE + " REAL, " +
+                COLUMN_LONGITUDE + " REAL, " +
+                COLUMN_FECHA_HORA + " TEXT, " +
+                COLUMN_STATUS + " INTEGER)";
+
         db.execSQL(createTableQueryPuntos);
         db.execSQL(createTableQueryZonas);
         db.execSQL(createTableQueryTrucks);
         db.execSQL(createTableQueryRoutes);
         db.execSQL(createTableQueryAsignaciones);
+        db.execSQL(createTableQueryIncidencias);
     }
 
     @Override
@@ -167,6 +206,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_CAMIONES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ROUTES);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_ASIGNACIONES);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_INCIDENCIAS);
         onCreate(db);
     }
 
@@ -231,7 +271,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 Boolean label = cursor.getInt(cursor.getColumnIndex(COLUMN_LABEL)) == 1;
                 Boolean visibility = cursor.getInt(cursor.getColumnIndex(COLUMN_VISIBILITY)) == 1;
                 Boolean status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)) == 1;
-                MapImage mapImage = MapImageFactory.fromResource(context.getResources(), R.drawable.punto_control);
+                MapImage mapImage = MapImageFactory.fromResource(mainActivity.getApplicationContext().getResources(), R.drawable.punto_control);
                 MapMarker mapMarker = new MapMarker(new GeoCoordinates(latitude, longitude), mapImage);
                 pointsWithIds.add(new PointWithId(id,mapMarker,name,id_estado,id_municipio,ids,label,visibility,status));
             } while (cursor.moveToNext());
@@ -264,7 +304,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 Boolean label = cursor.getInt(cursor.getColumnIndex(COLUMN_LABEL)) == 1;
                 Boolean visibility = cursor.getInt(cursor.getColumnIndex(COLUMN_VISIBILITY)) == 1;
                 Boolean status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)) == 1;
-                MapImage mapImage = MapImageFactory.fromResource(context.getResources(), R.drawable.punto_control);
+                MapImage mapImage = MapImageFactory.fromResource(mainActivity.getApplicationContext().getResources(), R.drawable.punto_control);
                 MapMarker mapMarker = new MapMarker(new GeoCoordinates(latitude, longitude), mapImage);
                 punto = new PointWithId(id,mapMarker,name,id_estado,id_municipio,ids,label,visibility,status);
             }
@@ -1022,6 +1062,192 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_ASIGNACIONES, null, null);
         db.close();
+    }
+
+    /*
+     * Descripcion: FUNCIONES PARA LA BASE DE DATOS DE INCIDENCIAS
+     * Autor: CHARLY
+     * Ultima fecha de actualizacion: 24.09.2024
+     */
+
+    // Guarda una coordenada en la base de datos
+    public void saveIncidencia(int id_tipo_incidencia, int id_usuario, int id_ruta, File foto, String comentarios, GeoCoordinates coordenadas, int estatus) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_TIPO_INCIDENCIA_ID, id_tipo_incidencia);
+        values.put(COLUMN_LATITUDE, coordenadas.latitude);
+        values.put(COLUMN_LONGITUDE, coordenadas.longitude);
+        values.put(COLUMN_USUARIO_ID, id_usuario);
+        values.put(COLUMN_ROUTE_ID, id_ruta);
+        if(foto!=null) {
+            values.put(COLUMN_FOTO, guardarImagenBase64DesdeArchivo(foto));
+        }
+        values.put(COLUMN_COMENTARIOS, comentarios);
+        values.put(COLUMN_FECHA_HORA, mainActivity.dateFormat.format(new Date()).toString());
+        if(mainActivity.offlineMapItem.isChecked()){
+            mainActivity.offlineSearchEngine.search(coordenadas, new SearchOptions(), new SearchCallback() {
+                @Override
+                public void onSearchCompleted(@Nullable SearchError searchError, @Nullable List<Place> list) {
+                    if (searchError == null) {
+                        final String direccion = list.get(0).getAddress().addressText;
+                        values.put(COLUMN_DIRECCION, direccion);
+                    } else {
+                        Log.e(TAG, "searchPickedPlace() resulted in an error: " + searchError.name());
+                    }
+                }
+            });
+        }else {
+            mainActivity.searchEngine.search(coordenadas, new SearchOptions(), new SearchCallback() {
+                @Override
+                public void onSearchCompleted(@Nullable SearchError searchError, @Nullable List<Place> list) {
+                    if (searchError == null) {
+                        final String direccion = list.get(0).getAddress().addressText;
+                        values.put(COLUMN_DIRECCION, direccion);
+                    } else {
+                        Log.e(TAG, "searchPickedPlace() resulted in an error: " + searchError.name());
+                    }
+                }
+            });
+        }
+        values.put(COLUMN_STATUS, estatus);
+        db.insert(TABLE_INCIDENCIAS, null, values);
+        db.close();
+    }
+
+    // Recupera todas las coordenadas de la base de datos
+    public List<Incidencia> getAllIncidencias() {
+        List<Incidencia> incidencias = new ArrayList<>();
+        SQLiteDatabase db = this.getReadableDatabase();
+        String selectQuery = "SELECT * FROM " + TABLE_INCIDENCIAS;
+        Cursor cursor = db.rawQuery(selectQuery, null);
+
+        if (cursor.moveToFirst()) {
+            do {
+                int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+                int id_tipo_incidencia = cursor.getInt(cursor.getColumnIndex(COLUMN_TIPO_INCIDENCIA_ID));
+                int id_usuario = cursor.getInt(cursor.getColumnIndex(COLUMN_USUARIO_ID));
+                int id_ruta = cursor.getInt(cursor.getColumnIndex(COLUMN_ROUTE_ID));
+                String foto = cursor.getString(cursor.getColumnIndex(COLUMN_FOTO));
+                File fotoFile = null;
+                if(foto!=null){
+                    fotoFile = base64AImagen(foto);
+                }
+                String comentarios = cursor.getString(cursor.getColumnIndex(COLUMN_COMENTARIOS));
+                String direccion = cursor.getString(cursor.getColumnIndex(COLUMN_DIRECCION));
+                double latitude = cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE));
+                double longitude = cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE));
+                String fecha_hora = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_HORA));
+                Date fechaHora = null;
+                if (fecha_hora != null) {
+                    try {
+                        fechaHora = mainActivity.dateFormat.parse(fecha_hora);
+                    } catch (ParseException e) {
+                        Log.e(TAG,"Error al parsear fecha de creacion: "+fecha_hora);
+                    }
+                }
+                Boolean status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)) == 1;
+                incidencias.add(new Incidencia(id,id_tipo_incidencia,id_usuario,id_ruta,fotoFile,comentarios,direccion,new GeoCoordinates(latitude,longitude),fechaHora,status));
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+        return incidencias;
+    }
+
+    public Incidencia getIncidenciaById(int idPunto) {
+        Incidencia incidencia = null;
+        try {
+            SQLiteDatabase db = this.getReadableDatabase();
+            String selectQuery = "SELECT * FROM " + TABLE_INCIDENCIAS + " WHERE " + COLUMN_ID + " = ?";
+            Cursor cursor = db.rawQuery(selectQuery, new String[]{String.valueOf(idPunto)});
+            if (cursor.moveToFirst()) {
+                int id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
+                int id_tipo_incidencia = cursor.getInt(cursor.getColumnIndex(COLUMN_TIPO_INCIDENCIA_ID));
+                int id_usuario = cursor.getInt(cursor.getColumnIndex(COLUMN_USUARIO_ID));
+                int id_ruta = cursor.getInt(cursor.getColumnIndex(COLUMN_ROUTE_ID));
+                String foto = cursor.getString(cursor.getColumnIndex(COLUMN_FOTO));
+                File fotoFile = null;
+                if(foto!=null){
+                    fotoFile = base64AImagen(foto);
+                }
+                String comentarios = cursor.getString(cursor.getColumnIndex(COLUMN_COMENTARIOS));
+                String direccion = cursor.getString(cursor.getColumnIndex(COLUMN_DIRECCION));
+                double latitude = cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE));
+                double longitude = cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE));
+                String fecha_hora = cursor.getString(cursor.getColumnIndex(COLUMN_FECHA_HORA));
+                Date fechaHora = null;
+                if (fecha_hora != null) {
+                    try {
+                        fechaHora = mainActivity.dateFormat.parse(fecha_hora);
+                    } catch (ParseException e) {
+                        Log.e(TAG,"Error al parsear fecha de creacion: "+fecha_hora);
+                    }
+                }
+                Boolean status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)) == 1;
+                incidencia = new Incidencia(id,id_tipo_incidencia, id_usuario, id_ruta, fotoFile, comentarios, direccion, new GeoCoordinates(latitude, longitude), fechaHora, status);
+            }
+            cursor.close();
+            db.close();
+        }catch (Exception e){
+            Log.e(TAG,e.getMessage());
+        }
+        return incidencia;
+    }
+
+    // Elimina una incidencia de la base de datos por su ID
+    public void deleteIncidencia(int id) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_INCIDENCIAS, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+        db.close();
+    }
+
+    private String guardarImagenBase64DesdeArchivo(File imageFile) {
+        String imageBase64 = null;
+        try {
+            // 1. Leer el archivo en un array de bytes
+            FileInputStream fis = new FileInputStream(imageFile);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = fis.read(buffer)) != -1) {
+                byteArrayOutputStream.write(buffer, 0, bytesRead);
+            }
+            byte[] byteArray = byteArrayOutputStream.toByteArray();
+
+            // 2. Codificar el array de bytes a Base64
+            imageBase64 = Base64.encodeToString(byteArray, Base64.DEFAULT);
+
+            // 3. Cerrar los streams
+            fis.close();
+            byteArrayOutputStream.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("FileToBase64", "Error al convertir el archivo a Base64");
+        }
+        return imageBase64;
+    }
+
+    private File base64AImagen(String imageBase64) {
+        File imageFile = null;
+        try {
+            // 1. Decodificar la cadena Base64 a un array de bytes
+            byte[] decodedByteArray = Base64.decode(imageBase64, Base64.DEFAULT);
+
+            // 2. Crear un archivo en el almacenamiento externo
+            imageFile = new File(mainActivity.getExternalFilesDir(Environment.DIRECTORY_PICTURES), "temp_image.jpg");
+
+            // 3. Escribir el array de bytes en el archivo
+            FileOutputStream fos = new FileOutputStream(imageFile);
+            fos.write(decodedByteArray);
+            fos.close();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            Log.e("Base64ToFile", "Error al convertir Base64 a archivo");
+        }
+        return imageFile;
     }
 
 }
