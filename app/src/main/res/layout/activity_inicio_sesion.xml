@@ -8,6 +8,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".LoginActivity">
+
     <TextView
         android:id="@+id/tvBanner"
         android:layout_width="match_parent"
@@ -22,6 +23,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
+
     <ImageView
         android:id="@+id/imgLogo"
         android:layout_width="wrap_content"
@@ -131,6 +133,36 @@
         android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/btnLogin"/>
+
+    <LinearLayout
+        android:id="@+id/layoutSwitchEnvironment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginBottom="32dp">
+        <TextView
+            android:id="@+id/txtEnvironment"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:backgroundTint="#00000000"
+            android:gravity="center"
+            android:text="Desarrollo"
+            android:textColor="@color/white"
+            android:textSize="18dp"
+            android:textStyle="bold"
+            android:layout_marginRight="8dp"/>
+
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/switchEnvironment"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:trackTint="@color/white"
+            app:thumbTint="@color/rojo"
+            />
+
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/llLoadingSesion"

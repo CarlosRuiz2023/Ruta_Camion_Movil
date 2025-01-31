@@ -1064,6 +1064,16 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    // Elimina todas las asignaciones de la base de datos
+    public void truncateBD() {
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.delete(TABLE_ASIGNACIONES, null, null);
+        db.delete(TABLE_ZONAS, null, null);
+        db.delete(TABLE_PUNTOS, null, null);
+        db.delete(TABLE_ROUTES, null, null);
+        db.close();
+    }
+
     /*
      * Descripcion: FUNCIONES PARA LA BASE DE DATOS DE INCIDENCIAS
      * Autor: CHARLY

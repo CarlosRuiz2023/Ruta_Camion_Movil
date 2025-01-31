@@ -12,13 +12,14 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
-    //private static final String BASE_URL = "http://ec2-user@ec2-18-205-239-47.compute-1.amazonaws.com:3002/";
-    //private static final String BASE_URL = "http://192.168.11.26:3002/";
-    private static final String BASE_URL = BuildConfig.BASE_URL;
+    private static final String BASE_URL_DESARROLLO = "http://ec2-user@ec2-18-205-239-47.compute-1.amazonaws.com:3002/";
+    private static final String BASE_URL_PRODUCCION = "http://192.168.11.26:3002/";
+    //private static final String BASE_URL = BuildConfig.BASE_URL;
     private static Retrofit retrofit;
 
-    public static Retrofit getInstance(String token) {
+    public static Retrofit getInstance(String token, boolean desarrollo) {
         try{
+            String BASE_URL = desarrollo ? BASE_URL_DESARROLLO : BASE_URL_PRODUCCION;
             OkHttpClient client = new OkHttpClient.Builder()
                     .connectTimeout(30, TimeUnit.SECONDS)
                     .readTimeout(60, TimeUnit.SECONDS)

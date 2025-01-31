@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     /**Botton para comenzar la descarga de mapa*/
     public Button btnDescargar, btnBuscarActualizaciones, btnIniciarActualizacion, recalculateRouteButton;
     /** TextView para mosntrar como se descarga y el porcentaje de descarga del mapa*/
-    public TextView txtProcesoDescarga, txtDescargaTitulo, nav_header_name, nav_header_email, nav_header_version, routeTextView;
+    public TextView txtProcesoDescarga, txtDescargaTitulo, nav_header_name, nav_header_email, nav_header_version, routeTextView, tvBanner;
     public FloatingActionButton fbEliminarPoi, fbMapas, btnGeocercas, fbIncidencia;
     public int styleCounter=0;
     // INICIALIZACION DE LA VARIABLE TIPO MapScheme PARA EL ESTILO DEL MAPA POR DEFECTO
@@ -255,7 +255,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             // 2. Corregir la orientación de la imagen
             imageBitmap = corregirOrientacion(currentPhotoPath, imageBitmap);
             imgIncidencia.setImageBitmap(imageBitmap);
-            imageFile = reducirCalidadImagen(imageFile, 70);
+            imageFile = reducirCalidadImagen(imageFile, 40);
         } else if (requestCode == REQUEST_IMAGE_PICK && resultCode == RESULT_OK) {
             // La imagen fue seleccionada correctamente
             Uri selectedImageUri = data.getData();
@@ -529,10 +529,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     break;
                 case "Cerrar Sesion":
                     if(Internet.isNetworkConnected()){
-                        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
                         String token = sharedPreferences.getString("token", "");
+                        boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
                         // Use Retrofit to make the POST request
-                        ApiService apiService = RetrofitClient.getInstance(token).create(ApiService.class);
+                        ApiService apiService = RetrofitClient.getInstance(token,desarrollo).create(ApiService.class);
                         Call<ResponseBody> call = apiService.desloguearse();
 
                         call.enqueue(new Callback<ResponseBody>() {
@@ -549,6 +550,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         JSONObject resultObject = null;
                                         if (success) {
                                             /*// Remove credentials from SharedPreferences
+                                            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
                                             SharedPreferences.Editor editor = sharedPreferences.edit();
                                             editor.remove("token");  // Remove username key
                                             editor.remove("id_usuario");  // Remove password key (if stored directly)
@@ -712,6 +714,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void initializeBD(){
         try{
             dbHelper = new DatabaseHelper(this);
+            dbHelper.truncateBD();
             rutas = dbHelper.getAllRoutes();
             if(rutas.size() == 0){
                 futures.add(descargarRutas());
@@ -789,20 +792,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             View headerView = nmd.inflateHeaderView(R.layout.nav_header);
             nav_header_name = headerView.findViewById(R.id.nav_header_name);
             nav_header_email = headerView.findViewById(R.id.nav_header_email);
-            nav_header_version = headerView.findViewById(R.id.nav_header_version);
+            //nav_header_version = headerView.findViewById(R.id.nav_header_version);
+            tvBanner = findViewById(R.id.tvBanner);
             //likeImageView1 = findViewById(R.id.likeImageView1);
 
-            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+            boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+            if(desarrollo){
+                tvBanner.setVisibility(View.VISIBLE);
+            }
             String nombres = sharedPreferences.getString("nombres", "").trim();
             String correo = sharedPreferences.getString("correo", "");
 
             nav_header_name.setText(String.format("¡Bienvenido, %s!", nombres));
             nav_header_email.setText(String.format("%s", correo));
-            try {
-                nav_header_version.setText("Versión: "+getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName);
-            }catch (Exception e){
-                nav_header_version.setText("Versión: 1.0.0");
-            }
+            //nav_header_version.setText("Versión: "+getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName);
+            toolbar.setSubtitle("Versión: "+getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName);
 
             //Animacion de cargando
             likeAnimator.beginAnimation(likeImageView,R.raw.loading_2,R.raw.loading_5);
@@ -1658,7 +1663,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             navigationExample.stopLocating();
             navigationExample.stopRendering();
             /*// Remove credentials from SharedPreferences
-            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
             editor.remove("token");  // Remove username key
             editor.remove("id_usuario");  // Remove password key (if stored directly)
@@ -1676,7 +1681,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private CompletableFuture<ResponseBody> descargarRutas() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+            boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+            ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
             apiService.getRutas().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -1846,7 +1853,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private CompletableFuture<ResponseBody> descargarRutasFaltantes() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+            boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+            ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
             apiService.getRutas().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -2151,10 +2160,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private CompletableFuture<ResponseBody> obtenerAsignaciones() {
         try {
-            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
             int id_usuario = sharedPreferences.getInt("id_usuario", 0);
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+            boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+            ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
             apiService.getAsignaciones(id_usuario).enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -2226,7 +2236,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         // Crear el MultipartBody.Part para la imagen
         RequestBody requestBody = RequestBody.create(MediaType.parse("image/*"), imageFile);
         MultipartBody.Part imagePart = MultipartBody.Part.createFormData("archivo", "imagen.jpg", requestBody);
-        ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+        boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+        ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
         // Llamar al servicio
         Call<ResponseBody> call = apiService.cargarImagen(imagePart);
         call.enqueue(new Callback<ResponseBody>() {
@@ -2308,7 +2320,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     break;
                             }
                             final int id_tipo_incidencia_final = id_tipo_incidencia;
-                            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
                             int id_usuario = sharedPreferences.getInt("id_usuario", 0);
                             String comentarios = editTextComment.getText().toString();
                             JSONObject jsonIncident = new JSONObject();
@@ -2319,8 +2331,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             jsonIncident.put("comentarios",comentarios);
                             jsonIncident.put("latitud",currentGeoCoordinates.latitude);
                             jsonIncident.put("longitud",currentGeoCoordinates.longitude);
+                            boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
                             //ErrorReporter.sendError(jsonObject);
-                            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+                            ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
                             // Convertir JSONObject a String y crear un RequestBody
                             RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonIncident.toString());
                             Call<Void> call1 = apiService.agregarIncidencia(requestBody);
@@ -2436,7 +2449,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 id_tipo_incidencia = 0;
                 break;
         }
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
         int id_usuario = sharedPreferences.getInt("id_usuario", 0);
         String comentarios = editTextComment.getText().toString();
 
@@ -2511,7 +2524,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     break;
             }
             final int id_tipo_incidencia_final = id_tipo_incidencia;
-            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
             int id_usuario = sharedPreferences.getInt("id_usuario", 0);
             String comentarios = editTextComment.getText().toString();
             JSONObject jsonIncident = new JSONObject();
@@ -2521,8 +2534,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             jsonIncident.put("comentarios",comentarios);
             jsonIncident.put("latitud",currentGeoCoordinates.latitude);
             jsonIncident.put("longitud",currentGeoCoordinates.longitude);
+            boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
             //ErrorReporter.sendError(jsonObject);
-            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+            ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
             // Convertir JSONObject a String y crear un RequestBody
             RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonIncident.toString());
             Call<Void> call = apiService.agregarIncidencia(requestBody);
@@ -2619,7 +2633,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     break;
             }
             final int id_tipo_incidencia_final = id_tipo_incidencia;
-            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
             int id_usuario = sharedPreferences.getInt("id_usuario", 0);
             String comentarios = editTextComment.getText().toString();
 

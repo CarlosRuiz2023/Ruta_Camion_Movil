@@ -180,7 +180,9 @@ public class Logger {
                             jsonObject.put("error", errorLogArray);
                             jsonObject.put("eventos", eventLogArray);
                             //ErrorReporter.sendError(jsonObject);
-                            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+                            SharedPreferences sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                            boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+                            ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
                             // Convertir JSONObject a String y crear un RequestBody
                             RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonObject.toString());
                             Call<Void> call = apiService.enviarError(requestBody);

@@ -4,6 +4,7 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.ColorStateList;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
@@ -20,13 +21,16 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.DialogFragment;
 
+import com.google.android.material.materialswitch.MaterialSwitch;
 import com.itsmarts.SmartRouteTruckApp.BuildConfig;
 import com.itsmarts.SmartRouteTruckApp.MainActivity;
 import com.itsmarts.SmartRouteTruckApp.R;
 import com.itsmarts.SmartRouteTruckApp.api.ApiService;
 import com.itsmarts.SmartRouteTruckApp.api.RetrofitClient;
+import com.itsmarts.SmartRouteTruckApp.bd.DatabaseHelper;
 import com.itsmarts.SmartRouteTruckApp.clases.CredentialsManager;
 import com.itsmarts.SmartRouteTruckApp.clases.Logger;
 import com.itsmarts.SmartRouteTruckApp.fragments.ErrorDialogFragment;
@@ -53,6 +57,7 @@ public class InicioSesionActivity extends AppCompatActivity {
     private LinearLayout llLoadingSesion;
     private TextView forgotPasswordText, closeSesionText, versionText, tvBanner;
     private Logger logger;
+    private SwitchCompat switchEnvironment;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -68,9 +73,17 @@ public class InicioSesionActivity extends AppCompatActivity {
         forgotPasswordText = findViewById(R.id.forgotPasswordText);
         versionText = findViewById(R.id.versionText);
         tvBanner = findViewById(R.id.tvBanner);
-        if(!BuildConfig.PRODUCCION){
+        switchEnvironment = findViewById(R.id.switchEnvironment);
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+        if(desarrollo){
+            switchEnvironment.setChecked(true);
+            switchEnvironment.setThumbTintList(ColorStateList.valueOf(getResources().getColor(R.color.deepOrange_800)));
             tvBanner.setVisibility(View.VISIBLE);
         }
+        /*if(!BuildConfig.PRODUCCION){
+            tvBanner.setVisibility(View.VISIBLE);
+        }*/
         try {
             versionText.setText("Versión: "+getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName);
         }catch (Exception e){
@@ -98,8 +111,10 @@ public class InicioSesionActivity extends AppCompatActivity {
 
                             if (isValidEmail(email) ) {
                                 RecuperarContraseniaRequest recuperarContraseniaRequest = new RecuperarContraseniaRequest(email);
+                                SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                                boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
                                 // Use Retrofit to make the POST request
-                                ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+                                ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
                                 Call<ResponseBody> call = apiService.recuperarContrasenia(recuperarContraseniaRequest);
 
                                 call.enqueue(new Callback<ResponseBody>() {
@@ -213,9 +228,11 @@ public class InicioSesionActivity extends AppCompatActivity {
                     // Create a LoginRequest object with the provided username and password
                     if(Internet.isNetworkConnected()){
                         LoginRequest loginRequest = new LoginRequest(username, password);
+                        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                        boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
 
                         // Use Retrofit to make the POST request
-                        ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+                        ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
                         Call<ResponseBody> call = apiService.loguearse(loginRequest);
 
                         call.enqueue(new Callback<ResponseBody>() {
@@ -247,10 +264,8 @@ public class InicioSesionActivity extends AppCompatActivity {
                                             if (id_rol == 6) {
                                                 SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
                                                 SharedPreferences.Editor editor = sharedPreferences.edit();
-
                                                 // Store the token
                                                 editor.putString("token", token);
-
                                                 // Store user information
                                                 editor.putInt("id_usuario", id_usuario);
                                                 editor.putString("nombres", nombres);
@@ -261,7 +276,6 @@ public class InicioSesionActivity extends AppCompatActivity {
                                                 editor.putString("telefono", telefono);
                                                 editor.putInt("id_rol", id_rol);
                                                 editor.putBoolean("isLoggedIn", true); // Update login state
-
                                                 // Commit the changes
                                                 editor.apply();
                                                 Intent intent = new Intent(InicioSesionActivity.this, MainActivity.class);
@@ -275,8 +289,10 @@ public class InicioSesionActivity extends AppCompatActivity {
                                                 llLoadingSesion.setVisibility(View.GONE);
                                                 Toast.makeText(getApplicationContext(), "Solo puede acceder un operador a la Aplicacion", Toast.LENGTH_SHORT).show();
                                                 logger.trackActivity(TAG,"Inicio sesion invalido","El usuario inicio sesion bajo el correo: "+username+" y la contraseña: "+password+" dicho usuario no es operador");
+                                                SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                                                boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
                                                 // Use Retrofit to make the POST request
-                                                ApiService apiService = RetrofitClient.getInstance(token).create(ApiService.class);
+                                                ApiService apiService = RetrofitClient.getInstance(token,desarrollo).create(ApiService.class);
                                                 Call<ResponseBody> call1 = apiService.desloguearse();
 
                                                 call1.enqueue(new Callback<ResponseBody>() {
@@ -318,8 +334,9 @@ public class InicioSesionActivity extends AppCompatActivity {
                                                 if(Internet.isNetworkConnected()){
                                                     SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
                                                     int id_usuario = sharedPreferences.getInt("id_usuario", 0);
+                                                    boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
                                                     // Use Retrofit to make the POST request
-                                                    ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+                                                    ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
                                                     Call<ResponseBody> call1 = apiService.getDesloguearUsuario(id_usuario);
 
                                                     call1.enqueue(new Callback<ResponseBody>() {
@@ -386,6 +403,24 @@ public class InicioSesionActivity extends AppCompatActivity {
                             logger.trackActivity(TAG,"Inicio sesion invalido","El usuario inicio sesion bajo el correo: "+username+" y la contraseña: "+password+" sin exito y sin conexion a internet");
                         }
                     }
+                }
+            }
+        });
+        switchEnvironment.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                if(switchEnvironment.isChecked()){
+                    switchEnvironment.setThumbTintList(ColorStateList.valueOf(getResources().getColor(R.color.deepOrange_800)));
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putBoolean("desarrollo", true);
+                    editor.apply();
+                    tvBanner.setVisibility(View.VISIBLE);
+                }else{
+                    switchEnvironment.setThumbTintList(ColorStateList.valueOf(getResources().getColor(R.color.red)));
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putBoolean("desarrollo", false);
+                    editor.apply();
+                    tvBanner.setVisibility(View.GONE);
                 }
             }
         });

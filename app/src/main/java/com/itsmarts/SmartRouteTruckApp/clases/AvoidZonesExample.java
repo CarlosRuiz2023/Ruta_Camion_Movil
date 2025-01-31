@@ -1,6 +1,7 @@
 package com.itsmarts.SmartRouteTruckApp.clases;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Typeface;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -328,7 +329,9 @@ public class AvoidZonesExample {
     public CompletableFuture<ResponseBody> descargarZonasPeligrosas() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+            SharedPreferences sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+            ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
             apiService.getZonasPeligrosas().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -423,7 +426,9 @@ public class AvoidZonesExample {
     public CompletableFuture<ResponseBody> descargarZonasPeligrosasFaltantes() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+            SharedPreferences sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+            ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
             apiService.getZonasPeligrosas().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -527,7 +532,9 @@ public class AvoidZonesExample {
     public CompletableFuture<ResponseBody> descargarZonasProhibidas() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+            SharedPreferences sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+            ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
             apiService.getZonasProhibidas().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
@@ -622,7 +629,9 @@ public class AvoidZonesExample {
     public CompletableFuture<ResponseBody> descargarZonasProhibidasFaltantes() {
         try {
             CompletableFuture<ResponseBody> future = new CompletableFuture<>();
-            ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+            SharedPreferences sharedPreferences = context.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+            boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+            ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
             apiService.getZonasProhibidas().enqueue(new retrofit2.Callback<ResponseBody>() {
                 @Override
                 public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {

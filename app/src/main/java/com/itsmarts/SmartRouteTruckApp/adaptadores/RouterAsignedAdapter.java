@@ -208,12 +208,13 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                                     }
                                                     // Create a LoginRequest object with the provided username and password
                                                     if(Internet.isNetworkConnected()){
-                                                        SharedPreferences sharedPreferences = mainActivity.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                                                        SharedPreferences sharedPreferences = mainActivity.getApplicationContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
                                                         int id_usuario = sharedPreferences.getInt("id_usuario", 0);
                                                         HistorialRequest historialRequest = new HistorialRequest(mainActivity.ruta.id, id_usuario);
 
                                                         // Use Retrofit to make the POST request
-                                                        ApiService apiService = RetrofitClient.getInstance(null).create(ApiService.class);
+                                                        boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+                                                        ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
                                                         Call<ResponseBody> call1 = apiService.mandarHistorial(historialRequest);
 
                                                         call1.enqueue(new Callback<ResponseBody>() {
