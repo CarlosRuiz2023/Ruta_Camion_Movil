@@ -276,6 +276,7 @@ public class InicioSesionActivity extends AppCompatActivity {
                                                 editor.putString("telefono", telefono);
                                                 editor.putInt("id_rol", id_rol);
                                                 editor.putBoolean("isLoggedIn", true); // Update login state
+                                                editor.putBoolean("isLoggedSinConexion", false); // Update login state
                                                 // Commit the changes
                                                 editor.apply();
                                                 Intent intent = new Intent(InicioSesionActivity.this, MainActivity.class);
@@ -369,7 +370,8 @@ public class InicioSesionActivity extends AppCompatActivity {
                                         });
                                         SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
                                         String correo = sharedPreferences.getString("correo", "");
-                                        if( username.equalsIgnoreCase(correo)){
+                                        String password = sharedPreferences.getString("password", "");
+                                        if( username.equalsIgnoreCase(correo) && password.equalsIgnoreCase(password)){
                                             btnCerrarSesion.setVisibility(View.VISIBLE);
                                         }
                                         sesionActivaDialog.show();
@@ -392,6 +394,9 @@ public class InicioSesionActivity extends AppCompatActivity {
                         String correo = sharedPreferences.getString("correo", "ItsMarts1*");
                         String passwordSharedPreferences = sharedPreferences.getString("password", "ItsMarts1*");
                         if( username.equalsIgnoreCase(correo) && passwordSharedPreferences.equalsIgnoreCase(password)){
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            editor.putBoolean("isLoggedSinConexion", true); // Update login state
+                            editor.apply();
                             Intent intent = new Intent(InicioSesionActivity.this, MainActivity.class);
                             startActivity(intent);
                             // Obtén el objeto "result"

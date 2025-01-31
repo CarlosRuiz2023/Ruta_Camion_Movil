@@ -714,7 +714,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void initializeBD(){
         try{
             dbHelper = new DatabaseHelper(this);
-            dbHelper.truncateBD();
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+            boolean isLoggedSinConexion = sharedPreferences.getBoolean("isLoggedSinConexion", false);
+            if(!isLoggedSinConexion){
+                dbHelper.truncateBD();
+            }
             rutas = dbHelper.getAllRoutes();
             if(rutas.size() == 0){
                 futures.add(descargarRutas());
