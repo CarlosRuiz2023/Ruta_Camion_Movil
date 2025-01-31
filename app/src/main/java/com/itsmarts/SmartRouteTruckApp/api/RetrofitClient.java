@@ -13,7 +13,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RetrofitClient {
     private static final String BASE_URL_DESARROLLO = "http://ec2-user@ec2-18-205-239-47.compute-1.amazonaws.com:3002/";
-    private static final String BASE_URL_PRODUCCION = "http://192.168.11.26:3002/";
+    private static final String BASE_URL_PRODUCCION = "http://72.167.220.178:3002/";
     //private static final String BASE_URL = BuildConfig.BASE_URL;
     private static Retrofit retrofit;
 

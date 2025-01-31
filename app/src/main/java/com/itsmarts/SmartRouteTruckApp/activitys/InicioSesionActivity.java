@@ -64,31 +64,7 @@ public class InicioSesionActivity extends AppCompatActivity {
         logger = new Logger(getApplicationContext());
         // CHECAMOS LA CONEXION A INTERNET
         logger.checkInternetConnectionAndErrors();
-        setContentView(R.layout.activity_inicio_sesion);
-        etUsername = findViewById(R.id.etUsername);
-        etPassword = findViewById(R.id.etPassword);
-        btnLogin = findViewById(R.id.btnLogin);
-        ivTogglePassword = findViewById(R.id.ivTogglePassword);
-        llLoadingSesion = findViewById(R.id.llLoadingSesion);
-        forgotPasswordText = findViewById(R.id.forgotPasswordText);
-        versionText = findViewById(R.id.versionText);
-        tvBanner = findViewById(R.id.tvBanner);
-        switchEnvironment = findViewById(R.id.switchEnvironment);
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
-        if(desarrollo){
-            switchEnvironment.setChecked(true);
-            switchEnvironment.setThumbTintList(ColorStateList.valueOf(getResources().getColor(R.color.deepOrange_800)));
-            tvBanner.setVisibility(View.VISIBLE);
-        }
-        /*if(!BuildConfig.PRODUCCION){
-            tvBanner.setVisibility(View.VISIBLE);
-        }*/
-        try {
-            versionText.setText("Versión: "+getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName);
-        }catch (Exception e){
-            versionText.setText("Versión: 1.0.0");
-        }
+        inicializarComponentes();
         forgotPasswordText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -430,6 +406,44 @@ public class InicioSesionActivity extends AppCompatActivity {
             }
         });
     }
+    // Método para ocultar el teclado
+    private void inicializarComponentes() {
+        setContentView(R.layout.activity_inicio_sesion);
+        etUsername = findViewById(R.id.etUsername);
+        etPassword = findViewById(R.id.etPassword);
+        btnLogin = findViewById(R.id.btnLogin);
+        ivTogglePassword = findViewById(R.id.ivTogglePassword);
+        llLoadingSesion = findViewById(R.id.llLoadingSesion);
+        forgotPasswordText = findViewById(R.id.forgotPasswordText);
+        versionText = findViewById(R.id.versionText);
+        tvBanner = findViewById(R.id.tvBanner);
+        switchEnvironment = findViewById(R.id.switchEnvironment);
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+        if(desarrollo){
+            switchEnvironment.setChecked(true);
+            switchEnvironment.setThumbTintList(ColorStateList.valueOf(getResources().getColor(R.color.deepOrange_800)));
+            tvBanner.setVisibility(View.VISIBLE);
+        }
+        /*if(!BuildConfig.PRODUCCION){
+            tvBanner.setVisibility(View.VISIBLE);
+        }*/
+        try {
+            versionText.setText("Versión: "+getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName);
+        }catch (Exception e){
+            versionText.setText("Versión: 1.0.0");
+        }
+    }
+
+    // Método para ocultar el teclado
+    private void inicializarListeners() {
+        View view = this.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
     // Método para ocultar el teclado
     private void hideKeyboard() {
         View view = this.getCurrentFocus();
