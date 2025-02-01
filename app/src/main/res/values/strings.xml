@@ -119,4 +119,6 @@
     <string name="text__salir_y_continuar">SALIR Y CONTINUAR</string>
     <string name="close_sesion">Cerrar sesion activa</string>
     <string name="error_internet">No se ha podido enviar verifique su conexion a internet</string>
+    <string name="menu_incidencia">Incidencias</string>
+    <string name="hint_control_incidencia">Incidencias</string>
 </resources>

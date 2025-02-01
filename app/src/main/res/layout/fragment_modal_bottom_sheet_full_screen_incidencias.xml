@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".fragments.ModalBottomSheetFullScreenFragmentPuntos">
+    tools:context=".fragments.ModalBottomSheetFullScreenFragmentIncidencias">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -19,7 +19,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:visibility="gone"
-                android:background="@color/colorSecond">
+                android:background="@color/naranja">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -32,14 +32,14 @@
                     <ImageView
                         android:layout_width="@dimen/img_bar_size"
                         android:layout_height="@dimen/img_bar_size"
-                        android:src="@drawable/ic_point_control"/>
+                        android:src="@drawable/ic_minor_crash"/>
 
                     <TextView
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
                         android:layout_marginStart="@dimen/common_padding_default"
-                        android:text="@string/hint_control_point"
+                        android:text="@string/hint_control_incidencia"
                         android:textAppearance="@style/TextAppearance.MaterialComponents.Headline6"
                         android:textColor="@android:color/white"/>
 

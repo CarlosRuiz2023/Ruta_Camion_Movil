@@ -29,6 +29,11 @@
             android:id="@+id/action_vehiculo"
             android:title="@string/menu_vehiculo"
             android:icon="@drawable/truck"/>-->
+        <item
+            android:id="@+id/action_incidencia"
+            android:title="@string/menu_incidencia"
+            android:icon="@drawable/ic_minor_crash"
+            android:iconTint="@color/white"/>
     </group>
     <item
         android:id="@+id/action_cerrar_sesion"
