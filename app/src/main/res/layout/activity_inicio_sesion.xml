@@ -159,7 +159,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:trackTint="@color/white"
-            app:thumbTint="@color/rojo"
+            app:thumbTint="@color/red"
             />
 
     </LinearLayout>

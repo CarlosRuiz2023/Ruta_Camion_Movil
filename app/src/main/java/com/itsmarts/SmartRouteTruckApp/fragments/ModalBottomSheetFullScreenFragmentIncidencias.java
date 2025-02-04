@@ -26,9 +26,7 @@ import com.google.android.material.transition.MaterialFadeThrough;
 import com.google.android.material.transition.SlideDistanceProvider;
 import com.itsmarts.SmartRouteTruckApp.R;
 import com.itsmarts.SmartRouteTruckApp.adaptadores.IncidenciaAdapter;
-import com.itsmarts.SmartRouteTruckApp.adaptadores.PointAdapter;
-import com.itsmarts.SmartRouteTruckApp.clases.ControlIncidenciasExample;
-import com.itsmarts.SmartRouteTruckApp.clases.ControlPointsExample;
+import com.itsmarts.SmartRouteTruckApp.clases.IncidenciasExample;
 
 //import butterknife.ButterKnife;
 //import butterknife.Unbinder;
@@ -50,10 +48,10 @@ public class ModalBottomSheetFullScreenFragmentIncidencias extends BottomSheetDi
 
     public RecyclerView recyclerView;
     private LayoutInflater layoutInflater;
-    private ControlIncidenciasExample controlIncidenciasExample;
+    private IncidenciasExample incidenciasExample;
 
-    public ModalBottomSheetFullScreenFragmentIncidencias(ControlIncidenciasExample controlIncidenciasExample) {
-        this.controlIncidenciasExample = controlIncidenciasExample;
+    public ModalBottomSheetFullScreenFragmentIncidencias(IncidenciasExample incidenciasExample) {
+        this.incidenciasExample = incidenciasExample;
     }
     @NonNull
     @Override
@@ -69,8 +67,8 @@ public class ModalBottomSheetFullScreenFragmentIncidencias extends BottomSheetDi
         vExtraSpace = view.findViewById(R.id.vExtraSpace);
         recyclerView = view.findViewById(R.id.recyclerView);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(controlIncidenciasExample.mainActivity.getApplicationContext()));
-        adapter = new IncidenciaAdapter(controlIncidenciasExample);
+        recyclerView.setLayoutManager(new LinearLayoutManager(incidenciasExample.mainActivity.getApplicationContext()));
+        adapter = new IncidenciaAdapter(incidenciasExample);
         recyclerView.setAdapter(adapter);
 
         bottomSheetDialog.setContentView(view);
@@ -87,7 +85,7 @@ public class ModalBottomSheetFullScreenFragmentIncidencias extends BottomSheetDi
                 fadeThrough.setSecondaryAnimatorProvider(new SlideDistanceProvider(Gravity.TOP));
                 fadeThrough.setDuration(250L);
                 TransitionManager.beginDelayedTransition(containerBar,fadeThrough);
-                int statusBarColor= ContextCompat.getColor(getActivity(),R.color.naranja);
+                int statusBarColor= ContextCompat.getColor(getActivity(),R.color.orange);
                 if(BottomSheetBehavior.STATE_EXPANDED== newState) {
                     //tvBar.setVisibility(View.GONE);
                     //appBar.setVisibility(View.VISIBLE);

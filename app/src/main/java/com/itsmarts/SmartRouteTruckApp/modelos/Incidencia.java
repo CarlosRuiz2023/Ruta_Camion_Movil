@@ -14,13 +14,13 @@ public class Incidencia {
     public File foto;
     public String comentarios;
     public String direccion;
-    public GeoCoordinates coordenadas;
+    public MapMarker mapMarker;
     public Date fecha_hora;
     public Boolean status;
 
-    public Incidencia(int id, int id_tipo_incidencia, int id_usuario, int id_ruta, File foto, String comentarios, String direccion, GeoCoordinates coordenadas, Date fecha_hora,  Boolean status) {
+    public Incidencia(int id, int id_tipo_incidencia, int id_usuario, int id_ruta, File foto, String comentarios, String direccion, MapMarker mapMarker, Date fecha_hora,  Boolean status) {
         this.comentarios = comentarios;
-        this.coordenadas = coordenadas;
+        this.mapMarker = mapMarker;
         this.direccion = direccion;
         this.fecha_hora = fecha_hora;
         this.foto = foto;
@@ -39,12 +39,11 @@ public class Incidencia {
         this.comentarios = comentarios;
     }
 
-    public GeoCoordinates coordenadas() {
-        return coordenadas;
+    public MapMarker mapMarker() {
+        return mapMarker;
     }
-
-    public void setCoordenadas(GeoCoordinates coordenadas) {
-        this.coordenadas = coordenadas;
+    public void setMapMarker(MapMarker mapMarker) {
+        this.mapMarker = mapMarker;
     }
 
     public String direccion() {

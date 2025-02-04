@@ -576,7 +576,7 @@ public class NavigationEventHandler {
                     Log.d(TAG, "RouteDeviation in meters is " + distanceInMeters);
 
                     if (distanceInMeters > 50 && !validacionZona) {
-                        mainActivity.recalculateRouteButton.setBackgroundColor(mainActivity.getResources().getColor(R.color.naranja, null));
+                        mainActivity.recalculateRouteButton.setBackgroundColor(mainActivity.getResources().getColor(R.color.orange, null));
                         mainActivity.recalculateRouteButton.setVisibility(View.VISIBLE);
                         mainActivity.recalculateRouteButton.setEnabled(true);
                         mainActivity.recalculateRouteButton.setText("Desviación de: " + distanceInMeters + "m. Recalcular ruta");

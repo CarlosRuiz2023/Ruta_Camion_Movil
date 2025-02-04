@@ -3,7 +3,6 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="teal_700">#3B5D83</color>
-    <color name="rojo">#FF0000</color>
     <color name="deepOrange_800">#3F72AF</color>
     <color name="colorSecond">#7EB8D5</color>
     <color name="colorPrimaryDark">#00574B</color>
@@ -13,11 +12,9 @@
     <color name="pressed_background">#32424A</color>
     <color name="selected_background">#0091EA</color>
     <color name="purple">#767676</color>
-    <color name="gray">#304FFE</color>
+    <color name="gray">#3B5D82</color>
     <color name="colorPrimary">#06368b</color> <!-- COLOR WEB -->
-    <color name="colorError">#B00020</color>
-    <color name="naranja">#F57F17</color>
-    <color name="gris">#3B5D82</color>
-    <color name="verde">#1A8B51</color>
+    <color name="orange">#F57F17</color>
+    <color name="green">#1A8B51</color>
     <color name="yellow">#FFEA00</color>
 </resources>

@@ -1156,7 +1156,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     }
                 }
                 Boolean status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)) == 1;
-                incidencias.add(new Incidencia(id,id_tipo_incidencia,id_usuario,id_ruta,fotoFile,comentarios,direccion,new GeoCoordinates(latitude,longitude),fechaHora,status));
+                MapImage mapImage = MapImageFactory.fromResource(mainActivity.getApplicationContext().getResources(), R.drawable.advertencia);
+                MapMarker mapMarker = new MapMarker(new GeoCoordinates(latitude, longitude), mapImage);
+                incidencias.add(new Incidencia(id,id_tipo_incidencia,id_usuario,id_ruta,fotoFile,comentarios,direccion,mapMarker,fechaHora,status));
             } while (cursor.moveToNext());
         }
 
@@ -1195,7 +1197,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                     }
                 }
                 Boolean status = cursor.getInt(cursor.getColumnIndex(COLUMN_STATUS)) == 1;
-                incidencia = new Incidencia(id,id_tipo_incidencia, id_usuario, id_ruta, fotoFile, comentarios, direccion, new GeoCoordinates(latitude, longitude), fechaHora, status);
+                MapImage mapImage = MapImageFactory.fromResource(mainActivity.getApplicationContext().getResources(), R.drawable.waypoint);
+                MapMarker mapMarker = new MapMarker(new GeoCoordinates(latitude, longitude), mapImage);
+                incidencia = new Incidencia(id,id_tipo_incidencia, id_usuario, id_ruta, fotoFile, comentarios, direccion, mapMarker, fechaHora, status);
             }
             cursor.close();
             db.close();

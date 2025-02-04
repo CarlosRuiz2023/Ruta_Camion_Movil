@@ -106,7 +106,7 @@ import com.itsmarts.SmartRouteTruckApp.api.RetrofitClient;
 import com.itsmarts.SmartRouteTruckApp.bd.DatabaseHelper;
 import com.itsmarts.SmartRouteTruckApp.clases.AnimatorNew;
 import com.itsmarts.SmartRouteTruckApp.clases.AvoidZonesExample;
-import com.itsmarts.SmartRouteTruckApp.clases.ControlIncidenciasExample;
+import com.itsmarts.SmartRouteTruckApp.clases.IncidenciasExample;
 import com.itsmarts.SmartRouteTruckApp.clases.ControlPointsExample;
 import com.itsmarts.SmartRouteTruckApp.clases.Logger;
 import com.itsmarts.SmartRouteTruckApp.clases.NavigationEventHandler;
@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public GeoCoordinates currentGeoCoordinates, coordenadasDestino, coordenada1, coordenada2, geoCoordinatesPOI = null, destinationGeoCoordinates;
     public AvoidZonesExample avoidZonesExample;
     public ControlPointsExample controlPointsExample;
-    public ControlIncidenciasExample controlIncidenciasExample;
+    public IncidenciasExample incidenciasExample;
     public List<RoutesWithId> rutas = new ArrayList<>(), rutasAsignadas = new ArrayList<>();
     public Animation rotateAnimation, cargaAnimacion, animSalida, animacionClick, animEntrada;
     public boolean animacionEjecutada = false, isFirstClick = true, isMenuOpen = false, rutaGenerada = false, isTrackingCamera = false, isExactRouteEnabled = false, isSimularRutaVisible = false, isRutaVisible = false, isDialogShowing = false, routeSuccessfullyProcessed = false, activarGeocercas = true, mapOfflineMexDownload = false, llegoAlDestino = false, desarrollo=false;
@@ -534,9 +534,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     truckConfig.mostrarMenu();
                     break;
                 case "Incidencias":
-                    controlIncidenciasExample.incidencias = dbHelper.getAllIncidencias();
                     animSalida = AnimationUtils.loadAnimation(MainActivity.this, R.anim.salida2);
-                    controlIncidenciasExample.getModalBottomSheetFullScreenFragment().show(getSupportFragmentManager(), ModalBottomSheetFullScreenFragmentIncidencias.TAG);
+                    incidenciasExample.getModalBottomSheetFullScreenFragment().show(getSupportFragmentManager(), ModalBottomSheetFullScreenFragmentIncidencias.TAG);
                     break;
                 case "Cerrar Sesion":
                     if(Internet.isNetworkConnected()){
@@ -708,7 +707,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             navigationExample.getNavigationEventHandler().setDestinationReachedListener(this);
             avoidZonesExample = new AvoidZonesExample(this,mapView,getLayoutInflater(),dbHelper);
             controlPointsExample = new ControlPointsExample(this,mapView,getLayoutInflater(),dbHelper);
-            controlIncidenciasExample = new ControlIncidenciasExample(this,mapView,getLayoutInflater(),dbHelper);
+            incidenciasExample = new IncidenciasExample(this,mapView,getLayoutInflater(),dbHelper);
             try{
                 searchEngine = new SearchEngine();
                 offlineSearchEngine = new OfflineSearchEngine();
@@ -1093,69 +1092,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         @Override
                         public void onClick(View v) {
                             String selectedIncidentType = spinnerIncidentType.getSelectedItem().toString();
-                            id_tipo_incidencia = 0;
-                            switch (selectedIncidentType) {
-                                case "Infracción de transito":
-                                    id_tipo_incidencia = 1;
-                                    break;
-                                case "Cierre vial por obras en la zona":
-                                    id_tipo_incidencia = 2;
-                                    break;
-                                case "Cierre vial por evento en la zona":
-                                    id_tipo_incidencia = 3;
-                                    break;
-                                case "Zona prohibida":
-                                    id_tipo_incidencia = 4;
-                                    break;
-                                case "Trafico excesivo por sobre flujo":
-                                    id_tipo_incidencia = 5;
-                                    break;
-                                case "Trafico excesivo por accidente":
-                                    id_tipo_incidencia = 6;
-                                    break;
-                                case "Accidente en la zona":
-                                    id_tipo_incidencia = 7;
-                                    break;
-                                case "Cansancio por manejar":
-                                    id_tipo_incidencia = 8;
-                                    break;
-                                case "Malestar de salud":
-                                    id_tipo_incidencia = 9;
-                                    break;
-                                case "Sin combustible":
-                                    id_tipo_incidencia = 10;
-                                    break;
-                                case "Robo":
-                                    id_tipo_incidencia = 11;
-                                    break;
-                                case "Falla mecánica":
-                                    id_tipo_incidencia = 12;
-                                    break;
-                                case "Ponchadura de llanta":
-                                    id_tipo_incidencia = 13;
-                                    break;
-                                case "Problema eléctrico":
-                                    id_tipo_incidencia = 14;
-                                    break;
-                                case "Exceso de peso":
-                                    id_tipo_incidencia = 15;
-                                    break;
-                                case "Clima adverso":
-                                    id_tipo_incidencia = 16;
-                                    break;
-                                case "Mal estado de las carreteras":
-                                    id_tipo_incidencia = 17;
-                                    break;
-                                case "Retraso en la carga":
-                                    id_tipo_incidencia = 18;
-                                    break;
-                                case "Retraso en la descarga":
-                                    id_tipo_incidencia = 19;
-                                    break;
-                                default:
-                                    id_tipo_incidencia = 0;
-                                    break;
-                            }
+                            id_tipo_incidencia = incidenciasExample.obtenerIdTipoIncidencia(selectedIncidentType);
                             comentarios = editTextComment.getText().toString();
                             if(Internet.isNetworkConnected()){
                                 if (imageFile != null) {
@@ -2400,6 +2337,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         //dbHelper.saveIncidencia(id_tipo_incidencia_final,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,0);
                                     }else{
                                         dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,1);
+                                        incidenciasExample.incidencias = dbHelper.getAllIncidencias();
+                                        incidenciasExample.recargarIncidencias();
                                         messages.showCustomToast("Incidencia enviada con exitosamente");
                                         imageFile = null;
                                         imageBitmap = null;
@@ -2444,6 +2383,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void uploadImageSinConexion() {
         dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,0);
+        incidenciasExample.incidencias = dbHelper.getAllIncidencias();
+        incidenciasExample.recargarIncidencias();
         messages.showCustomToast("Se ha guardado la incidencia con fotografia dentro de la BD");
         imageFile = null;
         imageBitmap = null;
@@ -2476,6 +2417,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         messages.showCustomToast("Error al enviar la incidencia");
                     }else{
                         dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,1);
+                        incidenciasExample.incidencias = dbHelper.getAllIncidencias();
+                        incidenciasExample.recargarIncidencias();
                         messages.showCustomToast("Incidencia enviada sin foto exitosamente");
                         comentarios = "";
                         id_tipo_incidencia = 0;
@@ -2497,6 +2440,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void enviarIncidenciaSinFotoSinConexion() {
         try {
             dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,0);
+            incidenciasExample.incidencias = dbHelper.getAllIncidencias();
+            incidenciasExample.recargarIncidencias();
             messages.showCustomToast("Se ha guardado la incidencia sin fotografia dentro de la BD");
             comentarios = "";
             id_tipo_incidencia = 0;
