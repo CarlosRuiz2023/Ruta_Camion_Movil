@@ -69,7 +69,7 @@ public class ModalBottomSheetFullScreenFragmentIncidencias extends BottomSheetDi
         vExtraSpace = view.findViewById(R.id.vExtraSpace);
         recyclerView = view.findViewById(R.id.recyclerView);
 
-        recyclerView.setLayoutManager(new LinearLayoutManager(controlIncidenciasExample.context));
+        recyclerView.setLayoutManager(new LinearLayoutManager(controlIncidenciasExample.mainActivity.getApplicationContext()));
         adapter = new IncidenciaAdapter(controlIncidenciasExample);
         recyclerView.setAdapter(adapter);
 

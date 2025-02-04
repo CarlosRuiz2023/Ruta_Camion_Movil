@@ -23,6 +23,7 @@ import com.here.sdk.search.Address;
 import com.here.sdk.search.Place;
 import com.here.sdk.search.SearchCallback;
 import com.here.sdk.search.SearchError;
+import com.itsmarts.SmartRouteTruckApp.MainActivity;
 import com.itsmarts.SmartRouteTruckApp.R;
 import com.itsmarts.SmartRouteTruckApp.adaptadores.PointAdapter;
 import com.itsmarts.SmartRouteTruckApp.api.ApiService;
@@ -52,7 +53,7 @@ public class ControlIncidenciasExample {
     // Declaración de la variable dialog
     private AlertDialog dialog;
     public MapView mapView;
-    public Context context;
+    public MainActivity mainActivity;
     private LayoutInflater layoutInflater;
     public ModalBottomSheetFullScreenFragmentIncidencias bottomSheetFragment;
     public GeoCoordinates last_coordinates;
@@ -60,8 +61,8 @@ public class ControlIncidenciasExample {
     List<CompletableFuture<ResponseBody>> futures = new ArrayList<>();
     private static final String TAG = "ControlPointsExample";
 
-    public ControlIncidenciasExample(Context context, MapView mapView, LayoutInflater layoutInflater, DatabaseHelper dbHelper) {
-        this.context = context;
+    public ControlIncidenciasExample(MainActivity mainActivity, MapView mapView, LayoutInflater layoutInflater, DatabaseHelper dbHelper) {
+        this.mainActivity = mainActivity;
         this.mapView = mapView;
         this.layoutInflater = layoutInflater;
         this.dbHelper = dbHelper;
@@ -143,7 +144,7 @@ public class ControlIncidenciasExample {
      * @param geoCoordinates Las coordenadas donde se agregará el marcador.
      */
     private void addMapMarker(GeoCoordinates geoCoordinates, int resourceId) {
-        MapImage mapImage = MapImageFactory.fromResource(context.getResources(), resourceId);
+        MapImage mapImage = MapImageFactory.fromResource(mainActivity.getApplicationContext().getResources(), resourceId);
         mapMarker = new MapMarker(geoCoordinates, mapImage);
         mapView.getMapScene().addMapMarker(mapMarker);
     }
