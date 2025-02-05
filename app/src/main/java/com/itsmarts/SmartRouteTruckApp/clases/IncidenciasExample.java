@@ -2,6 +2,7 @@ package com.itsmarts.SmartRouteTruckApp.clases;
 
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -29,6 +30,7 @@ import okhttp3.ResponseBody;
 
 public class IncidenciasExample {
     public List<Incidencia> incidencias = new ArrayList<>();
+    public List<MapMarker> mapMarkersIncidencias = new ArrayList<>();
     public DatabaseHelper dbHelper;
     public MapView mapView;
     public MainActivity mainActivity;
@@ -133,18 +135,24 @@ public class IncidenciasExample {
      *
      */
     public void recargarIncidencias() {
-        for (Incidencia incidencia : incidencias) {
-            mapView.getMapScene().removeMapMarker(incidencia.mapMarker);
-        }
-        List<MapView.ViewPin> mapViewPins = mapView.getViewPins();
-        for (MapView.ViewPin viewPin : new ArrayList<>(mapViewPins)) {
+        try{
+            mapMarkersIncidencias.clear();
             for (Incidencia incidencia : incidencias) {
-                if(incidencia.mapMarker.getCoordinates().latitude==viewPin.getGeoCoordinates().latitude && incidencia.mapMarker.getCoordinates().longitude==viewPin.getGeoCoordinates().longitude){
-                    viewPin.unpin();
+                mapView.getMapScene().removeMapMarker(incidencia.mapMarker);
+            }
+            List<MapView.ViewPin> mapViewPins = mapView.getViewPins();
+            for (MapView.ViewPin viewPin : new ArrayList<>(mapViewPins)) {
+                for (Incidencia incidencia : incidencias) {
+                    if(incidencia.mapMarker.getCoordinates().latitude==viewPin.getGeoCoordinates().latitude && incidencia.mapMarker.getCoordinates().longitude==viewPin.getGeoCoordinates().longitude){
+                        viewPin.unpin();
+                    }
                 }
             }
+            incidencias = dbHelper.getAllIncidencias();
+            mostrarIncidencias();
+        }catch (Exception e){
+            Log.e(TAG, "Error al recargar incidencias ", e);
         }
-        mostrarIncidencias();
     }
 
     /**
@@ -153,6 +161,7 @@ public class IncidenciasExample {
      */
     public void mostrarIncidencias() {
         for (Incidencia incidencia : incidencias) {
+            mapMarkersIncidencias.add(incidencia.mapMarker);
             mapView.getMapScene().addMapMarker(incidencia.mapMarker);
             // Crea un TextView para la etiqueta
             TextView textView = new TextView(mainActivity.getApplicationContext());

@@ -5,6 +5,8 @@ import static android.view.View.VISIBLE;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -12,6 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,7 +30,11 @@ import com.itsmarts.SmartRouteTruckApp.R;
 import com.itsmarts.SmartRouteTruckApp.clases.RoutingExample;
 import com.itsmarts.SmartRouteTruckApp.fragments.DialogFullFragmentErrorDetail;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class Messages {
@@ -239,6 +246,57 @@ public class Messages {
             window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         }
     }
+
+    public void showDialogIncidencia(String incidenica, String address, String comentarios, Date fecha_hora, File foto) {
+        if (mainActivity.isDialogShowing) {
+            return;
+        }
+        mainActivity.isDialogShowing = true;
+        Dialog dialog = new Dialog(mainActivity);
+        dialog.setContentView(R.layout.ventana_ver_incidencia);
+        TextView incidenciaView = dialog.findViewById(R.id.dialog_incidencia);
+        TextView addressView = dialog.findViewById(R.id.dialog_address);
+        TextView textView3 = dialog.findViewById(R.id.textView3);
+        TextView comentariosView = dialog.findViewById(R.id.dialog_comentarios);
+        TextView fecha_horaView = dialog.findViewById(R.id.dialog_fecha_hora);
+        ImageView imgIncidencia = dialog.findViewById(R.id.imgIncidencia);
+        Button closeButton = dialog.findViewById(R.id.dialog_close_button);
+
+        incidenciaView.setText(incidenica);
+        addressView.setText(address);
+        if (comentarios!=null) {
+            comentariosView.setText(comentarios);
+        } else {
+            comentariosView.setVisibility(View.GONE);
+            textView3.setVisibility(View.GONE);
+        }
+        // Formatea las fechas
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+        String fecha_hora_formateada = dateFormat.format(fecha_hora);
+        fecha_horaView.setText(fecha_hora_formateada);
+        if(foto != null){
+            imgIncidencia.setImageBitmap(getBitmapFromFile(foto));
+        }else{
+            imgIncidencia.setImageResource(R.drawable.no_image);
+        }
+
+        closeButton.setOnClickListener(v -> {
+            mainActivity.isDialogShowing = false;
+            dialog.dismiss();
+        });
+
+        dialog.setOnDismissListener(dialogInterface -> {
+            mainActivity.isDialogShowing = false;
+        });
+
+        dialog.show();
+
+        Window window = dialog.getWindow();
+        if (window != null) {
+            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+        }
+    }
+
     // Método para mostrar un diálogo de error
     public static void showInvalidCredentialsDialog(String titulo, String mensaje, Activity context) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
@@ -252,5 +310,18 @@ public class Messages {
         });
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+    public static Bitmap getBitmapFromFile(File file) {
+        Bitmap bitmap = null;
+        try {
+            FileInputStream fis = new FileInputStream(file);
+            bitmap = BitmapFactory.decodeStream(fis);
+            fis.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return bitmap;
     }
 }

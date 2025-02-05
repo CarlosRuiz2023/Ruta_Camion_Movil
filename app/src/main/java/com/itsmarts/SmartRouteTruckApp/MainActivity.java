@@ -122,6 +122,7 @@ import com.itsmarts.SmartRouteTruckApp.fragments.ModalBottomSheetFullScreenFragm
 import com.itsmarts.SmartRouteTruckApp.helpers.Geocercas;
 import com.itsmarts.SmartRouteTruckApp.helpers.Internet;
 import com.itsmarts.SmartRouteTruckApp.helpers.Messages;
+import com.itsmarts.SmartRouteTruckApp.modelos.Incidencia;
 import com.itsmarts.SmartRouteTruckApp.modelos.PointWithId;
 import com.itsmarts.SmartRouteTruckApp.modelos.PolygonWithId;
 import com.itsmarts.SmartRouteTruckApp.modelos.RoutesWithId;
@@ -1590,6 +1591,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     }
                                     messages.showDialog("Información de lugar", address, categoriesBuilder.toString(), "Lugar de interés",null);
                                 }
+                                index = incidenciasExample.mapMarkersIncidencias.indexOf(topmostMapMarker);
+                                if (index >= 0) {
+                                    Incidencia incidencia = incidenciasExample.incidencias.get(index);
+                                    messages.showDialogIncidencia(incidenciasExample.getTipoIncidenciaById(incidencia.id_tipo_incidencia), incidencia.direccion, incidencia.comentarios, incidencia.fecha_hora, incidencia.foto);
+                                }
                             } catch (Exception e) {
                                 //Toast.makeText(MainActivity.this, "No POIs o marcadores encontrados en la ubicación tocada", Toast.LENGTH_SHORT).show();
                                 //throw new RuntimeException(e);
@@ -2337,8 +2343,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         //dbHelper.saveIncidencia(id_tipo_incidencia_final,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,0);
                                     }else{
                                         dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,1);
-                                        incidenciasExample.incidencias = dbHelper.getAllIncidencias();
-                                        incidenciasExample.recargarIncidencias();
                                         messages.showCustomToast("Incidencia enviada con exitosamente");
                                         imageFile = null;
                                         imageBitmap = null;
@@ -2383,8 +2387,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
     private void uploadImageSinConexion() {
         dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,0);
-        incidenciasExample.incidencias = dbHelper.getAllIncidencias();
-        incidenciasExample.recargarIncidencias();
         messages.showCustomToast("Se ha guardado la incidencia con fotografia dentro de la BD");
         imageFile = null;
         imageBitmap = null;
@@ -2417,8 +2419,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         messages.showCustomToast("Error al enviar la incidencia");
                     }else{
                         dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,1);
-                        incidenciasExample.incidencias = dbHelper.getAllIncidencias();
-                        incidenciasExample.recargarIncidencias();
                         messages.showCustomToast("Incidencia enviada sin foto exitosamente");
                         comentarios = "";
                         id_tipo_incidencia = 0;
@@ -2440,8 +2440,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private void enviarIncidenciaSinFotoSinConexion() {
         try {
             dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,0);
-            incidenciasExample.incidencias = dbHelper.getAllIncidencias();
-            incidenciasExample.recargarIncidencias();
             messages.showCustomToast("Se ha guardado la incidencia sin fotografia dentro de la BD");
             comentarios = "";
             id_tipo_incidencia = 0;

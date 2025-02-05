@@ -34,6 +34,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Date;
 
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
@@ -65,6 +66,7 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
         holder.tipoIncidenciaTextView.setText(incidenciasExample.getTipoIncidenciaById(incidenciasExample.incidencias.get(position).id_tipo_incidencia));
         if(incidenciasExample.incidencias.get(position).status){
             holder.incidencia_item.setBackgroundColor(Color.parseColor("#1A8B51"));
+            holder.icon_send.setVisibility(View.GONE);
         }else{
             holder.incidencia_item.setBackgroundColor(Color.parseColor("#B00020"));
             holder.icon_send.setVisibility(View.VISIBLE);
@@ -96,10 +98,10 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         Incidencia incidencia = incidenciasExample.incidencias.get(position);
-                        incidenciasExample.incidencias.remove(position);
+                        incidenciasExample.dbHelper.deleteIncidencia(incidencia.id);
                         adapter.notifyItemRemoved(position); // Llama al método desde el adaptador
                         adapter.notifyItemRangeChanged(position, incidenciasExample.incidencias.size());
-                        incidenciasExample.dbHelper.deleteIncidencia(incidencia.id);
+                        incidenciasExample.recargarIncidencias();
                     }
                 }
             });
@@ -133,6 +135,10 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
                                                     if (success) {
                                                         String foto = jsonFoto.optString("result", "");
                                                         Log.d("Retrofit", "Foto enviada exitosamente.");
+                                                        Date date = new Date(incidencia.fecha_hora.toString());
+                                                        date.setHours(date.getHours() - 6);
+                                                        Log.e("Prueba",date.toString());
+                                                        Log.e("Prueba",""+incidencia.direccion);
                                                         JSONObject jsonIncident = new JSONObject();
                                                         jsonIncident.put("id_tipo_incidencia", incidencia.id_tipo_incidencia);
                                                         jsonIncident.put("id_usuario", incidencia.id_usuario);
@@ -141,6 +147,8 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
                                                         jsonIncident.put("comentarios",incidencia.comentarios);
                                                         jsonIncident.put("latitud",incidencia.mapMarker.getCoordinates().latitude);
                                                         jsonIncident.put("longitud",incidencia.mapMarker.getCoordinates().longitude);
+                                                        jsonIncident.put("direccion",incidencia.direccion);
+                                                        jsonIncident.put("fecha_hora",date.toString()); // Restar 6 horas
                                                         //ErrorReporter.sendError(jsonObject);
                                                         ApiService apiService = RetrofitClient.getInstance(null, incidenciasExample.mainActivity.desarrollo).create(ApiService.class);
                                                         // Convertir JSONObject a String y crear un RequestBody
@@ -158,6 +166,9 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
                                                                     //dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,1);
                                                                     //TODO: Actualizar el estatus y recargar el adapter
                                                                     incidenciasExample.mainActivity.messages.showCustomToast("Incidencia enviada con exitosamente");
+                                                                    incidenciasExample.dbHelper.updateStatusIncidencia(incidencia.id,true);
+                                                                    incidencia.setStatus(true);
+                                                                    adapter.notifyDataSetChanged();
                                                                 }
                                                             }
 
@@ -221,6 +232,9 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
                                                 //dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,1);
                                                 //TODO: Actualizar el estatus y recargar el adapter
                                                 incidenciasExample.mainActivity.messages.showCustomToast("Incidencia enviada sin foto exitosamente");
+                                                incidenciasExample.dbHelper.updateStatusIncidencia(incidencia.id,true);
+                                                incidencia.setStatus(true);
+                                                adapter.notifyDataSetChanged();
                                             }
                                         }
 

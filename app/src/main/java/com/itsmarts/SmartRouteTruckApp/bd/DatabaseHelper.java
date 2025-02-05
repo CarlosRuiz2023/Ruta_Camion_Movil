@@ -1082,46 +1082,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // Guarda una coordenada en la base de datos
     public void saveIncidencia(int id_tipo_incidencia, int id_usuario, int id_ruta, File foto, String comentarios, GeoCoordinates coordenadas, int estatus) {
-        SQLiteDatabase db = this.getWritableDatabase();
-        ContentValues values = new ContentValues();
-        values.put(COLUMN_TIPO_INCIDENCIA_ID, id_tipo_incidencia);
-        values.put(COLUMN_LATITUDE, coordenadas.latitude);
-        values.put(COLUMN_LONGITUDE, coordenadas.longitude);
-        values.put(COLUMN_USUARIO_ID, id_usuario);
-        values.put(COLUMN_ROUTE_ID, id_ruta);
-        if(foto!=null) {
-            values.put(COLUMN_FOTO, guardarImagenBase64DesdeArchivo(foto));
-        }
-        values.put(COLUMN_COMENTARIOS, comentarios);
-        values.put(COLUMN_FECHA_HORA, mainActivity.dateFormat.format(new Date()).toString());
-        if(mainActivity.offlineMapItem.isChecked()){
-            mainActivity.offlineSearchEngine.search(coordenadas, new SearchOptions(), new SearchCallback() {
-                @Override
-                public void onSearchCompleted(@Nullable SearchError searchError, @Nullable List<Place> list) {
-                    if (searchError == null) {
-                        final String direccion = list.get(0).getAddress().addressText;
-                        values.put(COLUMN_DIRECCION, direccion);
-                    } else {
-                        Log.e(TAG, "searchPickedPlace() resulted in an error: " + searchError.name());
-                    }
+        obtenerDireccionCoordenadas(coordenadas, new DireccionCallback() {
+            @Override
+            public void onDireccionObtenida(String direccion) {
+                SQLiteDatabase db = getWritableDatabase();
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_TIPO_INCIDENCIA_ID, id_tipo_incidencia);
+                values.put(COLUMN_LATITUDE, coordenadas.latitude);
+                values.put(COLUMN_LONGITUDE, coordenadas.longitude);
+                values.put(COLUMN_USUARIO_ID, id_usuario);
+                values.put(COLUMN_ROUTE_ID, id_ruta);
+                if(foto!=null) {
+                    values.put(COLUMN_FOTO, guardarImagenBase64DesdeArchivo(foto));
                 }
-            });
-        }else {
-            mainActivity.searchEngine.search(coordenadas, new SearchOptions(), new SearchCallback() {
-                @Override
-                public void onSearchCompleted(@Nullable SearchError searchError, @Nullable List<Place> list) {
-                    if (searchError == null) {
-                        final String direccion = list.get(0).getAddress().addressText;
-                        values.put(COLUMN_DIRECCION, direccion);
-                    } else {
-                        Log.e(TAG, "searchPickedPlace() resulted in an error: " + searchError.name());
-                    }
-                }
-            });
-        }
-        values.put(COLUMN_STATUS, estatus);
-        db.insert(TABLE_INCIDENCIAS, null, values);
-        db.close();
+                values.put(COLUMN_COMENTARIOS, comentarios);
+                values.put(COLUMN_DIRECCION, direccion);
+                values.put(COLUMN_FECHA_HORA, mainActivity.dateFormat.format(new Date()).toString());
+                values.put(COLUMN_STATUS, estatus);
+                db.insert(TABLE_INCIDENCIAS, null, values);
+                db.close();
+                mainActivity.incidenciasExample.recargarIncidencias();
+            }
+        });
     }
 
     // Recupera todas las coordenadas de la base de datos
@@ -1151,6 +1133,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 if (fecha_hora != null) {
                     try {
                         fechaHora = mainActivity.dateFormat.parse(fecha_hora);
+                        Log.e("Prueba","Fecha_hora: "+fechaHora.toString());
                     } catch (ParseException e) {
                         Log.e(TAG,"Error al parsear fecha de creacion: "+fecha_hora);
                     }
@@ -1214,6 +1197,48 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.delete(TABLE_INCIDENCIAS, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
         db.close();
+    }
+
+    // Actualizar el estatus del poligono de la base de datos por su ID
+    public void updateStatusIncidencia(int id, Boolean status) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_STATUS, status ? 1 : 0);
+        db.update(TABLE_INCIDENCIAS, values, COLUMN_ID + " = ?", new String[]{String.valueOf(id)});
+
+        db.close();
+    }
+
+    private void obtenerDireccionCoordenadas(GeoCoordinates coordinates, DireccionCallback callback) {
+        if (mainActivity.offlineMapItem.isChecked()) {
+            mainActivity.offlineSearchEngine.search(coordinates, new SearchOptions(), new SearchCallback() {
+                @Override
+                public void onSearchCompleted(@Nullable SearchError searchError, @Nullable List<Place> list) {
+                    if (searchError == null && list != null && !list.isEmpty()) {
+                        callback.onDireccionObtenida(list.get(0).getAddress().addressText);
+                    } else {
+                        Log.e(TAG, "searchPickedPlace() resulted in an error: " + searchError.name());
+                        callback.onDireccionObtenida(""); // Devolver un valor vacío en caso de error
+                    }
+                }
+            });
+        } else {
+            mainActivity.searchEngine.search(coordinates, new SearchOptions(), new SearchCallback() {
+                @Override
+                public void onSearchCompleted(@Nullable SearchError searchError, @Nullable List<Place> list) {
+                    if (searchError == null && list != null && !list.isEmpty()) {
+                        callback.onDireccionObtenida(list.get(0).getAddress().addressText);
+                    } else {
+                        Log.e(TAG, "searchPickedPlace() resulted in an error: " + searchError.name());
+                        callback.onDireccionObtenida(""); // Devolver un valor vacío en caso de error
+                    }
+                }
+            });
+        }
+    }
+
+    public interface DireccionCallback {
+        void onDireccionObtenida(String direccion);
     }
 
     private String guardarImagenBase64DesdeArchivo(File imageFile) {
