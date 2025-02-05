@@ -95,6 +95,7 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
             icon_delete.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    icon_delete.startAnimation(incidenciasExample.mainActivity.animacionClick);
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         Incidencia incidencia = incidenciasExample.incidencias.get(position);
@@ -106,9 +107,23 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
                 }
             });
 
+            incidencia_item.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    incidencia_item.startAnimation(incidenciasExample.mainActivity.animacionClick);
+                    int position = getAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) {
+                        Incidencia incidencia = incidenciasExample.incidencias.get(position);
+                        flyTo(incidenciasExample.mainActivity.mapView, incidencia.mapMarker.getCoordinates());
+                        incidenciasExample.mainActivity.messages.showDialogIncidencia(incidenciasExample.getTipoIncidenciaById(incidencia.id_tipo_incidencia), incidencia.direccion, incidencia.comentarios, incidencia.fecha_hora, incidencia.foto);
+                    }
+                }
+            });
+
             icon_send.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    icon_send.startAnimation(incidenciasExample.mainActivity.animacionClick);
                     int position = getAdapterPosition();
                     if (position != RecyclerView.NO_POSITION) {
                         Incidencia incidencia = incidenciasExample.incidencias.get(position);
@@ -137,8 +152,6 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
                                                         Log.d("Retrofit", "Foto enviada exitosamente.");
                                                         Date date = new Date(incidencia.fecha_hora.toString());
                                                         date.setHours(date.getHours() - 6);
-                                                        Log.e("Prueba",date.toString());
-                                                        Log.e("Prueba",""+incidencia.direccion);
                                                         JSONObject jsonIncident = new JSONObject();
                                                         jsonIncident.put("id_tipo_incidencia", incidencia.id_tipo_incidencia);
                                                         jsonIncident.put("id_usuario", incidencia.id_usuario);
@@ -147,8 +160,8 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
                                                         jsonIncident.put("comentarios",incidencia.comentarios);
                                                         jsonIncident.put("latitud",incidencia.mapMarker.getCoordinates().latitude);
                                                         jsonIncident.put("longitud",incidencia.mapMarker.getCoordinates().longitude);
-                                                        jsonIncident.put("direccion",incidencia.direccion);
                                                         jsonIncident.put("fecha_hora",date.toString()); // Restar 6 horas
+                                                        jsonIncident.put("direccion",incidencia.direccion);
                                                         //ErrorReporter.sendError(jsonObject);
                                                         ApiService apiService = RetrofitClient.getInstance(null, incidenciasExample.mainActivity.desarrollo).create(ApiService.class);
                                                         // Convertir JSONObject a String y crear un RequestBody
@@ -209,12 +222,16 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
                             }else{
                                 try {
                                     JSONObject jsonIncident = new JSONObject();
+                                    Date date = new Date(incidencia.fecha_hora.toString());
+                                    date.setHours(date.getHours() - 6);
                                     jsonIncident.put("id_tipo_incidencia", incidencia.id_tipo_incidencia);
                                     jsonIncident.put("id_usuario", incidencia.id_usuario);
                                     jsonIncident.put("id_ruta",incidencia.id_ruta);
                                     jsonIncident.put("comentarios",incidencia.comentarios);
                                     jsonIncident.put("latitud",incidencia.mapMarker.getCoordinates().latitude);
                                     jsonIncident.put("longitud",incidencia.mapMarker.getCoordinates().longitude);
+                                    jsonIncident.put("fecha_hora",date.toString()); // Restar 6 horas
+                                    jsonIncident.put("direccion",incidencia.direccion);
                                     //ErrorReporter.sendError(jsonObject);
                                     ApiService apiService = RetrofitClient.getInstance(null, incidenciasExample.mainActivity.desarrollo).create(ApiService.class);
                                     // Convertir JSONObject a String y crear un RequestBody
@@ -262,6 +279,7 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
     private static void flyTo(MapView mapView, GeoCoordinates geoCoordinates) {
         GeoCoordinatesUpdate geoCoordinatesUpdate = new GeoCoordinatesUpdate(geoCoordinates);
         double bowFactor = 1;
+        mapView.getCamera().setDistanceToTarget(18.0);
         MapCameraAnimation animation = MapCameraAnimationFactory.flyTo(geoCoordinatesUpdate, bowFactor, Duration.ofSeconds(3));
         mapView.getCamera().startAnimation(animation);
     }

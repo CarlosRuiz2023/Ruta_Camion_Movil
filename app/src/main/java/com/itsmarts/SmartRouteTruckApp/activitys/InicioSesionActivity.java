@@ -1,25 +1,35 @@
 package com.itsmarts.SmartRouteTruckApp.activitys;
 
+import static android.view.View.VISIBLE;
+
 import android.app.Dialog;
+import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.fragment.app.DialogFragment;
@@ -51,13 +61,15 @@ public class InicioSesionActivity extends AppCompatActivity {
     private EditText etUsername, etPassword;
     private Button btnLogin;
     private ImageView ivTogglePassword;
-    private boolean passwordVisible = false;
+    private boolean passwordVisible = false, desarrollo = false;
     private CredentialsManager credentialsManager;
     private static final String TAG = "InicioSesionActivity";
     private LinearLayout llLoadingSesion;
     private TextView forgotPasswordText, closeSesionText, versionText, tvBanner;
     private Logger logger;
     private SwitchCompat switchEnvironment;
+    private View rootView;
+    private Animation animacionClick;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,6 +77,126 @@ public class InicioSesionActivity extends AppCompatActivity {
         // CHECAMOS LA CONEXION A INTERNET
         logger.checkInternetConnectionAndErrors();
         inicializarComponentes();
+        if(Internet.isNetworkConnected()){
+            // Use Retrofit to make the POST request
+            ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
+            Call<ResponseBody> call = apiService.getLastVersion();
+
+            call.enqueue(new Callback<ResponseBody>() {
+                @Override
+                public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            // Obtener el JSON como string
+                            String jsonResponse = response.body().string();
+                            // Convierte la respuesta en un objeto JSON
+                            JSONObject jsonObject = new JSONObject(jsonResponse);
+                            // Verifica si la operación fue exitosa
+                            boolean success = jsonObject.getBoolean("success");
+                            JSONObject resultObject = null;
+                            if (success) {
+                                // Obtén el objeto "result"
+                                resultObject = jsonObject.getJSONObject("result");
+                                String lastVersion = resultObject.getString("version");
+                                if(!lastVersion.equalsIgnoreCase(getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName)){
+                                    Log.e("Prueba","Entro");
+                                    //AlertDialog.Builder builder = null;
+                                    View dialogView = LayoutInflater.from(InicioSesionActivity.this).inflate(R.layout.ventana_version_antigua, null);
+
+                                    final Dialog dialogActualizar = new Dialog(InicioSesionActivity.this);
+                                    dialogActualizar.setContentView(dialogView);
+                                    dialogActualizar.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+;
+                                    Button btnActualizar = dialogView.findViewById(R.id.btnActualizar);
+
+                                    btnActualizar.setOnClickListener(new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            btnActualizar.startAnimation(animacionClick);
+                                            // ID de la app en la Play Store (reemplázalo con el tuyo)
+                                            String packageName = "com.itsmarts.SmartRouteTruckApp";
+
+                                            try {
+                                                // Intent para abrir la Play Store en la app
+                                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName));
+                                                intent.setPackage("com.android.vending"); // Asegura que se abra en la Play Store
+                                                v.getContext().startActivity(intent);
+                                            } catch (ActivityNotFoundException e) {
+                                                // Si la Play Store no está instalada, abre en el navegador
+                                                Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://play.google.com/store/apps/details?id=" + packageName));
+                                                v.getContext().startActivity(intent);
+                                            }
+                                        }
+                                    });
+
+                                    dialogActualizar.show();
+                                }
+                            }
+                            Log.d("Retrofit", "Solicitud exitosa.");
+                        } catch (Exception e) {
+                            Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                        }
+                    } else {
+                        Toast.makeText(getApplicationContext(), "Error al solicitar la ultima verison de la aplicacion Android", Toast.LENGTH_SHORT).show();
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                    Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
+                }
+            });
+        }
+    }
+    // Método para ocultar el teclado
+    private void inicializarComponentes() {
+        setContentView(R.layout.activity_inicio_sesion);
+        etUsername = findViewById(R.id.etUsername);
+        etPassword = findViewById(R.id.etPassword);
+        btnLogin = findViewById(R.id.btnLogin);
+        ivTogglePassword = findViewById(R.id.ivTogglePassword);
+        llLoadingSesion = findViewById(R.id.llLoadingSesion);
+        forgotPasswordText = findViewById(R.id.forgotPasswordText);
+        versionText = findViewById(R.id.versionText);
+        tvBanner = findViewById(R.id.tvBanner);
+        switchEnvironment = findViewById(R.id.switchEnvironment);
+        rootView = findViewById(R.id.loginLayout);
+
+        animacionClick = AnimationUtils.loadAnimation(this, R.anim.click);
+
+        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        boolean isLoggedIn = sharedPreferences.getBoolean("isLoggedIn", false);
+        String correo = sharedPreferences.getString("correo", "");
+        if (isLoggedIn) {
+            etUsername.setText(correo);
+            etPassword.setText("");
+            /*// Si el usuario ya ha iniciado sesión, redirigir a MainActivity
+            Intent intent = new Intent(InicioSesionActivity.this, MainActivity.class);
+            startActivity(intent);
+            finish();  // Evitar que el usuario regrese a la pantalla de login al presionar 'atrás'*/
+        }else{
+            etUsername.setText("play_store@gmail.com");
+            etPassword.setText("ItsMarts1*");
+        }
+        desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+        if(desarrollo){
+            switchEnvironment.setChecked(true);
+            switchEnvironment.setThumbTintList(ColorStateList.valueOf(getResources().getColor(R.color.deepOrange_800)));
+            tvBanner.setVisibility(View.VISIBLE);
+        }
+        /*if(!BuildConfig.PRODUCCION){
+            tvBanner.setVisibility(View.VISIBLE);
+        }*/
+        try {
+            versionText.setText("Versión: "+getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName);
+        }catch (Exception e){
+            versionText.setText("Versión: 1.0.0");
+        }
+        inicializarListeners();
+    }
+
+    // Método para ocultar el teclado
+    private void inicializarListeners() {
         forgotPasswordText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -143,25 +275,6 @@ public class InicioSesionActivity extends AppCompatActivity {
                 }
             }
         });
-        // Verificar si el usuario ya está logueado
-        SharedPreferences preferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
-        boolean isLoggedIn = preferences.getBoolean("isLoggedIn", false);
-        String correo = preferences.getString("correo", "");
-        if (isLoggedIn) {
-            etUsername.setText(correo);
-            etPassword.setText("");
-            /*// Si el usuario ya ha iniciado sesión, redirigir a MainActivity
-            Intent intent = new Intent(InicioSesionActivity.this, MainActivity.class);
-            startActivity(intent);
-            finish();  // Evitar que el usuario regrese a la pantalla de login al presionar 'atrás'*/
-        }else{
-            etUsername.setText("play_store@gmail.com");
-            etPassword.setText("ItsMarts1*");
-        }
-        // Inicializar el administrador de credenciales
-        credentialsManager = new CredentialsManager();
-        // Capturar el layout principal
-        View rootView = findViewById(R.id.loginLayout);
         // Configurar un listener para detectar toques fuera del EditText
         rootView.setOnTouchListener(new View.OnTouchListener() {
             @Override
@@ -405,43 +518,6 @@ public class InicioSesionActivity extends AppCompatActivity {
                 }
             }
         });
-    }
-    // Método para ocultar el teclado
-    private void inicializarComponentes() {
-        setContentView(R.layout.activity_inicio_sesion);
-        etUsername = findViewById(R.id.etUsername);
-        etPassword = findViewById(R.id.etPassword);
-        btnLogin = findViewById(R.id.btnLogin);
-        ivTogglePassword = findViewById(R.id.ivTogglePassword);
-        llLoadingSesion = findViewById(R.id.llLoadingSesion);
-        forgotPasswordText = findViewById(R.id.forgotPasswordText);
-        versionText = findViewById(R.id.versionText);
-        tvBanner = findViewById(R.id.tvBanner);
-        switchEnvironment = findViewById(R.id.switchEnvironment);
-        SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-        boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
-        if(desarrollo){
-            switchEnvironment.setChecked(true);
-            switchEnvironment.setThumbTintList(ColorStateList.valueOf(getResources().getColor(R.color.deepOrange_800)));
-            tvBanner.setVisibility(View.VISIBLE);
-        }
-        /*if(!BuildConfig.PRODUCCION){
-            tvBanner.setVisibility(View.VISIBLE);
-        }*/
-        try {
-            versionText.setText("Versión: "+getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName);
-        }catch (Exception e){
-            versionText.setText("Versión: 1.0.0");
-        }
-    }
-
-    // Método para ocultar el teclado
-    private void inicializarListeners() {
-        View view = this.getCurrentFocus();
-        if (view != null) {
-            InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
-        }
     }
 
     // Método para ocultar el teclado

@@ -135,24 +135,26 @@ public class IncidenciasExample {
      *
      */
     public void recargarIncidencias() {
-        try{
-            mapMarkersIncidencias.clear();
-            for (Incidencia incidencia : incidencias) {
-                mapView.getMapScene().removeMapMarker(incidencia.mapMarker);
-            }
-            List<MapView.ViewPin> mapViewPins = mapView.getViewPins();
-            for (MapView.ViewPin viewPin : new ArrayList<>(mapViewPins)) {
+        mapMarkersIncidencias.clear();
+        for (Incidencia incidencia : incidencias) {
+            mapView.getMapScene().removeMapMarker(incidencia.mapMarker);
+        }
+        List<MapView.ViewPin> mapViewPins = mapView.getViewPins();
+        for (MapView.ViewPin viewPin : new ArrayList<>(mapViewPins)) {
+            if(viewPin!=null){
                 for (Incidencia incidencia : incidencias) {
                     if(incidencia.mapMarker.getCoordinates().latitude==viewPin.getGeoCoordinates().latitude && incidencia.mapMarker.getCoordinates().longitude==viewPin.getGeoCoordinates().longitude){
-                        viewPin.unpin();
+                        try{
+                            viewPin.unpin();
+                        }catch (Exception e){
+                            Log.e(TAG, "Error al limpiar la lista de incidencias del mapa: " + e.getMessage());
+                        }
                     }
                 }
             }
-            incidencias = dbHelper.getAllIncidencias();
-            mostrarIncidencias();
-        }catch (Exception e){
-            Log.e(TAG, "Error al recargar incidencias ", e);
         }
+        incidencias = dbHelper.getAllIncidencias();
+        mostrarIncidencias();
     }
 
     /**

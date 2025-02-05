@@ -60,5 +60,8 @@ public interface ApiService {
 
     @POST("api/incidencias/agregarIncidencia")
     Call<Void> agregarIncidencia(@Body RequestBody requestBody);
+
+    @GET("api/versiones/obtenerUltimaVersionMovil")
+    Call<ResponseBody> getLastVersion();
 }
 

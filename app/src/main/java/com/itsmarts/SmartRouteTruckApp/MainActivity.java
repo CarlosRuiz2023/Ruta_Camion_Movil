@@ -432,6 +432,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     btnBuscar.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
+                            btnBuscar.startAnimation(animacionClick);
                             String selectedPoiType = spinnerPoiType.getSelectedItem().toString();
                             String radiusStr = editTextRadius.getText().toString().trim();
                             if (!radiusStr.isEmpty() && Integer.parseInt(radiusStr)!=0 && Integer.parseInt(radiusStr)>=1000) {
@@ -451,6 +452,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     btnCancelarPoi.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
+                            btnCancelarPoi.startAnimation(animacionClick);
                             dialogPoi.dismiss();
                         }
                     });
@@ -496,6 +498,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     btnConsultar.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
+                            btnConsultar.startAnimation(animacionClick);
                             btnDescargar.setEnabled(true);
                             offlineMap.onDownloadMexicoRegionClicked();
                         }
@@ -504,6 +507,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     btnDescargar.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
+                            btnDescargar.startAnimation(animacionClick);
                             if (btnDescargar.getText().equals(getString(R.string.descargar))){
                                 txtProcesoDescarga.setVisibility(VISIBLE);
                                 offlineMap.onDownloadMapMexicoClicked();

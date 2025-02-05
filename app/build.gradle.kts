@@ -10,8 +10,8 @@ android {
         applicationId = "com.itsmarts.SmartRouteTruckApp"
         minSdk = 24
         targetSdk = 34
-        versionCode = 84
-        versionName = "1.2.01"
+        versionCode = 85
+        versionName = "1.2.02"
         /*versionName = "2.0.0"*/
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
