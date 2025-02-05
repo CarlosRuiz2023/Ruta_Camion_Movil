@@ -99,7 +99,6 @@ public class InicioSesionActivity extends AppCompatActivity {
                                 resultObject = jsonObject.getJSONObject("result");
                                 String lastVersion = resultObject.getString("version");
                                 if(!lastVersion.equalsIgnoreCase(getApplicationContext().getPackageManager().getPackageInfo(getApplicationContext().getPackageName(), 0).versionName)){
-                                    Log.e("Prueba","Entro");
                                     //AlertDialog.Builder builder = null;
                                     View dialogView = LayoutInflater.from(InicioSesionActivity.this).inflate(R.layout.ventana_version_antigua, null);
 

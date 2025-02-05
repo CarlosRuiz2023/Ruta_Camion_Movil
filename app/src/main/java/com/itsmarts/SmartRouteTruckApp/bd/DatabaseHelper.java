@@ -1133,7 +1133,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 if (fecha_hora != null) {
                     try {
                         fechaHora = mainActivity.dateFormat.parse(fecha_hora);
-                        Log.e("Prueba","Fecha_hora: "+fechaHora.toString());
                     } catch (ParseException e) {
                         Log.e(TAG,"Error al parsear fecha de creacion: "+fecha_hora);
                     }
