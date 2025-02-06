@@ -1,10 +1,12 @@
 package com.itsmarts.SmartRouteTruckApp.adaptadores;
 
+import android.app.Dialog;
 import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -23,6 +25,7 @@ import com.here.sdk.mapview.MapMarker;
 import com.here.sdk.mapview.MapView;
 import com.here.time.Duration;
 import com.itsmarts.SmartRouteTruckApp.R;
+import com.itsmarts.SmartRouteTruckApp.activitys.InicioSesionActivity;
 import com.itsmarts.SmartRouteTruckApp.api.ApiService;
 import com.itsmarts.SmartRouteTruckApp.api.RetrofitClient;
 import com.itsmarts.SmartRouteTruckApp.clases.IncidenciasExample;
@@ -171,17 +174,30 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
                                                         call1.enqueue(new Callback<Void>() {
                                                             @Override
                                                             public void onResponse(Call<Void> call1, Response<Void> response) {
-                                                                if (!response.isSuccessful()) {
-                                                                    Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
-                                                                    incidenciasExample.mainActivity.messages.showCustomToast("Error al enviar la incidencia");
-                                                                    //dbHelper.saveIncidencia(id_tipo_incidencia_final,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,0);
-                                                                }else{
+                                                                if (response.isSuccessful()) {
                                                                     //dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,1);
                                                                     //TODO: Actualizar el estatus y recargar el adapter
                                                                     incidenciasExample.mainActivity.messages.showCustomToast("Incidencia enviada con exitosamente");
                                                                     incidenciasExample.dbHelper.updateStatusIncidencia(incidencia.id,true);
                                                                     incidencia.setStatus(true);
                                                                     adapter.notifyDataSetChanged();
+                                                                } else if (response.code() == 409) {
+                                                                    Dialog limiteIncidenciasDialog = new Dialog(incidenciasExample.mainActivity);
+                                                                    limiteIncidenciasDialog.setContentView(R.layout.ventana_limite_de_incidencias);
+                                                                    limiteIncidenciasDialog.setCancelable(false);
+                                                                    limiteIncidenciasDialog.setCanceledOnTouchOutside(false);
+                                                                    Button btnCancelar = limiteIncidenciasDialog.findViewById(R.id.btnCancelar);
+
+                                                                    btnCancelar.setOnClickListener(new View.OnClickListener() {
+                                                                        @Override
+                                                                        public void onClick(View v) {
+                                                                            limiteIncidenciasDialog.dismiss();
+                                                                        }
+                                                                    });
+                                                                    limiteIncidenciasDialog.show();
+                                                                } else {
+                                                                    Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
+                                                                    incidenciasExample.mainActivity.messages.showCustomToast("Error al enviar la incidencia");
                                                                 }
                                                             }
 
@@ -241,17 +257,30 @@ public class IncidenciaAdapter extends RecyclerView.Adapter<IncidenciaAdapter.In
                                     call.enqueue(new Callback<Void>() {
                                         @Override
                                         public void onResponse(Call<Void> call, Response<Void> response) {
-                                            if (!response.isSuccessful()) {
-                                                Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
-                                                //dbHelper.saveIncidencia(id_tipo_incidencia_final,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,0);
-                                                incidenciasExample.mainActivity.messages.showCustomToast("Error al enviar la incidencia");
-                                            }else{
+                                            if (response.isSuccessful()) {
                                                 //dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,1);
                                                 //TODO: Actualizar el estatus y recargar el adapter
                                                 incidenciasExample.mainActivity.messages.showCustomToast("Incidencia enviada sin foto exitosamente");
                                                 incidenciasExample.dbHelper.updateStatusIncidencia(incidencia.id,true);
                                                 incidencia.setStatus(true);
                                                 adapter.notifyDataSetChanged();
+                                            } else if (response.code() == 409) {
+                                                Dialog limiteIncidenciasDialog = new Dialog(incidenciasExample.mainActivity);
+                                                limiteIncidenciasDialog.setContentView(R.layout.ventana_limite_de_incidencias);
+                                                limiteIncidenciasDialog.setCancelable(false);
+                                                limiteIncidenciasDialog.setCanceledOnTouchOutside(false);
+                                                Button btnCancelar = limiteIncidenciasDialog.findViewById(R.id.btnCancelar);
+
+                                                btnCancelar.setOnClickListener(new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View v) {
+                                                        limiteIncidenciasDialog.dismiss();
+                                                    }
+                                                });
+                                                limiteIncidenciasDialog.show();
+                                            } else {
+                                                Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
+                                                incidenciasExample.mainActivity.messages.showCustomToast("Error al enviar la incidencia");
                                             }
                                         }
 

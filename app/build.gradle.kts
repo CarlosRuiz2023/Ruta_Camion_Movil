@@ -10,8 +10,8 @@ android {
         applicationId = "com.itsmarts.SmartRouteTruckApp"
         minSdk = 24
         targetSdk = 34
-        versionCode = 85
-        versionName = "1.2.02"
+        versionCode = 86
+        versionName = "1.2.03"
         /*versionName = "2.0.0"*/
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -68,7 +68,7 @@ dependencies {
 
     implementation(files("/libs/hereSDK.aar"))
     implementation("com.airbnb.android:lottie:3.5.0")
-    implementation ("com.squareup.retrofit2:retrofit:2.11.0")
-    implementation ("com.squareup.retrofit2:converter-gson:2.10.0")
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.10.0")
     implementation("com.google.android.gms:play-services-location:21.0.1")
 }

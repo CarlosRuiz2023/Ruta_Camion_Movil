@@ -258,7 +258,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
             BitmapFactory.Options options = new BitmapFactory.Options();
             options.inPreferredConfig = Bitmap.Config.ARGB_8888; // Para la mejor calidad
-            Bitmap imageBitmap = BitmapFactory.decodeFile(currentPhotoPath, options);
+            imageBitmap = BitmapFactory.decodeFile(currentPhotoPath, options);
             // 2. Corregir la orientación de la imagen
             imageBitmap = corregirOrientacion(currentPhotoPath, imageBitmap);
             imgIncidencia.setImageBitmap(imageBitmap);
@@ -2341,21 +2341,33 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             call1.enqueue(new Callback<Void>() {
                                 @Override
                                 public void onResponse(Call<Void> call1, Response<Void> response) {
-                                    if (!response.isSuccessful()) {
-                                        Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
-                                        messages.showCustomToast("Error al enviar la incidencia");
-                                        //dbHelper.saveIncidencia(id_tipo_incidencia_final,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,0);
-                                    }else{
-                                        dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,imageFile,comentarios,currentGeoCoordinates,1);
+                                    if (response.isSuccessful()) {
+                                        dbHelper.saveIncidencia(id_tipo_incidencia, id_usuario, ruta.id, imageFile, comentarios, currentGeoCoordinates, 1);
                                         messages.showCustomToast("Incidencia enviada con exitosamente");
                                         imageFile = null;
                                         imageBitmap = null;
                                         imageUri = null;
                                         comentarios = "";
                                         id_tipo_incidencia = 0;
+                                    } else if (response.code() == 409) {
+                                        Dialog limiteIncidenciasDialog = new Dialog(MainActivity.this);
+                                        limiteIncidenciasDialog.setContentView(R.layout.ventana_limite_de_incidencias);
+                                        limiteIncidenciasDialog.setCancelable(false);
+                                        limiteIncidenciasDialog.setCanceledOnTouchOutside(false);
+                                        Button btnCancelar = limiteIncidenciasDialog.findViewById(R.id.btnCancelar);
+
+                                        btnCancelar.setOnClickListener(new View.OnClickListener() {
+                                            @Override
+                                            public void onClick(View v) {
+                                                limiteIncidenciasDialog.dismiss();
+                                            }
+                                        });
+                                        limiteIncidenciasDialog.show();
+                                    } else {
+                                        Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
+                                        messages.showCustomToast("Error al enviar la incidencia");
                                     }
                                 }
-
                                 @Override
                                 public void onFailure(Call<Void> call1, Throwable t) {
                                     Log.e("ErrorReporter", "Error al enviar el reporte: " + t.getMessage());
@@ -2417,15 +2429,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             call.enqueue(new Callback<Void>() {
                 @Override
                 public void onResponse(Call<Void> call, Response<Void> response) {
-                    if (!response.isSuccessful()) {
-                        Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
-                        //dbHelper.saveIncidencia(id_tipo_incidencia_final,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,0);
-                        messages.showCustomToast("Error al enviar la incidencia");
-                    }else{
+                    if (response.isSuccessful()) {
                         dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,1);
                         messages.showCustomToast("Incidencia enviada sin foto exitosamente");
                         comentarios = "";
                         id_tipo_incidencia = 0;
+                    } else if (response.code() == 409) {
+                        Dialog limiteIncidenciasDialog = new Dialog(MainActivity.this);
+                        limiteIncidenciasDialog.setContentView(R.layout.ventana_limite_de_incidencias);
+                        limiteIncidenciasDialog.setCancelable(false);
+                        limiteIncidenciasDialog.setCanceledOnTouchOutside(false);
+                        Button btnCancelar = limiteIncidenciasDialog.findViewById(R.id.btnCancelar);
+
+                        btnCancelar.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                limiteIncidenciasDialog.dismiss();
+                            }
+                        });
+                        limiteIncidenciasDialog.show();
+                    } else {
+                        Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
+                        messages.showCustomToast("Error al enviar la incidencia");
                     }
                 }
 
