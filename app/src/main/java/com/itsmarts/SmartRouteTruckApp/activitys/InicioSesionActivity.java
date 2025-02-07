@@ -533,4 +533,15 @@ public class InicioSesionActivity extends AppCompatActivity {
         String emailPatternMX = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+\\.+[a-z]+";
         return email.matches(emailPattern) || email.matches(emailPatternMX);
     }
+
+    @Override
+    public void onBackPressed() {
+        try{
+            //super.onBackPressed();
+            finishAffinity();
+            finish();
+        }catch (Exception e){
+            logger.logError(TAG,e,InicioSesionActivity.this);
+        }
+    }
 }

@@ -2257,7 +2257,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                     dbHelper.saveAsignacion(id_ruta);
                                     // Extraer rutas asignadas
                                     for (int j = 0; j < rutas.size(); j++) {
-                                        if (rutas.get(j).id == id_ruta) {
+                                        if (rutas.get(j).id == id_ruta && rutas.get(j).status == 1) {
                                             rutasAsignadas.add(rutas.get(j));
                                         }
                                     }
@@ -2343,7 +2343,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 public void onResponse(Call<Void> call1, Response<Void> response) {
                                     if (response.isSuccessful()) {
                                         dbHelper.saveIncidencia(id_tipo_incidencia, id_usuario, ruta.id, imageFile, comentarios, currentGeoCoordinates, 1);
-                                        messages.showCustomToast("Incidencia enviada con exitosamente");
+                                        messages.showCustomToast("Incidencia enviada con fotografia exitosamente");
                                         imageFile = null;
                                         imageBitmap = null;
                                         imageUri = null;
@@ -2431,7 +2431,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 public void onResponse(Call<Void> call, Response<Void> response) {
                     if (response.isSuccessful()) {
                         dbHelper.saveIncidencia(id_tipo_incidencia,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,1);
-                        messages.showCustomToast("Incidencia enviada sin foto exitosamente");
+                        messages.showCustomToast("Incidencia enviada sin fotografia exitosamente");
                         comentarios = "";
                         id_tipo_incidencia = 0;
                     } else if (response.code() == 409) {
@@ -2458,7 +2458,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 public void onFailure(Call<Void> call, Throwable t) {
                     Log.e("ErrorReporter", "Error al enviar el reporte: " + t.getMessage());
                     //dbHelper.saveIncidencia(id_tipo_incidencia_final,id_usuario,ruta.id,null,comentarios,currentGeoCoordinates,0);
-                    messages.showCustomToast("Incidencia sin foto guardada dentro de la BD");
+                    messages.showCustomToast("Incidencia sin fotografia guardada dentro de la BD");
                 }
             });
         }catch (JSONException e){
