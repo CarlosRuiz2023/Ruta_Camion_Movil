@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
-        tools:ignore="MissingConstraints">
+        app:layout_constraintBottom_toBottomOf="@+id/btnCerrar">
         <ImageView
             android:id="@+id/imageView10"
             android:layout_width="30dp"
@@ -111,18 +111,29 @@
         android:backgroundTint="@color/blue"
         android:textColor="@android:color/white"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/btnCancelar"
+        app:layout_constraintStart_toEndOf="@+id/btnGuardar"
         app:layout_constraintTop_toBottomOf="@+id/imgIncidencia" />
 
     <Button
-        android:id="@+id/btnCancelar"
+        android:id="@+id/btnGuardar"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
-        android:text="Cancelar"
-        android:backgroundTint="@color/red"
+        android:text="Guardar localmente"
+        android:backgroundTint="@color/blue"
         android:textColor="@android:color/white"
         app:layout_constraintEnd_toStartOf="@+id/btnEnviar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imgIncidencia" />
+
+    <ImageButton
+        android:id="@+id/btnCerrar"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:backgroundTint="#00000000"
+        android:elevation="6dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/cerrar" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

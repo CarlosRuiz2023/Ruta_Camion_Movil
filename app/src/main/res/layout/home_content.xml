@@ -418,7 +418,7 @@
             android:layout_width="52dp"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            android:backgroundTint="@color/deepOrange_800"
+            app:backgroundTint="@color/deepOrange_800"
             android:clickable="true"
             android:focusable="true"
             android:src="@drawable/ic_minor_crash"

@@ -9,10 +9,14 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.content.res.ColorStateList;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Matrix;
 import android.graphics.Typeface;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.LayerDrawable;
 import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
@@ -1054,6 +1058,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     spinnerIncidentType = dialogView.findViewById(R.id.spinnerIncidentType);
                     TextInputLayout textInputLayout = dialogView.findViewById(R.id.textInputLayout);
+                    ImageButton btnCerrar = dialogView.findViewById(R.id.btnCerrar);
                     editTextComment = dialogView.findViewById(R.id.editTextComment);
                     editTextComment.setText(""+comentarios);
                     Button btnEnviar = dialogView.findViewById(R.id.btnEnviar);
@@ -1061,7 +1066,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     if(imageBitmap !=null){
                         imgIncidencia.setImageBitmap(imageBitmap);
                     }
-                    final Button btnCancelar = dialogView.findViewById(R.id.btnCancelar);
+                    final Button btnGuardar = dialogView.findViewById(R.id.btnGuardar);
 
                     editTextComment.addTextChangedListener(new TextWatcher() {
                         @Override
@@ -1105,6 +1110,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                 } else {
                                     enviarIncidenciaSinFoto();
                                 }
+                                fbIncidencia.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.deepOrange_800)));
                             }else{
                                 btnEnviar.startAnimation(animacionClick);
                                 new Handler().postDelayed(new Runnable() {
@@ -1128,6 +1134,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                                 new Handler().postDelayed(new Runnable() {
                                                     @Override
                                                     public void run() {
+                                                        // Cambiar color del fondo correctamente
+                                                        fbIncidencia.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.orange)));
+
                                                         dialog.dismiss();
                                                     }
                                                 }, 400);
@@ -1161,10 +1170,30 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         }
                     });
 
-                    btnCancelar.setOnClickListener(new View.OnClickListener() {
+                    btnCerrar.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             dialogIncidencia.dismiss();
+                        }
+                    });
+                    btnGuardar.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            btnGuardar.startAnimation(animacionClick);
+                            String selectedIncidentType = spinnerIncidentType.getSelectedItem().toString();
+                            id_tipo_incidencia = incidenciasExample.obtenerIdTipoIncidencia(selectedIncidentType);
+                            comentarios = editTextComment.getText().toString();
+                            new Handler().postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (imageFile != null) {
+                                        uploadImageSinConexion();
+                                    } else {
+                                        enviarIncidenciaSinFotoSinConexion();
+                                    }
+                                    dialogIncidencia.dismiss();
+                                }
+                            }, 400);
                         }
                     });
                     imgIncidencia.setOnClickListener(new View.OnClickListener() {
@@ -1351,6 +1380,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             routingExample.clearMap();
             clearMapMarkersPOIsAndCircle(false);
             if(ruta!=null){
+                fbIncidencia.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.deepOrange_800)));
                 llGeocerca.setVisibility(View.GONE);
                 llIncidencia.setVisibility(View.GONE);
                 mapView.getMapScene().removeMapPolyline(ruta.polyline);
