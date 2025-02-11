@@ -65,6 +65,7 @@ import com.airbnb.lottie.LottieAnimationView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
+import com.google.android.material.progressindicator.LinearProgressIndicator;
 import com.google.android.material.textfield.TextInputLayout;
 import com.here.sdk.core.Anchor2D;
 import com.here.sdk.core.Color;
@@ -225,6 +226,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private Uri imageUri = null;
     private int id_tipo_incidencia = 0, id_usuario;
     private String comentarios = "", token = "";
+    public LinearProgressIndicator progressIndicator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -408,8 +410,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                     break;
                 case "Puntos Cercanos":
-                    avoidZonesExample.cleanPolygon();
-                    controlPointsExample.cleanPoint();
                     setTapGestureHandler();
                     isTrackingCamera = false;
                     trackCamara.setImageResource(R.drawable.track_on);
@@ -466,8 +466,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 case "Puntos de Control":
                     trackCamara.setImageResource(R.drawable.track_on);
                     navigationExample.stopCameraTracking();
-                    avoidZonesExample.cleanPolygon();
-                    controlPointsExample.cleanPoint();
                     mapView.getGestures().setTapListener(null);
                     animSalida = AnimationUtils.loadAnimation(MainActivity.this, R.anim.salida2);
                     clearMapMarkersPOIsAndCircle(true);
@@ -476,17 +474,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 case "Zonas Prohibidas":
                     trackCamara.setImageResource(R.drawable.track_on);
                     navigationExample.stopCameraTracking();
-                    controlPointsExample.cleanPoint();
-                    avoidZonesExample.cleanPolygon();
                     mapView.getGestures().setTapListener(null);
                     animSalida = AnimationUtils.loadAnimation(MainActivity.this, R.anim.salida2);
                     clearMapMarkersPOIsAndCircle(true);
                     avoidZonesExample.getModalBottomSheetFullScreenFragment().show(getSupportFragmentManager(), ModalBottomSheetFullScreenFragmentZonas.TAG);
                     break;
                 case "Descargar Mapa":
-                    avoidZonesExample.cleanPolygon();
-                    controlPointsExample.cleanPoint();
-
                     LayoutInflater inflater = getLayoutInflater();
                     dialogView = inflater.inflate(R.layout.ventana_descargar_mapa, null);
 
@@ -537,14 +530,61 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     alertDialogOffline.show();
                     break;
                 case "Vehiculo":
-                    avoidZonesExample.cleanPolygon();
-                    controlPointsExample.cleanPoint();
                     mapView.getGestures().setTapListener(null);
                     truckConfig.mostrarMenu();
                     break;
                 case "Incidencias":
                     animSalida = AnimationUtils.loadAnimation(MainActivity.this, R.anim.salida2);
                     incidenciasExample.getModalBottomSheetFullScreenFragment().show(getSupportFragmentManager(), ModalBottomSheetFullScreenFragmentIncidencias.TAG);
+                    break;
+                case "Perfil":
+                    dialogView = LayoutInflater.from(MainActivity.this).inflate(R.layout.ventana_perfil, null);
+
+                    final Dialog dialogPerfil = new Dialog(MainActivity.this);
+                    dialogPerfil.setContentView(dialogView);
+                    dialogPerfil.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+                    SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                    int id_usuario = sharedPreferences.getInt("id_usuario", 1);
+                    String nombres = sharedPreferences.getString("nombres", "Jorge Luis");
+                    String apellido_paterno = sharedPreferences.getString("apellido_paterno", "Lona");
+                    String apellido_materno = sharedPreferences.getString("apellido_materno", "Sanchez");
+                    String correo = sharedPreferences.getString("correo", "example1@gmail.com");
+                    String telefono = sharedPreferences.getString("telefono", "1234567890");
+
+                    EditText idUsuarioEditText = dialogView.findViewById(R.id.idUsuarioEditText);
+                    idUsuarioEditText.setText(""+id_usuario);
+                    EditText nombresEditText = dialogView.findViewById(R.id.nombresEditText);
+                    nombresEditText.setText(nombres.trim());
+                    EditText apellidoPaternoEditText = dialogView.findViewById(R.id.apellidoPaternoEditText);
+                    apellidoPaternoEditText.setText(apellido_paterno.trim());
+                    EditText apellidoMaternoEditText = dialogView.findViewById(R.id.apellidoMaternoEditText);
+                    apellidoMaternoEditText.setText(apellido_materno.trim());
+                    EditText correoEditText = dialogView.findViewById(R.id.correoEditText);
+                    correoEditText.setText(correo.trim());
+                    EditText telefonoEditText = dialogView.findViewById(R.id.telefonoEditText);
+                    telefonoEditText.setText(telefono.trim());
+
+                    Button btnActualizar = dialogView.findViewById(R.id.btnActualizar);
+                    Button btnPassword = dialogView.findViewById(R.id.btnPassword);
+
+                    btnActualizar.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            btnActualizar.startAnimation(animacionClick);
+                            dialogPerfil.dismiss();
+                        }
+                    });
+
+                    btnPassword.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            btnPassword.startAnimation(animacionClick);
+                            dialogPerfil.dismiss();
+                        }
+                    });
+
+                    dialogPerfil.show();
                     break;
                 case "Cerrar Sesion":
                     if(Internet.isNetworkConnected()){
@@ -809,6 +849,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             speedLabeltextView = findViewById(R.id.speedLabeltextView);
             fbIncidencia = findViewById(R.id.fbIncidencia);
             llIncidencia = findViewById(R.id.llIncidencia);
+            progressIndicator = findViewById(R.id.progressRuta);
+            progressIndicator.setMax(100); // 100% de la ruta
+
             // Infla el layout del encabezado
             View headerView = nmd.inflateHeaderView(R.layout.nav_header);
             nav_header_name = headerView.findViewById(R.id.nav_header_name);
@@ -1428,6 +1471,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     }
                 }
             }
+            progressIndicator.setVisibility(View.GONE);
         }catch (Exception e){
             logger.logError(TAG,e,MainActivity.this);
         }

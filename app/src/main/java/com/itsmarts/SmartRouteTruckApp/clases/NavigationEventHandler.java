@@ -193,6 +193,7 @@ public class NavigationEventHandler {
                     List<SectionProgress> sectionProgressList = routeProgress.sectionProgress;
                     SectionProgress lastSectionProgress = sectionProgressList.get(sectionProgressList.size() - 1);
                     int distanceToDestination = (int) lastSectionProgress.remainingDistanceInMeters;
+                    int totalDistance = (int) mainActivity.ruta.distancia;
                     int timeRemaining = (int) lastSectionProgress.remainingDuration.getSeconds();
                     Log.d(TAG, "Distance to destination in meters: " + lastSectionProgress.remainingDistanceInMeters);
                     Log.d(TAG, "Traffic delay ahead in seconds: " + lastSectionProgress.remainingDuration.getSeconds());
@@ -200,6 +201,13 @@ public class NavigationEventHandler {
                     if (destinationDistanceListener != null) {
                         destinationDistanceListener.onDestinationInfoUpdated(distanceToDestination, timeRemaining);
                     }
+
+                    // Calcular progreso basado en la distancia
+                    int progress = (int) ((1 - ((double) distanceToDestination / totalDistance)) * 100);
+                    progress = Math.max(0, Math.min(progress, 100)); // Asegurar que esté entre 0 y 100
+                    mainActivity.progressIndicator.setProgress(progress);
+
+                    Log.d(TAG, "Ruta progreso: " + progress + "%");
 
                     List<ManeuverProgress> nextManeuverList = routeProgress.maneuverProgress;
 

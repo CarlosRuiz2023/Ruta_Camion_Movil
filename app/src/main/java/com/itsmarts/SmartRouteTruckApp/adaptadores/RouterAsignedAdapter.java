@@ -110,6 +110,8 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                     btnObtenerRuta.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
+                            btnStartRoute.startAnimation(mainActivity.animacionClick);
+                            mainActivity.progressIndicator.setVisibility(VISIBLE);
                             alertDialogRutaMaster.dismiss();
                             if(mainActivity.ruta != null){
                                 mainActivity.limpiezaTotal();
@@ -120,7 +122,6 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                             }
                             mainActivity.llLoadingRoute.setVisibility(VISIBLE);
                             //mainActivity.likeImageView1.setVisibility(VISIBLE);
-                            btnStartRoute.startAnimation(mainActivity.animacionClick);
                             mainActivity.handler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
@@ -247,6 +248,8 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                     btnSimularRuta.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
+                            btnStartRoute.startAnimation(mainActivity.animacionClick);
+                            mainActivity.progressIndicator.setVisibility(VISIBLE);
                             if(mainActivity.ruta != null){
                                 mainActivity.limpiezaTotal();
                             }
@@ -258,7 +261,6 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                             mainActivity.llIncidencia.setVisibility(VISIBLE);
                             mainActivity.llLoadingRoute.setVisibility(VISIBLE);
                             //mainActivity.likeImageView1.setVisibility(VISIBLE);
-                            btnStartRoute.startAnimation(mainActivity.animacionClick);
                             mainActivity.handler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
