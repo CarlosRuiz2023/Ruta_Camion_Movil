@@ -144,6 +144,7 @@ import java.io.OutputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -545,7 +546,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     dialogPerfil.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
 
                     SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-                    int id_usuario = sharedPreferences.getInt("id_usuario", 1);
                     String nombres = sharedPreferences.getString("nombres", "Jorge Luis");
                     String apellido_paterno = sharedPreferences.getString("apellido_paterno", "Lona");
                     String apellido_materno = sharedPreferences.getString("apellido_materno", "Sanchez");
@@ -567,11 +567,64 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                     Button btnActualizar = dialogView.findViewById(R.id.btnActualizar);
                     Button btnPassword = dialogView.findViewById(R.id.btnPassword);
+                    ImageButton btnCerrar = dialogView.findViewById(R.id.btnCerrar);
 
                     btnActualizar.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
                             btnActualizar.startAnimation(animacionClick);
+                            if(Internet.isNetworkConnected()){
+                                int id_rol = sharedPreferences.getInt("id_rol", 1);
+                                String password = sharedPreferences.getString("password", "123456");
+                                String vehiculos = sharedPreferences.getString("vehiculos", "");
+                                JSONArray vehiculosArray = new JSONArray();
+                                JSONObject jsonIncident = new JSONObject();
+                                try{
+                                    vehiculosArray = new JSONArray(vehiculos);
+                                    jsonIncident.put("id_rol", id_rol);
+                                    jsonIncident.put("correo", correoEditText.getText().toString());
+                                    jsonIncident.put("contrasenia",password);
+                                    jsonIncident.put("telefono",Long.parseLong(telefonoEditText.getText().toString()));
+                                    jsonIncident.put("nombres",nombresEditText.getText().toString());
+                                    jsonIncident.put("apellido_paterno",apellidoPaternoEditText.getText().toString());
+                                    jsonIncident.put("apellido_materno",apellidoMaternoEditText.getText().toString());
+                                    jsonIncident.put("vehiculos",vehiculosArray);
+                                }catch(JSONException e){
+                                    Log.e(TAG, "Error al procesar el JSON: " + e.getMessage());
+                                }
+
+                                ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
+                                // Convertir JSONObject a String y crear un RequestBody
+                                RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonIncident.toString());
+                                Call<Void> call1 = apiService.actualizarUsuario(requestBody,id_usuario);
+
+                                call1.enqueue(new Callback<Void>() {
+                                    @Override
+                                    public void onResponse(Call<Void> call1, Response<Void> response) {
+                                        if (response.isSuccessful()) {
+                                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                                            editor.putString("nombres", nombresEditText.getText().toString());
+                                            editor.putString("apellido_paterno", apellidoPaternoEditText.getText().toString());
+                                            editor.putString("apellido_materno", apellidoMaternoEditText.getText().toString());
+                                            editor.putString("correo", correoEditText.getText().toString());
+                                            editor.putString("telefono", telefonoEditText.getText().toString());
+                                            // Commit the changes
+                                            editor.apply();
+                                            messages.showCustomToast("Usuario actualizado exitosamente");
+                                        } else {
+                                            Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
+                                            messages.showCustomToast("Error al enviar la incidencia");
+                                        }
+                                    }
+                                    @Override
+                                    public void onFailure(Call<Void> call1, Throwable t) {
+                                        Log.e("ErrorReporter", "Error al actualizar el usuario: " + t.getMessage());
+                                    }
+                                });
+                            }else{
+                                DialogFragment errorDialog = new ErrorDialogFragment();
+                                errorDialog.show(getSupportFragmentManager(), "errorDialog");
+                            }
                             dialogPerfil.dismiss();
                         }
                     });
@@ -580,6 +633,83 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         @Override
                         public void onClick(View v) {
                             btnPassword.startAnimation(animacionClick);
+                            View dialogView1 = LayoutInflater.from(MainActivity.this).inflate(R.layout.ventana_password, null);
+
+                            final Dialog dialogPassword = new Dialog(MainActivity.this);
+                            dialogPassword.setContentView(dialogView1);
+                            dialogPassword.getWindow().setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+                            String password = sharedPreferences.getString("password", "123456");
+
+                            EditText contraseniaEditText = dialogView1.findViewById(R.id.contraseniaEditText);
+                            EditText contraseniaConfirmEditText = dialogView1.findViewById(R.id.contraseniaConfirmEditText);
+
+                            Button btnActualizar1 = dialogView1.findViewById(R.id.btnActualizar);
+                            Button btnCancelar1 = dialogView1.findViewById(R.id.btnCancelar);
+
+                            btnActualizar1.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    btnActualizar1.startAnimation(animacionClick);
+                                    if(contraseniaEditText.getText().toString().equals(contraseniaConfirmEditText.getText().toString())){
+                                        if(!contraseniaEditText.getText().toString().equals(password)){
+                                            if(Internet.isNetworkConnected()){
+                                                JSONObject jsonChangePassword = new JSONObject();
+                                                try{
+                                                    jsonChangePassword.put("contrasenia",contraseniaEditText.getText().toString());
+                                                }catch(JSONException e){
+                                                    Log.e(TAG, "Error al procesar el JSON: " + e.getMessage());
+                                                }
+                                                ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
+                                                // Convertir JSONObject a String y crear un RequestBody
+                                                RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonChangePassword.toString());
+                                                Call<Void> call1 = apiService.cambiarContrasenia(requestBody,id_usuario);
+
+                                                call1.enqueue(new Callback<Void>() {
+                                                    @Override
+                                                    public void onResponse(Call<Void> call1, Response<Void> response) {
+                                                        if (response.isSuccessful()) {
+                                                            messages.showCustomToast("Contraseña actualizada exitosamente");
+                                                            dialogPassword.dismiss();
+                                                        } else {
+                                                            Log.e("ErrorReporter", "Error al actualizar la contraseña: " + response.code());
+                                                            messages.showCustomToast("Error al actualizar la contraseña");
+                                                        }
+                                                    }
+                                                    @Override
+                                                    public void onFailure(Call<Void> call1, Throwable t) {
+                                                        Log.e("ErrorReporter", "Error al actualizar la contraseña: " + t.getMessage());
+                                                    }
+                                                });
+                                            }else{
+                                                DialogFragment errorDialog = new ErrorDialogFragment();
+                                                errorDialog.show(getSupportFragmentManager(), "errorDialog");
+                                            }
+                                        }else{
+                                            Toast.makeText(MainActivity.this, "La contraseña no puede ser igual a la anterior", Toast.LENGTH_SHORT).show();
+                                        }
+                                    }else{
+                                        Toast.makeText(MainActivity.this, "Las contraseñas no coinciden", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+
+                            btnCancelar1.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    btnCancelar1.startAnimation(animacionClick);
+                                    dialogPassword.dismiss();
+                                }
+                            });
+
+                            dialogPassword.show();
+                        }
+                    });
+
+                    btnCerrar.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            btnCerrar.startAnimation(animacionClick);
                             dialogPerfil.dismiss();
                         }
                     });

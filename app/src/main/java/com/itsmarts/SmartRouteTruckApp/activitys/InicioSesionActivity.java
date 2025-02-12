@@ -346,6 +346,7 @@ public class InicioSesionActivity extends AppCompatActivity {
                                             String apellido_materno = usuario.getJSONObject(0).getString("apellido_materno");
                                             String correo = usuario.getJSONObject(0).getString("correo");
                                             String telefono = usuario.getJSONObject(0).getString("telefono");
+                                            JSONArray vehiculosArray = usuario.getJSONObject(0).getJSONArray("vehiculos");
 
                                             JSONObject rolUsuario = usuario.getJSONObject(0).getJSONObject("rolUsuario");
                                             int id_rol = rolUsuario.getInt("id_rol");
@@ -365,6 +366,7 @@ public class InicioSesionActivity extends AppCompatActivity {
                                                 editor.putInt("id_rol", id_rol);
                                                 editor.putBoolean("isLoggedIn", true); // Update login state
                                                 editor.putBoolean("isLoggedSinConexion", false); // Update login state
+                                                editor.putString("vehiculos", vehiculosArray.toString());
                                                 // Commit the changes
                                                 editor.apply();
                                                 Intent intent = new Intent(InicioSesionActivity.this, MainActivity.class);
