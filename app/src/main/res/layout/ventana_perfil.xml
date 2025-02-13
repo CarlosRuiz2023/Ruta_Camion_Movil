@@ -238,8 +238,7 @@
         android:id="@+id/btnCerrar"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:backgroundTint="#00000000"
-        android:elevation="6dp"
+        app:backgroundTint="@android:color/holo_red_dark"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/cerrar" />

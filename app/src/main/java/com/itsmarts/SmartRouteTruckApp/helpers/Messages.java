@@ -264,7 +264,7 @@ public class Messages {
 
         incidenciaView.setText(incidenica);
         addressView.setText(address);
-        if (comentarios!=null) {
+        if (comentarios!="") {
             comentariosView.setText(comentarios);
         } else {
             comentariosView.setVisibility(View.GONE);
