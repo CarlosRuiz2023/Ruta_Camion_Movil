@@ -573,97 +573,101 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         @Override
                         public void onClick(View v) {
                             btnActualizar.startAnimation(animacionClick);
-                            LayoutInflater inflater = getLayoutInflater();
-                            View dialogView = inflater.inflate(R.layout.ventana_dialog_confirmacion, null);
+                            if(!nombresEditText.getText().toString().equals(nombres.trim()) || !apellidoPaternoEditText.getText().toString().equals(apellido_paterno.trim())|| !apellidoMaternoEditText.getText().toString().equals(apellido_materno.trim()) || !correoEditText.getText().toString().equals(correo.trim()) || !telefonoEditText.getText().toString().equals(telefono.trim())){
+                                LayoutInflater inflater = getLayoutInflater();
+                                View dialogView = inflater.inflate(R.layout.ventana_dialog_confirmacion, null);
 
-                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                            builder.setView(dialogView);
+                                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                builder.setView(dialogView);
 
-                            final AlertDialog dialog = builder.create();
+                                final AlertDialog dialog = builder.create();
 
-                            Button positiveButton = dialogView.findViewById(R.id.positiveButton);
-                            Button negativeButton = dialogView.findViewById(R.id.negativeButton);
+                                Button positiveButton = dialogView.findViewById(R.id.positiveButton);
+                                Button negativeButton = dialogView.findViewById(R.id.negativeButton);
 
-                            positiveButton.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    positiveButton.startAnimation(animacionClick);
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            if(Internet.isNetworkConnected()){
-                                                int id_rol = sharedPreferences.getInt("id_rol", 1);
-                                                String password = sharedPreferences.getString("password", "123456");
-                                                String vehiculos = sharedPreferences.getString("vehiculos", "");
-                                                JSONArray vehiculosArray = new JSONArray();
-                                                JSONObject jsonIncident = new JSONObject();
-                                                try{
-                                                    vehiculosArray = new JSONArray(vehiculos);
-                                                    jsonIncident.put("id_rol", id_rol);
-                                                    jsonIncident.put("correo", correoEditText.getText().toString());
-                                                    jsonIncident.put("contrasenia",password);
-                                                    jsonIncident.put("telefono",Long.parseLong(telefonoEditText.getText().toString()));
-                                                    jsonIncident.put("nombres",nombresEditText.getText().toString());
-                                                    jsonIncident.put("apellido_paterno",apellidoPaternoEditText.getText().toString());
-                                                    jsonIncident.put("apellido_materno",apellidoMaternoEditText.getText().toString());
-                                                    jsonIncident.put("vehiculos",vehiculosArray);
-                                                }catch(JSONException e){
-                                                    Log.e(TAG, "Error al procesar el JSON: " + e.getMessage());
-                                                }
+                                positiveButton.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        positiveButton.startAnimation(animacionClick);
+                                        new Handler().postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                if(Internet.isNetworkConnected()){
+                                                    int id_rol = sharedPreferences.getInt("id_rol", 1);
+                                                    String password = sharedPreferences.getString("password", "123456");
+                                                    String vehiculos = sharedPreferences.getString("vehiculos", "");
+                                                    JSONArray vehiculosArray = new JSONArray();
+                                                    JSONObject jsonIncident = new JSONObject();
+                                                    try{
+                                                        vehiculosArray = new JSONArray(vehiculos);
+                                                        jsonIncident.put("id_rol", id_rol);
+                                                        jsonIncident.put("correo", correoEditText.getText().toString());
+                                                        jsonIncident.put("contrasenia",password);
+                                                        jsonIncident.put("telefono",Long.parseLong(telefonoEditText.getText().toString()));
+                                                        jsonIncident.put("nombres",nombresEditText.getText().toString());
+                                                        jsonIncident.put("apellido_paterno",apellidoPaternoEditText.getText().toString());
+                                                        jsonIncident.put("apellido_materno",apellidoMaternoEditText.getText().toString());
+                                                        jsonIncident.put("vehiculos",vehiculosArray);
+                                                    }catch(JSONException e){
+                                                        Log.e(TAG, "Error al procesar el JSON: " + e.getMessage());
+                                                    }
 
-                                                ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
-                                                // Convertir JSONObject a String y crear un RequestBody
-                                                RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonIncident.toString());
-                                                Call<Void> call1 = apiService.actualizarUsuario(requestBody,id_usuario);
+                                                    ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
+                                                    // Convertir JSONObject a String y crear un RequestBody
+                                                    RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonIncident.toString());
+                                                    Call<Void> call1 = apiService.actualizarUsuario(requestBody,id_usuario);
 
-                                                call1.enqueue(new Callback<Void>() {
-                                                    @Override
-                                                    public void onResponse(Call<Void> call1, Response<Void> response) {
-                                                        if (response.isSuccessful()) {
-                                                            SharedPreferences.Editor editor = sharedPreferences.edit();
-                                                            editor.putString("nombres", nombresEditText.getText().toString());
-                                                            editor.putString("apellido_paterno", apellidoPaternoEditText.getText().toString());
-                                                            editor.putString("apellido_materno", apellidoMaternoEditText.getText().toString());
-                                                            editor.putString("correo", correoEditText.getText().toString());
-                                                            editor.putString("telefono", telefonoEditText.getText().toString());
-                                                            // Commit the changes
-                                                            editor.apply();
-                                                            messages.showCustomToast("Usuario actualizado exitosamente");
-                                                        } else {
-                                                            Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
-                                                            messages.showCustomToast("Error al enviar la incidencia");
+                                                    call1.enqueue(new Callback<Void>() {
+                                                        @Override
+                                                        public void onResponse(Call<Void> call1, Response<Void> response) {
+                                                            if (response.isSuccessful()) {
+                                                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                                                editor.putString("nombres", nombresEditText.getText().toString());
+                                                                editor.putString("apellido_paterno", apellidoPaternoEditText.getText().toString());
+                                                                editor.putString("apellido_materno", apellidoMaternoEditText.getText().toString());
+                                                                editor.putString("correo", correoEditText.getText().toString());
+                                                                editor.putString("telefono", telefonoEditText.getText().toString());
+                                                                // Commit the changes
+                                                                editor.apply();
+                                                                messages.showCustomToast("Usuario actualizado exitosamente");
+                                                            } else {
+                                                                Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
+                                                                messages.showCustomToast("Error al enviar la incidencia");
+                                                            }
                                                         }
-                                                    }
-                                                    @Override
-                                                    public void onFailure(Call<Void> call1, Throwable t) {
-                                                        Log.e("ErrorReporter", "Error al actualizar el usuario: " + t.getMessage());
-                                                    }
-                                                });
-                                            }else{
-                                                DialogFragment errorDialog = new ErrorDialogFragment();
-                                                errorDialog.show(getSupportFragmentManager(), "errorDialog");
+                                                        @Override
+                                                        public void onFailure(Call<Void> call1, Throwable t) {
+                                                            Log.e("ErrorReporter", "Error al actualizar el usuario: " + t.getMessage());
+                                                        }
+                                                    });
+                                                }else{
+                                                    DialogFragment errorDialog = new ErrorDialogFragment();
+                                                    errorDialog.show(getSupportFragmentManager(), "errorDialog");
+                                                }
+                                                dialog.dismiss();
+                                                dialogPerfil.dismiss();
                                             }
-                                            dialog.dismiss();
-                                            dialogPerfil.dismiss();
-                                        }
-                                    }, 400);
-                                }
-                            });
+                                        }, 400);
+                                    }
+                                });
 
-                            negativeButton.setOnClickListener(new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    negativeButton.startAnimation(animacionClick);
-                                    new Handler().postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            dialog.dismiss();
-                                        }
-                                    }, 400);
-                                }
-                            });
+                                negativeButton.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        negativeButton.startAnimation(animacionClick);
+                                        new Handler().postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                dialog.dismiss();
+                                            }
+                                        }, 400);
+                                    }
+                                });
 
-                            dialog.show();
+                                dialog.show();
+                            }else{
+                                Toast.makeText(MainActivity.this, "No se realizaron cambios", Toast.LENGTH_SHORT).show();
+                            }
                         }
                     });
 
