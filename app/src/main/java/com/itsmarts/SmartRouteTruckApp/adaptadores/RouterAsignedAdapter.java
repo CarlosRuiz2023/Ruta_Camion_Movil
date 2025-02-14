@@ -207,33 +207,35 @@ public class RouterAsignedAdapter extends RecyclerView.Adapter<RouterAsignedAdap
                                                     } catch (Exception e) {
                                                         mainActivity.routeSuccessfullyProcessed = false;
                                                     }
-                                                    // Create a LoginRequest object with the provided username and password
-                                                    if(Internet.isNetworkConnected()){
-                                                        SharedPreferences sharedPreferences = mainActivity.getApplicationContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-                                                        int id_usuario = sharedPreferences.getInt("id_usuario", 0);
-                                                        HistorialRequest historialRequest = new HistorialRequest(mainActivity.ruta.id, id_usuario);
+                                                    Internet.isNetworkConnected(isConnected -> {
+                                                        if (isConnected) {
+                                                            // Create a LoginRequest object with the provided username and password
+                                                            SharedPreferences sharedPreferences = mainActivity.getApplicationContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+                                                            int id_usuario = sharedPreferences.getInt("id_usuario", 0);
+                                                            HistorialRequest historialRequest = new HistorialRequest(mainActivity.ruta.id, id_usuario);
 
-                                                        // Use Retrofit to make the POST request
-                                                        boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
-                                                        ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
-                                                        Call<ResponseBody> call1 = apiService.mandarHistorial(historialRequest);
+                                                            // Use Retrofit to make the POST request
+                                                            boolean desarrollo = sharedPreferences.getBoolean("desarrollo", false);
+                                                            ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
+                                                            Call<ResponseBody> call1 = apiService.mandarHistorial(historialRequest);
 
-                                                        call1.enqueue(new Callback<ResponseBody>() {
-                                                            @Override
-                                                            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
-                                                                Toast.makeText(mainActivity.getApplicationContext(), "Uso de la ruta #"+mainActivity.ruta.id+" registrado", Toast.LENGTH_SHORT).show();
-                                                                mainActivity.logger.trackActivity(TAG,"Uso de ruta registrado","El uso de la ruta: "+mainActivity.ruta.name+" fue registrado con exito");
-                                                            }
+                                                            call1.enqueue(new Callback<ResponseBody>() {
+                                                                @Override
+                                                                public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                                                                    Toast.makeText(mainActivity.getApplicationContext(), "Uso de la ruta #"+mainActivity.ruta.id+" registrado", Toast.LENGTH_SHORT).show();
+                                                                    mainActivity.logger.trackActivity(TAG,"Uso de ruta registrado","El uso de la ruta: "+mainActivity.ruta.name+" fue registrado con exito");
+                                                                }
 
-                                                            @Override
-                                                            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
-                                                                Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
-                                                            }
-                                                        });
-                                                    }else {
-                                                        DialogFragment errorDialog = new ErrorDialogFragment();
-                                                        errorDialog.show(mainActivity.getSupportFragmentManager(), "errorDialog");
-                                                    }
+                                                                @Override
+                                                                public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                                                                    Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
+                                                                }
+                                                            });
+                                                        } else {
+                                                            DialogFragment errorDialog = new ErrorDialogFragment();
+                                                            errorDialog.show(mainActivity.getSupportFragmentManager(), "errorDialog");
+                                                        }
+                                                    });
                                                 } else {
                                                     mainActivity.messages.showCustomToast("No se pudo calcular la ruta");
                                                     mainActivity.routeSuccessfullyProcessed = false;

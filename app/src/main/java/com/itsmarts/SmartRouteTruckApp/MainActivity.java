@@ -331,81 +331,83 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                         // Mostrar diálogo
                         alertDialogRuta.show();
 
-                        if(Internet.isNetworkConnected()){
-                            // Iniciar descargas
-                            futures = new ArrayList<>();
-                            futures.add(descargarRutasFaltantes());
-                            futures.add(controlPointsExample.descargarPuntosDeControlFaltantes());
-                            futures.add(avoidZonesExample.descargarZonasPeligrosasFaltantes());
-                            futures.add(avoidZonesExample.descargarZonasProhibidasFaltantes());
+                        Internet.isNetworkConnected(isConnected -> {
+                            if (isConnected) {
+                                // Iniciar descargas
+                                futures = new ArrayList<>();
+                                futures.add(descargarRutasFaltantes());
+                                futures.add(controlPointsExample.descargarPuntosDeControlFaltantes());
+                                futures.add(avoidZonesExample.descargarZonasPeligrosasFaltantes());
+                                futures.add(avoidZonesExample.descargarZonasProhibidasFaltantes());
 
-                            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                                    .whenComplete((result, ex) -> {
-                                        runOnUiThread(() -> {
-                                            if (ex != null) {
-                                                Log.e(TAG, "Error during downloads", ex);
-                                                sinRutasTextView.setText("Error al cargar rutas");
-                                                return;
-                                            }
-                                            rutas = dbHelper.getAllRoutes();
-                                            controlPointsExample.pointsWithIds = dbHelper.getAllPuntos();
-                                            avoidZonesExample.polygonWithIds = dbHelper.getAllZonas();
+                                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                                        .whenComplete((result, ex) -> {
+                                            runOnUiThread(() -> {
+                                                if (ex != null) {
+                                                    Log.e(TAG, "Error during downloads", ex);
+                                                    sinRutasTextView.setText("Error al cargar rutas");
+                                                    return;
+                                                }
+                                                rutas = dbHelper.getAllRoutes();
+                                                controlPointsExample.pointsWithIds = dbHelper.getAllPuntos();
+                                                avoidZonesExample.polygonWithIds = dbHelper.getAllZonas();
 
-                                            // Iniciar descargas
-                                            futures = new ArrayList<>();
-                                            futures.add(obtenerAsignaciones());
+                                                // Iniciar descargas
+                                                futures = new ArrayList<>();
+                                                futures.add(obtenerAsignaciones());
 
-                                            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                                                    .whenComplete((result1, ex1) -> {
-                                                        runOnUiThread(() -> {
-                                                            if (ex1 != null) {
-                                                                Log.e(TAG, "Error during downloads", ex1);
-                                                                sinRutasTextView.setText("Error al cargar rutas");
-                                                                return;
-                                                            }
+                                                CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                                                        .whenComplete((result1, ex1) -> {
+                                                            runOnUiThread(() -> {
+                                                                if (ex1 != null) {
+                                                                    Log.e(TAG, "Error during downloads", ex1);
+                                                                    sinRutasTextView.setText("Error al cargar rutas");
+                                                                    return;
+                                                                }
 
-                                                            logger.trackActivity(TAG,"Obtuvo rutas asignadas","El usuario obtubo las rutas asignadas");
+                                                                logger.trackActivity(TAG,"Obtuvo rutas asignadas","El usuario obtubo las rutas asignadas");
 
-                                                            adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
+                                                                adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
 
-                                                            if (adapterAsignedRoutes.getItemCount() == 0) {
-                                                                scrollView.setVisibility(View.GONE);
-                                                                sinRutasTextView.setText("No hay rutas disponibles");
-                                                                sinRutasTextView.setVisibility(View.VISIBLE);
-                                                            } else {
-                                                                recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
-                                                                recyclerView.setAdapter(adapterAsignedRoutes);
-                                                                scrollView.setVisibility(View.VISIBLE);
-                                                                sinRutasTextView.setVisibility(View.GONE);
-                                                            }
+                                                                if (adapterAsignedRoutes.getItemCount() == 0) {
+                                                                    scrollView.setVisibility(View.GONE);
+                                                                    sinRutasTextView.setText("No hay rutas disponibles");
+                                                                    sinRutasTextView.setVisibility(View.VISIBLE);
+                                                                } else {
+                                                                    recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
+                                                                    recyclerView.setAdapter(adapterAsignedRoutes);
+                                                                    scrollView.setVisibility(View.VISIBLE);
+                                                                    sinRutasTextView.setVisibility(View.GONE);
+                                                                }
+                                                            });
                                                         });
-                                                    });
+                                            });
                                         });
-                                    });
-                        }else{
-                            //sinRutasTextView.setText("Verifique su conexion a internet.");
-                            List<Integer> asignaciones = dbHelper.getAllAsignaciones();
-                            for (int i = 0; i < asignaciones.size(); i++) {
-                                // Extraer rutas asignadas
-                                for (int j = 0; j < rutas.size(); j++) {
-                                    if (rutas.get(j).id == asignaciones.get(i)) {
-                                        rutasAsignadas.add(rutas.get(j));
+                            } else {
+                                //sinRutasTextView.setText("Verifique su conexion a internet.");
+                                List<Integer> asignaciones = dbHelper.getAllAsignaciones();
+                                for (int i = 0; i < asignaciones.size(); i++) {
+                                    // Extraer rutas asignadas
+                                    for (int j = 0; j < rutas.size(); j++) {
+                                        if (rutas.get(j).id == asignaciones.get(i)) {
+                                            rutasAsignadas.add(rutas.get(j));
+                                        }
                                     }
                                 }
+                                logger.trackActivity(TAG,"Obtuvo rutas asignadas","El usuario obtubo las rutas asignadas sin conexion a internet");
+                                adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
+                                if (adapterAsignedRoutes.getItemCount() == 0) {
+                                    scrollView.setVisibility(View.GONE);
+                                    sinRutasTextView.setText("No hay rutas disponibles");
+                                    sinRutasTextView.setVisibility(View.VISIBLE);
+                                } else {
+                                    recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
+                                    recyclerView.setAdapter(adapterAsignedRoutes);
+                                    scrollView.setVisibility(View.VISIBLE);
+                                    sinRutasTextView.setVisibility(View.GONE);
+                                }
                             }
-                            logger.trackActivity(TAG,"Obtuvo rutas asignadas","El usuario obtubo las rutas asignadas sin conexion a internet");
-                            adapterAsignedRoutes = new RouterAsignedAdapter(this, alertDialogRuta, rutasAsignadas);
-                            if (adapterAsignedRoutes.getItemCount() == 0) {
-                                scrollView.setVisibility(View.GONE);
-                                sinRutasTextView.setText("No hay rutas disponibles");
-                                sinRutasTextView.setVisibility(View.VISIBLE);
-                            } else {
-                                recyclerView.setLayoutManager(new LinearLayoutManager(getBaseContext()));
-                                recyclerView.setAdapter(adapterAsignedRoutes);
-                                scrollView.setVisibility(View.VISIBLE);
-                                sinRutasTextView.setVisibility(View.GONE);
-                            }
-                        }
+                        });
                     }else{
                         Messages.showInvalidCredentialsDialog("Ya se tiene una ruta activa.","Es necesario terminar la ruta activa antes de seleccionar otra ruta.",MainActivity.this);
                     }
@@ -592,58 +594,60 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         new Handler().postDelayed(new Runnable() {
                                             @Override
                                             public void run() {
-                                                if(Internet.isNetworkConnected()){
-                                                    int id_rol = sharedPreferences.getInt("id_rol", 1);
-                                                    String password = sharedPreferences.getString("password", "123456");
-                                                    String vehiculos = sharedPreferences.getString("vehiculos", "");
-                                                    JSONArray vehiculosArray = new JSONArray();
-                                                    JSONObject jsonIncident = new JSONObject();
-                                                    try{
-                                                        vehiculosArray = new JSONArray(vehiculos);
-                                                        jsonIncident.put("id_rol", id_rol);
-                                                        jsonIncident.put("correo", correoEditText.getText().toString());
-                                                        jsonIncident.put("contrasenia",password);
-                                                        jsonIncident.put("telefono",Long.parseLong(telefonoEditText.getText().toString()));
-                                                        jsonIncident.put("nombres",nombresEditText.getText().toString());
-                                                        jsonIncident.put("apellido_paterno",apellidoPaternoEditText.getText().toString());
-                                                        jsonIncident.put("apellido_materno",apellidoMaternoEditText.getText().toString());
-                                                        jsonIncident.put("vehiculos",vehiculosArray);
-                                                    }catch(JSONException e){
-                                                        Log.e(TAG, "Error al procesar el JSON: " + e.getMessage());
-                                                    }
+                                                Internet.isNetworkConnected(isConnected -> {
+                                                    if (isConnected) {
+                                                        int id_rol = sharedPreferences.getInt("id_rol", 1);
+                                                        String password = sharedPreferences.getString("password", "123456");
+                                                        String vehiculos = sharedPreferences.getString("vehiculos", "");
+                                                        JSONArray vehiculosArray = new JSONArray();
+                                                        JSONObject jsonIncident = new JSONObject();
+                                                        try{
+                                                            vehiculosArray = new JSONArray(vehiculos);
+                                                            jsonIncident.put("id_rol", id_rol);
+                                                            jsonIncident.put("correo", correoEditText.getText().toString());
+                                                            jsonIncident.put("contrasenia",password);
+                                                            jsonIncident.put("telefono",Long.parseLong(telefonoEditText.getText().toString()));
+                                                            jsonIncident.put("nombres",nombresEditText.getText().toString());
+                                                            jsonIncident.put("apellido_paterno",apellidoPaternoEditText.getText().toString());
+                                                            jsonIncident.put("apellido_materno",apellidoMaternoEditText.getText().toString());
+                                                            jsonIncident.put("vehiculos",vehiculosArray);
+                                                        }catch(JSONException e){
+                                                            Log.e(TAG, "Error al procesar el JSON: " + e.getMessage());
+                                                        }
 
-                                                    ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
-                                                    // Convertir JSONObject a String y crear un RequestBody
-                                                    RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonIncident.toString());
-                                                    Call<Void> call1 = apiService.actualizarUsuario(requestBody,id_usuario);
+                                                        ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
+                                                        // Convertir JSONObject a String y crear un RequestBody
+                                                        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonIncident.toString());
+                                                        Call<Void> call1 = apiService.actualizarUsuario(requestBody,id_usuario);
 
-                                                    call1.enqueue(new Callback<Void>() {
-                                                        @Override
-                                                        public void onResponse(Call<Void> call1, Response<Void> response) {
-                                                            if (response.isSuccessful()) {
-                                                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                                                editor.putString("nombres", nombresEditText.getText().toString());
-                                                                editor.putString("apellido_paterno", apellidoPaternoEditText.getText().toString());
-                                                                editor.putString("apellido_materno", apellidoMaternoEditText.getText().toString());
-                                                                editor.putString("correo", correoEditText.getText().toString());
-                                                                editor.putString("telefono", telefonoEditText.getText().toString());
-                                                                // Commit the changes
-                                                                editor.apply();
-                                                                messages.showCustomToast("Usuario actualizado exitosamente");
-                                                            } else {
-                                                                Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
-                                                                messages.showCustomToast("Error al enviar la incidencia");
+                                                        call1.enqueue(new Callback<Void>() {
+                                                            @Override
+                                                            public void onResponse(Call<Void> call1, Response<Void> response) {
+                                                                if (response.isSuccessful()) {
+                                                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                                                    editor.putString("nombres", nombresEditText.getText().toString());
+                                                                    editor.putString("apellido_paterno", apellidoPaternoEditText.getText().toString());
+                                                                    editor.putString("apellido_materno", apellidoMaternoEditText.getText().toString());
+                                                                    editor.putString("correo", correoEditText.getText().toString());
+                                                                    editor.putString("telefono", telefonoEditText.getText().toString());
+                                                                    // Commit the changes
+                                                                    editor.apply();
+                                                                    messages.showCustomToast("Usuario actualizado exitosamente");
+                                                                } else {
+                                                                    Log.e("ErrorReporter", "Error al enviar la incidencia: " + response.code());
+                                                                    messages.showCustomToast("Error al enviar la incidencia");
+                                                                }
                                                             }
-                                                        }
-                                                        @Override
-                                                        public void onFailure(Call<Void> call1, Throwable t) {
-                                                            Log.e("ErrorReporter", "Error al actualizar el usuario: " + t.getMessage());
-                                                        }
-                                                    });
-                                                }else{
-                                                    DialogFragment errorDialog = new ErrorDialogFragment();
-                                                    errorDialog.show(getSupportFragmentManager(), "errorDialog");
-                                                }
+                                                            @Override
+                                                            public void onFailure(Call<Void> call1, Throwable t) {
+                                                                Log.e("ErrorReporter", "Error al actualizar el usuario: " + t.getMessage());
+                                                            }
+                                                        });
+                                                    } else {
+                                                        DialogFragment errorDialog = new ErrorDialogFragment();
+                                                        errorDialog.show(getSupportFragmentManager(), "errorDialog");
+                                                    }
+                                                });
                                                 dialog.dismiss();
                                                 dialogPerfil.dismiss();
                                             }
@@ -715,38 +719,40 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                                             new Handler().postDelayed(new Runnable() {
                                                                 @Override
                                                                 public void run() {
-                                                                    if(Internet.isNetworkConnected()){
-                                                                        JSONObject jsonChangePassword = new JSONObject();
-                                                                        try{
-                                                                            jsonChangePassword.put("contrasenia",contraseniaEditText.getText().toString());
-                                                                        }catch(JSONException e){
-                                                                            Log.e(TAG, "Error al procesar el JSON: " + e.getMessage());
-                                                                        }
-                                                                        ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
-                                                                        // Convertir JSONObject a String y crear un RequestBody
-                                                                        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonChangePassword.toString());
-                                                                        Call<Void> call1 = apiService.cambiarContrasenia(requestBody,id_usuario);
+                                                                    Internet.isNetworkConnected(isConnected -> {
+                                                                        if (isConnected) {
+                                                                            JSONObject jsonChangePassword = new JSONObject();
+                                                                            try{
+                                                                                jsonChangePassword.put("contrasenia",contraseniaEditText.getText().toString());
+                                                                            }catch(JSONException e){
+                                                                                Log.e(TAG, "Error al procesar el JSON: " + e.getMessage());
+                                                                            }
+                                                                            ApiService apiService = RetrofitClient.getInstance(null,desarrollo).create(ApiService.class);
+                                                                            // Convertir JSONObject a String y crear un RequestBody
+                                                                            RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), jsonChangePassword.toString());
+                                                                            Call<Void> call1 = apiService.cambiarContrasenia(requestBody,id_usuario);
 
-                                                                        call1.enqueue(new Callback<Void>() {
-                                                                            @Override
-                                                                            public void onResponse(Call<Void> call1, Response<Void> response) {
-                                                                                if (response.isSuccessful()) {
-                                                                                    messages.showCustomToast("Contraseña actualizada exitosamente");
-                                                                                    dialogPassword.dismiss();
-                                                                                } else {
-                                                                                    Log.e("ErrorReporter", "Error al actualizar la contraseña: " + response.code());
-                                                                                    messages.showCustomToast("Error al actualizar la contraseña");
+                                                                            call1.enqueue(new Callback<Void>() {
+                                                                                @Override
+                                                                                public void onResponse(Call<Void> call1, Response<Void> response) {
+                                                                                    if (response.isSuccessful()) {
+                                                                                        messages.showCustomToast("Contraseña actualizada exitosamente");
+                                                                                        dialogPassword.dismiss();
+                                                                                    } else {
+                                                                                        Log.e("ErrorReporter", "Error al actualizar la contraseña: " + response.code());
+                                                                                        messages.showCustomToast("Error al actualizar la contraseña");
+                                                                                    }
                                                                                 }
-                                                                            }
-                                                                            @Override
-                                                                            public void onFailure(Call<Void> call1, Throwable t) {
-                                                                                Log.e("ErrorReporter", "Error al actualizar la contraseña: " + t.getMessage());
-                                                                            }
-                                                                        });
-                                                                    }else{
-                                                                        DialogFragment errorDialog = new ErrorDialogFragment();
-                                                                        errorDialog.show(getSupportFragmentManager(), "errorDialog");
-                                                                    }
+                                                                                @Override
+                                                                                public void onFailure(Call<Void> call1, Throwable t) {
+                                                                                    Log.e("ErrorReporter", "Error al actualizar la contraseña: " + t.getMessage());
+                                                                                }
+                                                                            });
+                                                                        } else {
+                                                                            DialogFragment errorDialog = new ErrorDialogFragment();
+                                                                            errorDialog.show(getSupportFragmentManager(), "errorDialog");
+                                                                        }
+                                                                    });
                                                                     dialog.dismiss();
                                                                 }
                                                             }, 400);
@@ -805,24 +811,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     dialogPerfil.show();
                     break;
                 case "Cerrar Sesion":
-                    if(Internet.isNetworkConnected()){
-                        // Use Retrofit to make the POST request
-                        ApiService apiService = RetrofitClient.getInstance(token,desarrollo).create(ApiService.class);
-                        Call<ResponseBody> call = apiService.desloguearse();
+                    Internet.isNetworkConnected(isConnected -> {
+                        if (isConnected) {
+                            // Use Retrofit to make the POST request
+                            ApiService apiService = RetrofitClient.getInstance(token,desarrollo).create(ApiService.class);
+                            Call<ResponseBody> call = apiService.desloguearse();
 
-                        call.enqueue(new Callback<ResponseBody>() {
-                            @Override
-                            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
-                                if (response.isSuccessful() && response.body() != null) {
-                                    try {
-                                        // Obtener el JSON como string
-                                        String jsonResponse = response.body().string();
-                                        // Convierte la respuesta en un objeto JSON
-                                        JSONObject jsonObject = new JSONObject(jsonResponse);
-                                        // Verifica si la operación fue exitosa
-                                        boolean success = jsonObject.getBoolean("success");
-                                        JSONObject resultObject = null;
-                                        if (success) {
+                            call.enqueue(new Callback<ResponseBody>() {
+                                @Override
+                                public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                                    if (response.isSuccessful() && response.body() != null) {
+                                        try {
+                                            // Obtener el JSON como string
+                                            String jsonResponse = response.body().string();
+                                            // Convierte la respuesta en un objeto JSON
+                                            JSONObject jsonObject = new JSONObject(jsonResponse);
+                                            // Verifica si la operación fue exitosa
+                                            boolean success = jsonObject.getBoolean("success");
+                                            JSONObject resultObject = null;
+                                            if (success) {
                                             /*// Remove credentials from SharedPreferences
                                             SharedPreferences sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
                                             SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -835,33 +842,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                             editor.remove("id_rol");  // Remove password key (if stored directly)
                                             editor.apply(); // Apply changes to SharedPreferences*/
 
-                                            // - Redirect to login activity
-                                            Intent intent = new Intent(MainActivity.this, InicioSesionActivity.class); // Assuming your login activity is LoginActivity
-                                            startActivity(intent);
-                                            // Obtén el objeto "result"
-                                            Toast.makeText(getApplicationContext(), "Usuario deslogueado con exito", Toast.LENGTH_SHORT).show();
-                                            //finish();
+                                                // - Redirect to login activity
+                                                Intent intent = new Intent(MainActivity.this, InicioSesionActivity.class); // Assuming your login activity is LoginActivity
+                                                startActivity(intent);
+                                                // Obtén el objeto "result"
+                                                Toast.makeText(getApplicationContext(), "Usuario deslogueado con exito", Toast.LENGTH_SHORT).show();
+                                                //finish();
+                                            }
+                                        } catch (Exception e) {
+                                            Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
                                         }
-                                    } catch (Exception e) {
-                                        Log.e("Retrofit", "Error al procesar el JSON: " + e.getMessage());
+                                    } else {
+                                        Toast.makeText(getApplicationContext(), "No se pudo desloguear al usuario", Toast.LENGTH_SHORT).show();
                                     }
-                                } else {
-                                    Toast.makeText(getApplicationContext(), "No se pudo desloguear al usuario", Toast.LENGTH_SHORT).show();
                                 }
-                            }
 
-                            @Override
-                            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
-                                Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
-                            }
-                        });
-                    }else{
-                        // - Redirect to login activity
-                        Intent intent = new Intent(MainActivity.this, InicioSesionActivity.class); // Assuming your login activity is LoginActivity
-                        startActivity(intent);
-                        // Obtén el objeto "result"
-                        Toast.makeText(getApplicationContext(), "No se pudo desloguear el usuario debido a la conexion a internet", Toast.LENGTH_SHORT).show();
-                    }
+                                @Override
+                                public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                                    Log.e("Retrofit", "Error en la solicitud: " + t.getMessage());
+                                }
+                            });
+                        } else {
+                            // - Redirect to login activity
+                            Intent intent = new Intent(MainActivity.this, InicioSesionActivity.class); // Assuming your login activity is LoginActivity
+                            startActivity(intent);
+                            // Obtén el objeto "result"
+                            Toast.makeText(getApplicationContext(), "No se pudo desloguear el usuario debido a la conexion a internet", Toast.LENGTH_SHORT).show();
+                        }
+                    });
                     break;
                 default:
                     String msg = item.getTitle().toString();
@@ -1365,68 +1373,70 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             String selectedIncidentType = spinnerIncidentType.getSelectedItem().toString();
                             id_tipo_incidencia = incidenciasExample.obtenerIdTipoIncidencia(selectedIncidentType);
                             comentarios = editTextComment.getText().toString();
-                            if(Internet.isNetworkConnected()){
-                                if (imageFile != null) {
-                                    uploadImage();
-                                } else {
-                                    enviarIncidenciaSinFoto();
-                                }
-                                fbIncidencia.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.deepOrange_800)));
-                            }else{
-                                btnEnviar.startAnimation(animacionClick);
-                                new Handler().postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        LayoutInflater inflater = getLayoutInflater();
-                                        View dialogView = inflater.inflate(R.layout.ventana_guardar_incidencia, null);
-
-                                        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                                        builder.setView(dialogView);
-
-                                        final AlertDialog dialog = builder.create();
-
-                                        Button esperarButton = dialogView.findViewById(R.id.esperarButton);
-                                        Button guardarButton = dialogView.findViewById(R.id.guardarButton);
-
-                                        esperarButton.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                esperarButton.startAnimation(animacionClick);
-                                                new Handler().postDelayed(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        // Cambiar color del fondo correctamente
-                                                        fbIncidencia.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.orange)));
-
-                                                        dialog.dismiss();
-                                                    }
-                                                }, 400);
-                                            }
-                                        });
-
-                                        guardarButton.setOnClickListener(new View.OnClickListener() {
-                                            @Override
-                                            public void onClick(View v) {
-                                                guardarButton.startAnimation(animacionClick);
-                                                new Handler().postDelayed(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        if (imageFile != null) {
-                                                            uploadImageSinConexion();
-                                                        } else {
-                                                            enviarIncidenciaSinFotoSinConexion();
-                                                        }
-                                                        dialog.dismiss();
-                                                    }
-                                                }, 400);
-                                            }
-                                        });
-
-                                        dialog.show();
-                                        //recalculateRouteButton.setVisibility(View.GONE);
+                            Internet.isNetworkConnected(isConnected -> {
+                                if (isConnected) {
+                                    if (imageFile != null) {
+                                        uploadImage();
+                                    } else {
+                                        enviarIncidenciaSinFoto();
                                     }
-                                }, 400);
-                            }
+                                    fbIncidencia.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.deepOrange_800)));
+                                } else {
+                                    btnEnviar.startAnimation(animacionClick);
+                                    new Handler().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            LayoutInflater inflater = getLayoutInflater();
+                                            View dialogView = inflater.inflate(R.layout.ventana_guardar_incidencia, null);
+
+                                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                                            builder.setView(dialogView);
+
+                                            final AlertDialog dialog = builder.create();
+
+                                            Button esperarButton = dialogView.findViewById(R.id.esperarButton);
+                                            Button guardarButton = dialogView.findViewById(R.id.guardarButton);
+
+                                            esperarButton.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    esperarButton.startAnimation(animacionClick);
+                                                    new Handler().postDelayed(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            // Cambiar color del fondo correctamente
+                                                            fbIncidencia.setBackgroundTintList(ColorStateList.valueOf(getResources().getColor(R.color.orange)));
+
+                                                            dialog.dismiss();
+                                                        }
+                                                    }, 400);
+                                                }
+                                            });
+
+                                            guardarButton.setOnClickListener(new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    guardarButton.startAnimation(animacionClick);
+                                                    new Handler().postDelayed(new Runnable() {
+                                                        @Override
+                                                        public void run() {
+                                                            if (imageFile != null) {
+                                                                uploadImageSinConexion();
+                                                            } else {
+                                                                enviarIncidenciaSinFotoSinConexion();
+                                                            }
+                                                            dialog.dismiss();
+                                                        }
+                                                    }, 400);
+                                                }
+                                            });
+
+                                            dialog.show();
+                                            //recalculateRouteButton.setVisibility(View.GONE);
+                                        }
+                                    }, 400);
+                                }
+                            });
                             dialogIncidencia.dismiss();
                         }
                     });
