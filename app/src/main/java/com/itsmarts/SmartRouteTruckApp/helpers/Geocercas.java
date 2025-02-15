@@ -11,7 +11,15 @@ import com.here.sdk.mapview.MapPolygon;
 import com.here.sdk.mapview.MapPolyline;
 import com.itsmarts.SmartRouteTruckApp.MainActivity;
 
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.Geometry;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.LineString;
+import org.locationtech.jts.geom.Polygon;
+import org.locationtech.jts.operation.buffer.BufferOp;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Geocercas {
@@ -48,116 +56,29 @@ public class Geocercas {
     }
 
     public void drawGeofenceAroundPolyline(MapPolyline polyline, double bufferDistanceInMeters) {
-        List<GeoCoordinates> originalCoordinates = polyline.getGeometry().vertices;
+        // 1. Convertir polyline de HERE a coordenadas para Mapbox
+        List<GeoCoordinates> hereCoordinates = polyline.getGeometry().vertices;
+        GeometryFactory geometryFactory = new GeometryFactory();
+        Coordinate[] coords = new Coordinate[hereCoordinates.size()];
+        // Convertir coordenadas HERE a JTS
+        for (int i = 0; i < hereCoordinates.size(); i++) {
+            coords[i] = new Coordinate(hereCoordinates.get(i).longitude, hereCoordinates.get(i).latitude);
+        }
+        // Crear la línea en JTS
+        LineString lineString = geometryFactory.createLineString(coords);
+        // Convertir metros a grados (aproximadamente 1° = 111,320 m, depende de la latitud)
+        double bufferDegrees = bufferDistanceInMeters / 111320.0;
+        // Generar el buffer
+        Geometry bufferedGeometry = BufferOp.bufferOp(lineString, bufferDegrees);
+        // Obtener coordenadas del buffer
         List<GeoCoordinates> bufferCoordinates = new ArrayList<>();
-
-        // Paso 1: Generar puntos intermedios a lo largo de la polilínea
-        List<GeoCoordinates> denseCoordinates = new ArrayList<>();
-        for (int i = 0; i < originalCoordinates.size() - 1; i++) {
-            GeoCoordinates start = originalCoordinates.get(i);
-            GeoCoordinates end = originalCoordinates.get(i + 1);
-            denseCoordinates.add(start);
-
-            double segmentLength = start.distanceTo(end);
-            int numIntermediatePoints = Math.max(1, (int) (segmentLength / 10)); // Un punto cada 10 metros
-
-            for (int j = 1; j < numIntermediatePoints; j++) {
-                double fraction = j / (double) numIntermediatePoints;
-                denseCoordinates.add(Distances.interpolatePoint(start, end, fraction));
+        if (bufferedGeometry instanceof Polygon) {
+            Polygon polygon = (Polygon) bufferedGeometry;
+            Coordinate[] polygonCoords = polygon.getExteriorRing().getCoordinates();
+            for (Coordinate coord : polygonCoords) {
+                bufferCoordinates.add(new GeoCoordinates(coord.y, coord.x));
             }
         }
-        denseCoordinates.add(originalCoordinates.get(originalCoordinates.size() - 1));
-
-        // Paso 2: Generar puntos del buffer
-        for (int i = 0; i < denseCoordinates.size(); i++) {
-            GeoCoordinates current = denseCoordinates.get(i);
-            GeoCoordinates prev = i > 0 ? denseCoordinates.get(i - 1) : null;
-            GeoCoordinates next = i < denseCoordinates.size() - 1 ? denseCoordinates.get(i + 1) : null;
-
-            double bearing = Distances.calculateBearing(prev != null ? prev : current, next != null ? next : current);
-
-            double leftBearing = (bearing - 90 + 360) % 360;
-            double rightBearing = (bearing + 90) % 360;
-
-            GeoCoordinates leftPoint = Distances.calculateDestinationPoint(current, leftBearing, bufferDistanceInMeters);
-            GeoCoordinates rightPoint = Distances.calculateDestinationPoint(current, rightBearing, bufferDistanceInMeters);
-
-            if(denseCoordinates.size()>150){
-                boolean validacion_erronea = false;
-                if(i<=150){
-                    for (int j = i; j < i+150; j=j+6) {
-                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
-                    }
-                    for (int j = 0; j < i; j=j+6) {
-                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
-                    }
-                    if(!validacion_erronea){
-                        bufferCoordinates.add(leftPoint);
-                    }
-                    validacion_erronea=false;
-                    for (int j = i; j < i+150; j=j+6) {
-                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
-                    }
-                    for (int j = 0; j < i; j=j+6) {
-                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
-                    }
-                    if(!validacion_erronea){
-                        bufferCoordinates.add(0,rightPoint);
-                    }
-                }else if(i>=denseCoordinates.size()-151){
-                    for (int j = i; j < denseCoordinates.size(); j=j+6) {
-                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
-                    }
-                    for (int j = i; j > i-150; j=j-6) {
-                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
-                    }
-                    if(!validacion_erronea){
-                        bufferCoordinates.add(leftPoint);
-                    }
-                    validacion_erronea=false;
-                    for (int j = i; j < denseCoordinates.size(); j=j+6) {
-                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
-                    }
-                    for (int j = i; j > i-150; j=j-6) {
-                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
-                    }
-                    if(!validacion_erronea){
-                        bufferCoordinates.add(0,rightPoint);
-                    }
-                }else{
-                    for (int j = i; j < i+150; j=j+6) {
-                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
-                    }
-                    for (int j = i; j > i-150; j=j-6) {
-                        if (leftPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
-                    }
-                    if(!validacion_erronea){
-                        bufferCoordinates.add(leftPoint);
-                    }
-                    validacion_erronea=false;
-                    for (int j = i; j < i+150; j=j+6) {
-                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
-                    }
-                    for (int j = i; j > i-150; j=j-6) {
-                        if (rightPoint.distanceTo(denseCoordinates.get(j))<=bufferDistanceInMeters)validacion_erronea=true;
-                    }
-                    if(!validacion_erronea){
-                        bufferCoordinates.add(0,rightPoint);
-                    }
-                }
-            }else{
-                if(Distances.distanceToPolyline(leftPoint,polyline.getGeometry())>=bufferDistanceInMeters){
-                    bufferCoordinates.add(leftPoint);
-                }
-                if(Distances.distanceToPolyline(rightPoint,polyline.getGeometry())>=bufferDistanceInMeters){
-                    bufferCoordinates.add(0, rightPoint);
-                }
-            }
-        }
-
-        // Cerrar el polígono
-        bufferCoordinates.add(bufferCoordinates.get(0));
-
         try {
             GeoPolygon geoPolygon = new GeoPolygon(bufferCoordinates);
             Color fillColor = Color.valueOf(0.0f, 179.0f / 255.0f, 172.0f / 255.0f, 0.2f);
