@@ -38,7 +38,9 @@ import java.util.Date;
 import java.util.List;
 
 public class Messages {
-    MainActivity mainActivity;
+    static MainActivity mainActivity;
+
+    private static final String TAG = "Messages";
 
     public Messages(MainActivity mainActivity) {
         this.mainActivity = mainActivity;
@@ -46,204 +48,216 @@ public class Messages {
     }
 
     public void showCustomToast(String message) {
-        LayoutInflater inflater = mainActivity.getLayoutInflater();
-        View layout = inflater.inflate(R.layout.custom_toast, mainActivity.findViewById(R.id.custom_toast_container));
+        try{
+            LayoutInflater inflater = mainActivity.getLayoutInflater();
+            View layout = inflater.inflate(R.layout.custom_toast, mainActivity.findViewById(R.id.custom_toast_container));
 
-        TextView text = layout.findViewById(R.id.toast_text);
-        text.setText(message);
+            TextView text = layout.findViewById(R.id.toast_text);
+            text.setText(message);
 
-        Toast toast = new Toast(mainActivity.getApplicationContext());
-        toast.setDuration(Toast.LENGTH_SHORT);
-        toast.setView(layout);
+            Toast toast = new Toast(mainActivity.getApplicationContext());
+            toast.setDuration(Toast.LENGTH_SHORT);
+            toast.setView(layout);
 
-        toast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 200);
-        toast.show();
+            toast.setGravity(Gravity.BOTTOM | Gravity.CENTER_HORIZONTAL, 0, 200);
+            toast.show();
+        }catch(Exception e){
+            mainActivity.logger.logError(TAG,e,mainActivity);
+        }
     }
 
     //DIALOG DE EXCEPCIONES
     public static void showErrorDetail(AppCompatActivity activity, String error)
     {
-        DialogFullFragmentErrorDetail detail = new DialogFullFragmentErrorDetail(error);
-        //FragmentTransaction transaction = activity.getFragmentManager().beginTransaction();
-        FragmentTransaction transaction = activity.getSupportFragmentManager().beginTransaction();
-        detail.show(transaction, DialogFullFragmentErrorDetail.TAG);
-        detail.setCancelable(false);
+        try{
+            DialogFullFragmentErrorDetail detail = new DialogFullFragmentErrorDetail(error);
+            //FragmentTransaction transaction = activity.getFragmentManager().beginTransaction();
+            FragmentTransaction transaction = activity.getSupportFragmentManager().beginTransaction();
+            detail.show(transaction, DialogFullFragmentErrorDetail.TAG);
+            detail.setCancelable(false);
+        }catch(Exception e){
+            mainActivity.logger.logError(TAG,e,mainActivity);
+        }
     }
 
 
     public void showDialog(String title, String mainInfo, String additionalInfo, String type, GeoCoordinates geoCoordinatesPOI) {
-        if (mainActivity.isDialogShowing) {
-            return;
-        }
-        mainActivity.isDialogShowing = true;
-        Dialog dialog = new Dialog(mainActivity);
-        if(geoCoordinatesPOI != null){
-            dialog.setContentView(R.layout.ventana_poi_ruta);
-            Button goButton = dialog.findViewById(R.id.dialog_go_button);
-            if(mainActivity.rutaGenerada){
-                goButton.setText("Pasar por ahi");
-                goButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        //fbEliminarPoi.setVisibility(View.GONE);
-                        //txtEliminarPoi.setVisibility(View.GONE);
-                        mainActivity.clearMapPolylines();
-                        if (mainActivity.coordenadasDestino != null){
-                            mainActivity.destinationGeoCoordinates = mainActivity.coordenadasDestino;
-                        }
-                        List<GeoCoordinates> puntos_de_control = new ArrayList<>();
-                        List<MapPolygon> zonas = new ArrayList<>();
-                        int id_vehiculo = 1;
-                        if(mainActivity.ruta.truckSpectIds!=null){
-                            for (int i = 0; i < mainActivity.ruta.truckSpectIds.length; i++) {
-                                if(mainActivity.ruta.truckSpectIds[i] > id_vehiculo){
-                                    id_vehiculo = mainActivity.ruta.truckSpectIds[i];
-                                }
-                            }
-                        }
-                        if(mainActivity.ruta.puntosIds!=null){
-                            for (int id : mainActivity.ruta.puntosIds) {
-                                for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
-                                    if (id == mainActivity.controlPointsExample.pointsWithIds.get(i).id) {
-                                        if (mainActivity.controlPointsExample.pointsWithIds.get(i).status) {
-                                            mainActivity.controlPointsExample.pointsWithIds.get(i).visibility=true;
-                                            mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
-                                            puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
-                                            mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
-                                            mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
-                                        }
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        if(mainActivity.ruta.zonasIds!=null){
-                            for (int i = 0; i < mainActivity.avoidZonesExample.polygonWithIds.size(); i++) {
-                                boolean foundZona = false;
-                                for (int id : mainActivity.ruta.zonasIds) {
-                                    if (id == mainActivity.avoidZonesExample.polygonWithIds.get(i).id) {
-                                        foundZona = true;
-                                        break;
-                                    }
-                                }
-
-                                if (foundZona) {
-                                    if (mainActivity.avoidZonesExample.polygonWithIds.get(i).status) {
-                                        mainActivity.avoidZonesExample.polygonWithIds.get(i).visibility=true;
-                                        mainActivity.avoidZonesExample.polygonWithIds.get(i).label=true;
-                                        if(!mainActivity.avoidZonesExample.polygonWithIds.get(i).peligrosa){
-                                            zonas.add(mainActivity.avoidZonesExample.polygonWithIds.get(i).polygon);
-                                            mainActivity.poligonos.add(mainActivity.avoidZonesExample.polygonWithIds.get(i));
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, geoCoordinatesPOI, mainActivity.ruta.coordinatesInicio,id_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
-                            @Override
-                            public void onRouteCalculated(Route route) {
-                                if (route != null) {
-                                    try {
-                                        dialog.dismiss();
-                                        mainActivity.isTrackingCamera = false;
-                                        mainActivity.trackCamara.setImageResource(R.drawable.track_on);
-                                        mainActivity.navigationExample.startNavigation(route, false, false);
-                                    } catch (Exception e) {
-                                        Log.e("MainActivity", "Error starting navigation: ", e);
-                                    }
-                                } else {
-                                    Toast.makeText(mainActivity.getApplicationContext(), "No se pudo recalcular la ruta", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
-                        mainActivity.clearMapMarkersPOIsAndCircle(true);
-                        mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
-                        mainActivity.txtTerminarRuta.setVisibility(VISIBLE);
-                    }
-                });
-            } else {
-                mainActivity.rutaGenerada = true;
-                goButton.setText("Ir al lugar");
-                goButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        //fbEliminarPoi.setVisibility(View.GONE);
-                        //txtEliminarPoi.setVisibility(View.GONE);
-                        mainActivity.clearMapPolylines();
-                        mainActivity.messageView.setVisibility(VISIBLE);
-                        mainActivity.detallesRuta.setVisibility(VISIBLE);
-                        mainActivity.distanceTextView.setVisibility(VISIBLE);
-                        mainActivity.timeTextView.setVisibility(VISIBLE);
-                        mainActivity.destinationGeoCoordinates =geoCoordinatesPOI;
-                        mainActivity.clearMapMarkersPOIsAndCircle(true);
-                        List<GeoCoordinates> puntos = new ArrayList<>();
-                        List<MapPolygon> poligonos = new ArrayList<>();
-                        mainActivity.routingExample.addRoute(poligonos,puntos,mainActivity.currentGeoCoordinates,geoCoordinatesPOI, null, null,1,true, new RoutingExample.RouteCallback() {
-                            @Override
-                            public void onRouteCalculated(Route route) {
-                                if (route != null) {
-                                    try {
-                                        dialog.dismiss();
-                                        mainActivity.isTrackingCamera = false;
-                                        mainActivity.trackCamara.setImageResource(R.drawable.track_on);
-                                        mainActivity.navigationExample.startNavigation(route, false, false);
-                                        mainActivity.rutaGenerada = true;
-                                    } catch (Exception e) {
-                                        Log.e("MainActivity", "Error starting navigation: ", e);
-                                    }
-                                } else {
-                                    Toast.makeText(mainActivity.getApplicationContext(), "No se pudo recalcular la ruta", Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
-                        mainActivity.clearMapMarkersPOIsAndCircle(true);
-                        mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
-                        mainActivity.txtTerminarRuta.setVisibility(VISIBLE);
-                        mainActivity.trackCamara.setImageResource(R.drawable.track_off);
-                    }
-                });
+        try{
+            if (mainActivity.isDialogShowing) {
+                return;
             }
-        } else {
-            dialog.setContentView(R.layout.ventana_poi_normal);
-        }
-        TextView titleView = dialog.findViewById(R.id.dialog_title);
-        TextView addressView = dialog.findViewById(R.id.dialog_address);
-        TextView categoriesView = dialog.findViewById(R.id.dialog_categories);
-        TextView typeView = dialog.findViewById(R.id.textView3);
-        Button closeButton = dialog.findViewById(R.id.dialog_close_button);
+            mainActivity.isDialogShowing = true;
+            Dialog dialog = new Dialog(mainActivity);
+            if(geoCoordinatesPOI != null){
+                dialog.setContentView(R.layout.ventana_poi_ruta);
+                Button goButton = dialog.findViewById(R.id.dialog_go_button);
+                if(mainActivity.rutaGenerada){
+                    goButton.setText("Pasar por ahi");
+                    goButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            //fbEliminarPoi.setVisibility(View.GONE);
+                            //txtEliminarPoi.setVisibility(View.GONE);
+                            mainActivity.clearMapPolylines();
+                            if (mainActivity.coordenadasDestino != null){
+                                mainActivity.destinationGeoCoordinates = mainActivity.coordenadasDestino;
+                            }
+                            List<GeoCoordinates> puntos_de_control = new ArrayList<>();
+                            List<MapPolygon> zonas = new ArrayList<>();
+                            int id_vehiculo = 1;
+                            if(mainActivity.ruta.truckSpectIds!=null){
+                                for (int i = 0; i < mainActivity.ruta.truckSpectIds.length; i++) {
+                                    if(mainActivity.ruta.truckSpectIds[i] > id_vehiculo){
+                                        id_vehiculo = mainActivity.ruta.truckSpectIds[i];
+                                    }
+                                }
+                            }
+                            if(mainActivity.ruta.puntosIds!=null){
+                                for (int id : mainActivity.ruta.puntosIds) {
+                                    for (int i = 0; i < mainActivity.controlPointsExample.pointsWithIds.size(); i++) {
+                                        if (id == mainActivity.controlPointsExample.pointsWithIds.get(i).id) {
+                                            if (mainActivity.controlPointsExample.pointsWithIds.get(i).status) {
+                                                mainActivity.controlPointsExample.pointsWithIds.get(i).visibility=true;
+                                                mainActivity.controlPointsExample.pointsWithIds.get(i).label=true;
+                                                puntos_de_control.add(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates());
+                                                mainActivity.puntos.add(mainActivity.controlPointsExample.pointsWithIds.get(i));
+                                                mainActivity.geocercas.drawGecocercaControlPoint(mainActivity.controlPointsExample.pointsWithIds.get(i).mapMarker.getCoordinates(), 100);
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                            if(mainActivity.ruta.zonasIds!=null){
+                                for (int i = 0; i < mainActivity.avoidZonesExample.polygonWithIds.size(); i++) {
+                                    boolean foundZona = false;
+                                    for (int id : mainActivity.ruta.zonasIds) {
+                                        if (id == mainActivity.avoidZonesExample.polygonWithIds.get(i).id) {
+                                            foundZona = true;
+                                            break;
+                                        }
+                                    }
 
-        titleView.setText(title);
-        addressView.setText(mainInfo);
+                                    if (foundZona) {
+                                        if (mainActivity.avoidZonesExample.polygonWithIds.get(i).status) {
+                                            mainActivity.avoidZonesExample.polygonWithIds.get(i).visibility=true;
+                                            mainActivity.avoidZonesExample.polygonWithIds.get(i).label=true;
+                                            if(!mainActivity.avoidZonesExample.polygonWithIds.get(i).peligrosa){
+                                                zonas.add(mainActivity.avoidZonesExample.polygonWithIds.get(i).polygon);
+                                                mainActivity.poligonos.add(mainActivity.avoidZonesExample.polygonWithIds.get(i));
+                                            }
+                                        }
+                                    }
+                                }
+                            }
 
-        if (!additionalInfo.isEmpty()) {
-            categoriesView.setText(additionalInfo);
-            typeView.setText("Categoría");
-        } else {
-            categoriesView.setVisibility(View.GONE);
-            typeView.setVisibility(View.GONE);
-        }
+                            mainActivity.routingExample.addRoute(zonas,puntos_de_control,mainActivity.currentGeoCoordinates, mainActivity.ruta.coordinatesFin, geoCoordinatesPOI, mainActivity.ruta.coordinatesInicio,id_vehiculo,mainActivity.ruta.orden_automatico, new RoutingExample.RouteCallback() {
+                                @Override
+                                public void onRouteCalculated(Route route) {
+                                    if (route != null) {
+                                        try {
+                                            dialog.dismiss();
+                                            mainActivity.isTrackingCamera = false;
+                                            mainActivity.trackCamara.setImageResource(R.drawable.track_on);
+                                            mainActivity.navigationExample.startNavigation(route, false, false);
+                                        } catch (Exception e) {
+                                            mainActivity.logger.logError(TAG,e,mainActivity);
+                                        }
+                                    } else {
+                                        Toast.makeText(mainActivity.getApplicationContext(), "No se pudo recalcular la ruta", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+                            mainActivity.clearMapMarkersPOIsAndCircle(true);
+                            mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
+                            mainActivity.txtTerminarRuta.setVisibility(VISIBLE);
+                        }
+                    });
+                } else {
+                    mainActivity.rutaGenerada = true;
+                    goButton.setText("Ir al lugar");
+                    goButton.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            //fbEliminarPoi.setVisibility(View.GONE);
+                            //txtEliminarPoi.setVisibility(View.GONE);
+                            mainActivity.clearMapPolylines();
+                            mainActivity.messageView.setVisibility(VISIBLE);
+                            mainActivity.detallesRuta.setVisibility(VISIBLE);
+                            mainActivity.distanceTextView.setVisibility(VISIBLE);
+                            mainActivity.timeTextView.setVisibility(VISIBLE);
+                            mainActivity.destinationGeoCoordinates =geoCoordinatesPOI;
+                            mainActivity.clearMapMarkersPOIsAndCircle(true);
+                            List<GeoCoordinates> puntos = new ArrayList<>();
+                            List<MapPolygon> poligonos = new ArrayList<>();
+                            mainActivity.routingExample.addRoute(poligonos,puntos,mainActivity.currentGeoCoordinates,geoCoordinatesPOI, null, null,1,true, new RoutingExample.RouteCallback() {
+                                @Override
+                                public void onRouteCalculated(Route route) {
+                                    if (route != null) {
+                                        try {
+                                            dialog.dismiss();
+                                            mainActivity.isTrackingCamera = false;
+                                            mainActivity.trackCamara.setImageResource(R.drawable.track_on);
+                                            mainActivity.navigationExample.startNavigation(route, false, false);
+                                            mainActivity.rutaGenerada = true;
+                                        } catch (Exception e) {
+                                            mainActivity.logger.logError(TAG,e,mainActivity);
+                                        }
+                                    } else {
+                                        Toast.makeText(mainActivity.getApplicationContext(), "No se pudo recalcular la ruta", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+                            mainActivity.clearMapMarkersPOIsAndCircle(true);
+                            mainActivity.btnTerminarRuta.setVisibility(VISIBLE);
+                            mainActivity.txtTerminarRuta.setVisibility(VISIBLE);
+                            mainActivity.trackCamara.setImageResource(R.drawable.track_off);
+                        }
+                    });
+                }
+            } else {
+                dialog.setContentView(R.layout.ventana_poi_normal);
+            }
+            TextView titleView = dialog.findViewById(R.id.dialog_title);
+            TextView addressView = dialog.findViewById(R.id.dialog_address);
+            TextView categoriesView = dialog.findViewById(R.id.dialog_categories);
+            TextView typeView = dialog.findViewById(R.id.textView3);
+            Button closeButton = dialog.findViewById(R.id.dialog_close_button);
 
-        if (!type.isEmpty()) {
-            typeView.setText(type);
-        } else {
-            typeView.setVisibility(View.GONE);
-        }
+            titleView.setText(title);
+            addressView.setText(mainInfo);
 
-        closeButton.setOnClickListener(v -> {
-            dialog.dismiss();
-            mainActivity.isDialogShowing = false;
-        });
+            if (!additionalInfo.isEmpty()) {
+                categoriesView.setText(additionalInfo);
+                typeView.setText("Categoría");
+            } else {
+                categoriesView.setVisibility(View.GONE);
+                typeView.setVisibility(View.GONE);
+            }
 
-        dialog.setOnDismissListener(dialogInterface -> {
-            mainActivity.isDialogShowing = false;
-        });
+            if (!type.isEmpty()) {
+                typeView.setText(type);
+            } else {
+                typeView.setVisibility(View.GONE);
+            }
 
-        dialog.show();
+            closeButton.setOnClickListener(v -> {
+                dialog.dismiss();
+                mainActivity.isDialogShowing = false;
+            });
 
-        Window window = dialog.getWindow();
-        if (window != null) {
-            window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            dialog.setOnDismissListener(dialogInterface -> {
+                mainActivity.isDialogShowing = false;
+            });
+
+            dialog.show();
+
+            Window window = dialog.getWindow();
+            if (window != null) {
+                window.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+            }
+        }catch(Exception e){
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
 
@@ -299,17 +313,21 @@ public class Messages {
 
     // Método para mostrar un diálogo de error
     public static void showInvalidCredentialsDialog(String titulo, String mensaje, Activity context) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle(titulo);
-        builder.setMessage(mensaje);
-        builder.setPositiveButton(context.getString(R.string.error_credenciale_acceptar), new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        AlertDialog dialog = builder.create();
-        dialog.show();
+        try{
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setTitle(titulo);
+            builder.setMessage(mensaje);
+            builder.setPositiveButton(context.getString(R.string.error_credenciale_acceptar), new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
+        }catch(Exception e){
+            mainActivity.logger.logError(TAG,e,mainActivity);
+        }
     }
 
     public static Bitmap getBitmapFromFile(File file) {
@@ -319,9 +337,8 @@ public class Messages {
             bitmap = BitmapFactory.decodeStream(fis);
             fis.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
-
         return bitmap;
     }
 }

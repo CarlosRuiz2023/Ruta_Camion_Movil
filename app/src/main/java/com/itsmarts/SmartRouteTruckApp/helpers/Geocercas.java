@@ -23,6 +23,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class Geocercas {
+    private static final String TAG = "Geocercas";
     MainActivity mainActivity;
     public List<MapPolygon> geocercasControlPoint = new ArrayList<>();
     public MapPolygon geocercas;
@@ -32,27 +33,35 @@ public class Geocercas {
     }
 
     public void drawGecocercaControlPoint(GeoCoordinates center, double radiusInMeters) {
-        GeoCircle geoCircle = new GeoCircle(center, radiusInMeters);
-        GeoPolygon geoPolygon = new GeoPolygon(geoCircle);
-        //Color fillColor = Color.valueOf(1.0f, 0.5f, 0.0f, 0.3f); // NARANJA
-        //Color fillColor = Color.valueOf(0.0f, 179.0f/255.0f, 172.0f/255.0f, 0.2f); // VERDE
-        Color fillColor = Color.valueOf(0.0f, 0.5f, 1.0f, 0.3f); // AZUL
-        //Color fillColor= Color.valueOf(1.0f, 1.0f, 0.0f, 0.3f); // AMARILLO
-        MapPolygon mapPolygon = new MapPolygon(geoPolygon, fillColor);
-        geocercasControlPoint.add(mapPolygon);
-        mainActivity.mapView.getMapScene().addMapPolygon(mapPolygon);
+        try{
+            GeoCircle geoCircle = new GeoCircle(center, radiusInMeters);
+            GeoPolygon geoPolygon = new GeoPolygon(geoCircle);
+            //Color fillColor = Color.valueOf(1.0f, 0.5f, 0.0f, 0.3f); // NARANJA
+            //Color fillColor = Color.valueOf(0.0f, 179.0f/255.0f, 172.0f/255.0f, 0.2f); // VERDE
+            Color fillColor = Color.valueOf(0.0f, 0.5f, 1.0f, 0.3f); // AZUL
+            //Color fillColor= Color.valueOf(1.0f, 1.0f, 0.0f, 0.3f); // AMARILLO
+            MapPolygon mapPolygon = new MapPolygon(geoPolygon, fillColor);
+            geocercasControlPoint.add(mapPolygon);
+            mainActivity.mapView.getMapScene().addMapPolygon(mapPolygon);
+        }catch (Exception e){
+            mainActivity.logger.logError(TAG,e,mainActivity);
+        }
     }
 
     public void drawGecocercaControlPointReached(GeoCoordinates center, double radiusInMeters) {
-        //Color fillColor = Color.valueOf(1.0f, 0.5f, 0.0f, 0.3f); // NARANJA
-        Color fillColor= Color.valueOf(0.0f, 0.5f, 0.2f, 0.3f);
-        //Color fillColor = Color.valueOf(0.0f, 0.5f, 1.0f, 0.3f); // AZUL
-        //Color fillColor= Color.valueOf(1.0f, 1.0f, 0.0f, 0.3f); // AMARILLO
-        GeoCircle geoCircle = new GeoCircle(center, radiusInMeters);
-        GeoPolygon geoPolygon = new GeoPolygon(geoCircle);
-        MapPolygon mapPolygon = new MapPolygon(geoPolygon, fillColor);
-        geocercasControlPoint.add(mapPolygon);
-        mainActivity.mapView.getMapScene().addMapPolygon(mapPolygon);
+        try{
+            //Color fillColor = Color.valueOf(1.0f, 0.5f, 0.0f, 0.3f); // NARANJA
+            Color fillColor= Color.valueOf(0.0f, 0.5f, 0.2f, 0.3f);
+            //Color fillColor = Color.valueOf(0.0f, 0.5f, 1.0f, 0.3f); // AZUL
+            //Color fillColor= Color.valueOf(1.0f, 1.0f, 0.0f, 0.3f); // AMARILLO
+            GeoCircle geoCircle = new GeoCircle(center, radiusInMeters);
+            GeoPolygon geoPolygon = new GeoPolygon(geoCircle);
+            MapPolygon mapPolygon = new MapPolygon(geoPolygon, fillColor);
+            geocercasControlPoint.add(mapPolygon);
+            mainActivity.mapView.getMapScene().addMapPolygon(mapPolygon);
+        }catch(Exception e){
+            mainActivity.logger.logError(TAG,e,mainActivity);
+        }
     }
 
     public void drawGeofenceAroundPolyline(MapPolyline polyline, double bufferDistanceInMeters) {
@@ -92,18 +101,22 @@ public class Geocercas {
             mainActivity.mapView.getMapScene().addMapPolygon(mapPolygon);
             mainActivity.mapView.getMapScene().addMapPolyline(polyline);
         } catch (InstantiationErrorException e) {
-            Log.e("Geofence", "Error al crear el polígono: " + e.getMessage());
+            mainActivity.logger.logError(TAG,e,mainActivity);
         }
     }
 
     public void drawCircle(GeoCoordinates center, double radiusInMeters) {
-        GeoCircle geoCircle = new GeoCircle(center, radiusInMeters);
-        GeoPolygon geoPolygon = new GeoPolygon(geoCircle);
-        //Color fillColor = Color.valueOf(1.0f, 0.5f, 0.0f, 0.3f); // NARANJA
-        Color fillColor = Color.valueOf(0.0f, 179.0f/255.0f, 172.0f/255.0f, 0.2f); // VERDE
-        //Color fillColor = Color.valueOf(0.0f, 0.5f, 1.0f, 0.3f); // AZUL
-        //Color fillColor= Color.valueOf(1.0f, 1.0f, 0.0f, 0.3f); // AMARILLO
-        mapPolygon = new MapPolygon(geoPolygon, fillColor);
-        mainActivity.mapView.getMapScene().addMapPolygon(mapPolygon);
+        try{
+            GeoCircle geoCircle = new GeoCircle(center, radiusInMeters);
+            GeoPolygon geoPolygon = new GeoPolygon(geoCircle);
+            //Color fillColor = Color.valueOf(1.0f, 0.5f, 0.0f, 0.3f); // NARANJA
+            Color fillColor = Color.valueOf(0.0f, 179.0f/255.0f, 172.0f/255.0f, 0.2f); // VERDE
+            //Color fillColor = Color.valueOf(0.0f, 0.5f, 1.0f, 0.3f); // AZUL
+            //Color fillColor= Color.valueOf(1.0f, 1.0f, 0.0f, 0.3f); // AMARILLO
+            mapPolygon = new MapPolygon(geoPolygon, fillColor);
+            mainActivity.mapView.getMapScene().addMapPolygon(mapPolygon);
+        }catch(Exception e){
+            mainActivity.logger.logError(TAG,e,mainActivity);
+        }
     }
 }
