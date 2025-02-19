@@ -11,18 +11,19 @@
     app:layout_constraintTop_toBottomOf="@id/toolbar">
 
     <!-- Imagen del Logo -->
+
+    <!-- Mensaje de Localización -->
     <ImageView
         android:id="@+id/logo_image"
         android:layout_width="300dp"
         android:layout_height="200dp"
+        android:layout_marginTop="72dp"
         android:src="@drawable/logo"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="56dp"
-        android:layout_marginBottom="72dp" />
+        app:layout_constraintHorizontal_bias="0.495"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Mensaje de Localización -->
     <TextView
         android:id="@+id/location_message"
         android:layout_width="wrap_content"

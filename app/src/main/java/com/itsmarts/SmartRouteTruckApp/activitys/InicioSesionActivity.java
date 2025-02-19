@@ -64,7 +64,6 @@ public class InicioSesionActivity extends AppCompatActivity {
     private ImageView ivTogglePassword;
     private boolean passwordVisible = false, desarrollo = false;
     private CredentialsManager credentialsManager;
-    private static final String TAG = "InicioSesionActivity";
     private LinearLayout llLoadingSesion;
     private TextView forgotPasswordText, closeSesionText, versionText, tvBanner;
     private Logger logger;
@@ -559,8 +558,6 @@ public class InicioSesionActivity extends AppCompatActivity {
     }
     // Método para validar el formato de correo electrónico
     private boolean isValidEmail(String email) {
-        String emailPattern = "";
-        String emailPatternMX = "";
         boolean isValid = false;
         try{
             String emailPattern = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";

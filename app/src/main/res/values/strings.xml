@@ -1,6 +1,6 @@
 <resources>
-    <string name="app_name">SmartRouteTruckApp</string>
-    <string name="navigation_drawer_modal">SmartRouteTruck</string>
+    <string name="app_name">OverFleet</string>
+    <string name="navigation_drawer_modal">OVERFLEET</string>
     <string name="menu_cerrar_sesion">Cerrar Sesion</string>
     <string name="menu_download_map">Descargar Mapa</string>
     <string name="menu_control_points">Puntos de Control</string>
