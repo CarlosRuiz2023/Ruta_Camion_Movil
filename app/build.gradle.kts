@@ -3,15 +3,15 @@ plugins {
 }
 
 android {
-    namespace = "com.itsmarts.SmartRouteTruckApp"
+    namespace = "com.itsmarts.OverFleet"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.itsmarts.SmartRouteTruckApp"
+        applicationId = "com.itsmarts.OverFleet"
         minSdk = 24
         targetSdk = 34
-        versionCode = 88
-        versionName = "1.3.02"
+        versionCode = 1
+        versionName = "1.0.0"
         /*versionName = "2.0.0"*/
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

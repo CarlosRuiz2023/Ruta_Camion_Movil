@@ -19,6 +19,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "SmartRouteTruckApp"
+rootProject.name = "OverFleet"
 include(":app")
  
