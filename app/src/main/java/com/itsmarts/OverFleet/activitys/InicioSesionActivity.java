@@ -173,8 +173,8 @@ public class InicioSesionActivity extends AppCompatActivity {
             startActivity(intent);
             finish();  // Evitar que el usuario regrese a la pantalla de login al presionar 'atrás'*/
             }else{
-                etUsername.setText("example@example.com");
-                etPassword.setText("123456");
+                etUsername.setText("example@gmail.com");
+                //etPassword.setText("123456");
             }
             desarrollo = sharedPreferences.getBoolean("desarrollo", false);
             if(desarrollo){

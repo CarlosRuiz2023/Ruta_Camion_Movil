@@ -716,7 +716,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                                                             jsonIncident.put("id_rol", id_rol);
                                                                             jsonIncident.put("correo", correoEditText.getText().toString());
                                                                             jsonIncident.put("contrasenia",password);
-                                                                            jsonIncident.put("telefono",Long.parseLong(telefonoEditText.getText().toString()));
+                                                                            jsonIncident.put("telefono",telefonoEditText.getText().toString());
                                                                             jsonIncident.put("nombres",nombresEditText.getText().toString());
                                                                             jsonIncident.put("apellido_paterno",apellidoPaternoEditText.getText().toString());
                                                                             jsonIncident.put("apellido_materno",apellidoMaternoEditText.getText().toString());
