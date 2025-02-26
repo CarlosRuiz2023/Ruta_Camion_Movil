@@ -101,6 +101,7 @@ public class OfflineMap {
                         isMexicoMapDownload = true;
                         if (mainActivity.offlineMapItem != null ) {
                             mainActivity.offlineMapItem.setChecked(true);
+                            mainActivity.toolbar.setTitle("OVERFLEET - MAPA OFFLINE");
                             onSwitchOfflineButtonClicked();
                             mainActivity.routingExample.routingInterface = mainActivity.routingExample.offlineRoutingEngine;
                         }
@@ -185,11 +186,17 @@ public class OfflineMap {
                     @Override
                     public void onDownloadRegionsComplete(@Nullable MapLoaderError mapLoaderError, @Nullable List<RegionId> list) {
                         if (mapLoaderError != null) {
-                            if (mapLoaderError == MapLoaderError.ALREADY_INSTALLED) {
+                            if (mapLoaderError == MapLoaderError.OFFLINE) {
                                 String message = "";
                                 mainActivity.btnDescargar.setText(mainActivity.getString(R.string.descargar));
-                                mainActivity.btnDescargar.setEnabled(false);
                                 mainActivity.txtProcesoDescarga.setText(mainActivity.getString(R.string.el_mapa_de_mexico_ya_esta_descargado));
+                                mainActivity.btnDescargar.setText("Aceptar");
+                                mainActivity.btnDescargar.setOnClickListener(new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View view) {
+                                        mainActivity.alertDialogDescargarMapa.dismiss();
+                                    }
+                                });
                             } else {
                                 String message = mainActivity.getString(R.string.error_al_completar_la_descarga_de_mexico) + mapLoaderError;
                                 mainActivity.txtProcesoDescarga.setText(message);
@@ -202,8 +209,16 @@ public class OfflineMap {
                         mainActivity.mapOfflineMexDownload = true;
                         mainActivity.logger.trackActivity(TAG,"Mapa offline descargado","El usuario descargo el mapa offline");
                         try{
+                            mainActivity.toolbar.setTitle("OVERFLEET - MAPA OFFLINE");
                             mainActivity.offlineMapItem.setChecked(true);
                             onSwitchOfflineButtonClicked();
+                            mainActivity.btnDescargar.setText("Aceptar");
+                            mainActivity.btnDescargar.setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View view) {
+                                    mainActivity.alertDialogDescargarMapa.dismiss();
+                                }
+                            });
                             mainActivity.routingExample.routingInterface = mainActivity.routingExample.offlineRoutingEngine;
                         }catch (Exception e){
                             Log.e(TAG,"Error al activar mapa offline: "+e.getMessage());

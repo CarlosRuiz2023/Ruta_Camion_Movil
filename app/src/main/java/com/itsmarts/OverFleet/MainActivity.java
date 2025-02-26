@@ -226,6 +226,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     private int id_tipo_incidencia = 0, id_usuario;
     private String comentarios = "", token = "";
     public LinearProgressIndicator progressIndicator;
+    public AlertDialog alertDialogDescargarMapa;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -488,6 +489,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     builder.setView(dialogView);
 
                     final AlertDialog alertDialogOffline = builder.create();
+                    alertDialogDescargarMapa = alertDialogOffline;
 
                     Button btnConsultar = dialogView.findViewById(R.id.btnConsultarDescarga);
                     btnDescargar = dialogView.findViewById(R.id.btnDescargarMapa);
@@ -1053,11 +1055,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             item.setChecked(false);
                             offlineMap.onSwitchOnlineButtonClicked();
                             routingExample.routingInterface = routingExample.onlineRoutingEngine;
+                            toolbar.setTitle("OVERFLEET");
                             logger.trackActivity(TAG,"Click en Mapa offline","Desactivado");
                         }else{
                             item.setChecked(true);
                             offlineMap.onSwitchOfflineButtonClicked();
                             routingExample.routingInterface = routingExample.offlineRoutingEngine;
+                            toolbar.setTitle("OVERFLEET - MAPA OFFLINE");
                             logger.trackActivity(TAG,"Click en Mapa offline","Activado");
                         }
                         // Code to handle refresh selection
