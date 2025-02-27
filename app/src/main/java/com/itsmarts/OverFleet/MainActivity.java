@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     DrawerLayout drawerLayout;
     public Messages messages;
     public NavigationExample navigationExample;
-    public TextView messageView, txtNavegacion, speedTextView, txtTerminarRuta, distanceTextView, timeTextView, txtDescargaInfo, txtProcesoActualizacion, speedLabeltextView;
+    public TextView messageView, txtNavegacion, speedTextView, txtTerminarRuta, distanceTextView, timeTextView, txtDescargaInfo, txtProcesoActualizacion, speedLabeltextView, offlineMapTitle;
     public GeoCoordinates currentGeoCoordinates, coordenadasDestino, coordenada1, coordenada2, geoCoordinatesPOI = null, destinationGeoCoordinates;
     public AvoidZonesExample avoidZonesExample;
     public ControlPointsExample controlPointsExample;
@@ -1055,13 +1055,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                             item.setChecked(false);
                             offlineMap.onSwitchOnlineButtonClicked();
                             routingExample.routingInterface = routingExample.onlineRoutingEngine;
-                            toolbar.setTitle("OVERFLEET");
+                            offlineMapTitle.setVisibility(View.GONE);
                             logger.trackActivity(TAG,"Click en Mapa offline","Desactivado");
                         }else{
                             item.setChecked(true);
                             offlineMap.onSwitchOfflineButtonClicked();
                             routingExample.routingInterface = routingExample.offlineRoutingEngine;
-                            toolbar.setTitle("OVERFLEET - MAPA OFFLINE");
+                            offlineMapTitle.setVisibility(View.VISIBLE);
                             logger.trackActivity(TAG,"Click en Mapa offline","Activado");
                         }
                         // Code to handle refresh selection
@@ -1199,6 +1199,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             speedLabeltextView = findViewById(R.id.speedLabeltextView);
             fbIncidencia = findViewById(R.id.fbIncidencia);
             llIncidencia = findViewById(R.id.llIncidencia);
+            offlineMapTitle = findViewById(R.id.offlineMapTitle);
             progressIndicator = findViewById(R.id.progressRuta);
             progressIndicator.setMax(100); // 100% de la ruta
 

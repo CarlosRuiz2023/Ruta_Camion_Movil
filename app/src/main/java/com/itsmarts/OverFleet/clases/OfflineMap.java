@@ -101,7 +101,7 @@ public class OfflineMap {
                         isMexicoMapDownload = true;
                         if (mainActivity.offlineMapItem != null ) {
                             mainActivity.offlineMapItem.setChecked(true);
-                            mainActivity.toolbar.setTitle("OVERFLEET - MAPA OFFLINE");
+                            mainActivity.offlineMapTitle.setVisibility(View.VISIBLE);
                             onSwitchOfflineButtonClicked();
                             mainActivity.routingExample.routingInterface = mainActivity.routingExample.offlineRoutingEngine;
                         }
@@ -209,7 +209,7 @@ public class OfflineMap {
                         mainActivity.mapOfflineMexDownload = true;
                         mainActivity.logger.trackActivity(TAG,"Mapa offline descargado","El usuario descargo el mapa offline");
                         try{
-                            mainActivity.toolbar.setTitle("OVERFLEET - MAPA OFFLINE");
+                            mainActivity.offlineMapTitle.setVisibility(View.VISIBLE);
                             mainActivity.offlineMapItem.setChecked(true);
                             onSwitchOfflineButtonClicked();
                             mainActivity.btnDescargar.setText("Aceptar");
